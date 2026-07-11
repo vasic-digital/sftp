@@ -1,0 +1,1 @@
+{"code":"validation_error","error":"store: validation error: username \"Bad Name!\" must match ^[a-z_][a-z0-9_-]{0,31}$"}

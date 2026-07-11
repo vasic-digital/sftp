@@ -137,8 +137,7 @@ print('CH-SFTP-001: PASS')
                     pass "$cid: web SPA screenshots captured" "$ss_log"
                 } || {
                     # Screenshots tool failure is environmental, not an SFTP defect
-                    skip "$cid: web screenshots" "topology_unsupported (screenshots tool unavailable — see log)"
-                    echo "SKIP: $cid — screenshots tool failed: $(tail -3 "$ss_log" 2>/dev/null | tr '\n' ' ')" >&2
+                    skip "$cid: web screenshots" "topology_unsupported (screenshots tool unavailable — see log)" "$ss_log"
                 }
             else
                 skip "$cid: web screenshots" "topology_unsupported (screenshots.mjs not found)"
