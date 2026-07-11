@@ -1,3 +1,75 @@
 [submodule "constitution"]
 	path = constitution
 	url = git@github.com:HelixDevelopment/HelixConstitution.git
+[submodule "containers"]
+	path = containers
+	url = git@github.com:vasic-digital/containers.git
+[submodule "docs_chain"]
+	path = docs_chain
+	url = git@github.com:vasic-digital/docs_chain.git
+[submodule "challenges"]
+	path = challenges
+	url = git@github.com:vasic-digital/Challenges.git
+[submodule "helixqa"]
+	path = helixqa
+	url = git@github.com:HelixDevelopment/HelixQA.git
+[submodule "config"]
+	path = config
+	url = git@github.com:vasic-digital/config.git
+[submodule "auth"]
+	path = auth
+	url = git@github.com:vasic-digital/auth.git
+[submodule "database"]
+	path = database
+	url = git@github.com:vasic-digital/database.git
+[submodule "security"]
+	path = security
+	url = git@github.com:vasic-digital/security.git
+[submodule "middleware"]
+	path = middleware
+	url = git@github.com:vasic-digital/middleware.git
+[submodule "i18n"]
+	path = i18n
+	url = git@github.com:vasic-digital/i18n.git
+[submodule "observability"]
+	path = observability
+	url = git@github.com:vasic-digital/observability.git
+[submodule "ratelimiter"]
+	path = ratelimiter
+	url = git@github.com:vasic-digital/ratelimiter.git
+[submodule "cache"]
+	path = cache
+	url = git@github.com:vasic-digital/cache.git
+[submodule "recovery"]
+	path = recovery
+	url = git@github.com:vasic-digital/recovery.git
+[submodule "http3"]
+	path = http3
+	url = git@github.com:vasic-digital/http3.git
+[submodule "mdns"]
+	path = mdns
+	url = git@github.com:vasic-digital/mdns.git
+[submodule "filesystem"]
+	path = filesystem
+	url = git@github.com:vasic-digital/filesystem.git
+[submodule "concurrency"]
+	path = concurrency
+	url = git@github.com:vasic-digital/concurrency.git
+[submodule "formatters"]
+	path = formatters
+	url = git@github.com:vasic-digital/formatters.git
+[submodule "discovery"]
+	path = discovery
+	url = git@github.com:vasic-digital/discovery.git
+[submodule "streaming"]
+	path = streaming
+	url = git@github.com:vasic-digital/streaming.git
+[submodule "storage"]
+	path = storage
+	url = git@github.com:vasic-digital/storage.git
+[submodule "watcher"]
+	path = watcher
+	url = git@github.com:vasic-digital/watcher.git
+[submodule "open_design"]
+	path = open_design
+	url = git@github.com:nexu-io/open-design.git

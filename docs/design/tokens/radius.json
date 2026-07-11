@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "name": "sftp.tokens.radius",
+    "version": "1.0.0",
+    "tier": "global",
+    "model": "opendesign",
+    "description": "Corner-radius scale in px. full is a sentinel for pills/circles (CSS 9999px, Compose 50%).",
+    "units": "px"
+  },
+  "scale": {
+    "none": 0,
+    "xs": 2,
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 16,
+    "xxl": 24,
+    "full": 9999
+  },
+  "semantic": {
+    "button": "md",
+    "input": "md",
+    "card": "lg",
+    "modal": "xl",
+    "chip": "full",
+    "avatar": "full",
+    "tooltip": "sm"
+  }
+}

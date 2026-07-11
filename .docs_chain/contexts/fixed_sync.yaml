@@ -1,0 +1,24 @@
+# Docs Chain context — fixed_sync
+# Chain: docs/Fixed.md → docs/Fixed_Summary.md → .html → .pdf (§11.4.53 / §11.4.65)
+# Schema: docs_chain CONFIG_SCHEMA.md. Registered by STREAM-10 (ATM-010), 2026-07-11.
+context: fixed_sync
+description: Fixed.md -> Fixed_Summary.md -> html/pdf (closed items archive, parity with issues_sync)
+nodes:
+  fixed_md:        { kind: markdown, path: docs/Fixed.md }
+  fixed_summary:   { kind: summary,  path: docs/Fixed_Summary.md }
+  fixed_md_html:   { kind: html,     path: docs/Fixed.html }
+  fixed_md_pdf:    { kind: pdf,      path: docs/Fixed.pdf }
+  fixed_sum_html:  { kind: html,     path: docs/Fixed_Summary.html }
+  fixed_sum_pdf:   { kind: pdf,      path: docs/Fixed_Summary.pdf }
+edges:
+  - { type: derive-from, from: fixed_md,       to: fixed_summary,  transform: gen-fixed-summary }
+  - { type: derive-from, from: fixed_md,       to: fixed_md_html,  transform: md-to-html }
+  - { type: derive-from, from: fixed_md_html,  to: fixed_md_pdf,   transform: html-to-pdf }
+  - { type: derive-from, from: fixed_summary,  to: fixed_sum_html, transform: md-to-html }
+  - { type: derive-from, from: fixed_sum_html, to: fixed_sum_pdf,  transform: html-to-pdf }
+transforms:
+  # Generator script ships with STREAM-9/ATM-009; until then verify reports the
+  # transform absent (honest SKIP, never fake PASS — §11.4.106-E).
+  gen-fixed-summary: { exec: "scripts/testing/generate_fixed_summary.sh" }
+  md-to-html:        { builtin: pandoc-html }
+  html-to-pdf:       { builtin: weasyprint-pdf }

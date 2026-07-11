@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "name": "sftp.tokens.typography",
+    "version": "1.0.0",
+    "tier": "global",
+    "model": "opendesign",
+    "description": "Typography tokens: font families + a 15-step type scale (display/headline/title/body/label). Sizes in px (web) map 1:1 to sp/dp (mobile). Scale follows the Material-3 type system naming so KMP Compose and React consumers bind the same steps.",
+    "units": { "size": "px", "line_height": "px", "letter_spacing": "px", "weight": "css font-weight 100-900" }
+  },
+  "families": {
+    "sans": {
+      "value": "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      "role": "ui text, headings, labels"
+    },
+    "mono": {
+      "value": "'JetBrains Mono', 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace",
+      "role": "paths, host keys, user names, logs, technical data"
+    }
+  },
+  "weights": {
+    "regular": 400,
+    "medium": 500,
+    "semibold": 600,
+    "bold": 700
+  },
+  "scale": {
+    "display_large":   { "size": 57, "line_height": 64, "weight": 700, "letter_spacing": -0.25, "family": "sans" },
+    "display_medium":  { "size": 45, "line_height": 52, "weight": 700, "letter_spacing": 0,     "family": "sans" },
+    "display_small":   { "size": 36, "line_height": 44, "weight": 700, "letter_spacing": 0,     "family": "sans" },
+    "headline_large":  { "size": 32, "line_height": 40, "weight": 600, "letter_spacing": 0,     "family": "sans" },
+    "headline_medium": { "size": 28, "line_height": 36, "weight": 600, "letter_spacing": 0,     "family": "sans" },
+    "headline_small":  { "size": 24, "line_height": 32, "weight": 600, "letter_spacing": 0,     "family": "sans" },
+    "title_large":     { "size": 22, "line_height": 28, "weight": 600, "letter_spacing": 0,     "family": "sans" },
+    "title_medium":    { "size": 16, "line_height": 24, "weight": 500, "letter_spacing": 0.15,  "family": "sans" },
+    "title_small":     { "size": 14, "line_height": 20, "weight": 500, "letter_spacing": 0.1,   "family": "sans" },
+    "body_large":      { "size": 16, "line_height": 24, "weight": 400, "letter_spacing": 0.5,   "family": "sans" },
+    "body_medium":     { "size": 14, "line_height": 20, "weight": 400, "letter_spacing": 0.25,  "family": "sans" },
+    "body_small":      { "size": 12, "line_height": 16, "weight": 400, "letter_spacing": 0.4,   "family": "sans" },
+    "label_large":     { "size": 14, "line_height": 20, "weight": 500, "letter_spacing": 0.1,   "family": "sans" },
+    "label_medium":    { "size": 12, "line_height": 16, "weight": 500, "letter_spacing": 0.5,   "family": "sans" },
+    "label_small":     { "size": 11, "line_height": 16, "weight": 500, "letter_spacing": 0.5,   "family": "sans" }
+  }
+}

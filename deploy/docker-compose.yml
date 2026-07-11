@@ -1,0 +1,80 @@
+# ============================================================================
+# SFTP Enterprise — rootless-Podman compose stack
+# ----------------------------------------------------------------------------
+# Runs under rootless Podman via `podman-compose` or `podman compose`
+# (§11.4.161 — rootful docker / sudo is FORBIDDEN).
+#
+# Usage (from repo root):
+#   cp .env.example .env            # then edit .env with real values
+#   podman-compose -f deploy/docker-compose.yml up -d
+#
+# The compose spec's top-level `version:` key is obsolete, but atmoz/sftp
+# examples and podman-compose still accept '3.8' — kept for compatibility
+# with the MVP deployment doc (docs/research/mvp/MVP.md).
+# ============================================================================
+version: '3.8'
+
+services:
+  # --- SFTP server (atmoz/sftp) ----------------------------------------------
+  sftp:
+    image: ${SFTP_IMAGE:-atmoz/sftp:latest}
+    container_name: ${SFTP_CONTAINER_NAME:-sftp_production}
+    ports:
+      - "${SFTP_PORT:-7721}:22"
+    volumes:
+      - "${SFTP_DATA_DIR:-./data}:/sftp_data"
+      # :ro — the container must never rewrite the user spec (§11.4.10).
+      - "${SFTP_USERS_CONF:-./users.conf}:/etc/sftp/users.conf:ro"
+    environment:
+      SFTP_USERS_FILE: /etc/sftp/users.conf
+    restart: unless-stopped
+    healthcheck:
+      # Portable: bash /dev/tcp probe inside the alpine-based image — no nc,
+      # no ssh-keyscan dependency. PASS = sshd accepts TCP on :22.
+      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/22' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # --- Postgres (only required when DB_DRIVER=postgres) ----------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-sftp_postgres}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sftp}
+      POSTGRES_USER: ${POSTGRES_USER:-sftp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Port 5432 is NOT published by default — the API reaches it over the
+    # internal network. For local dev/debug uncomment:
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sftp} -d ${POSTGRES_DB:-sftp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # --- Management API (Go — image/Dockerfile lands with STREAM-2) ------------
+  api:
+    build: ../api
+    # Fallback once STREAM-2 publishes an image (uncomment, drop `build:`):
+    # image: ${API_IMAGE:-ghcr.io/vasic-digital/sftp-api:latest}
+    container_name: ${API_CONTAINER_NAME:-sftp_api}
+    env_file:
+      - ../.env
+    ports:
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-7722}:7722"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      sftp:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

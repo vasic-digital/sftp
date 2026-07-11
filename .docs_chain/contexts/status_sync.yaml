@@ -1,0 +1,25 @@
+# Docs Chain context — status_sync
+# Chain: docs/Status.md → docs/Status_Summary.md → .html → .pdf (§11.4.45 / §11.4.56 / §11.4.65)
+# Schema: docs_chain CONFIG_SCHEMA.md. Registered by STREAM-10 (ATM-010), 2026-07-11.
+context: status_sync
+description: Status.md -> Status_Summary.md -> html/pdf (integration status + two-audience digest)
+nodes:
+  status_md:        { kind: markdown,       path: docs/Status.md }
+  status_summary:   { kind: status_summary, path: docs/Status_Summary.md }
+  status_md_html:   { kind: html,           path: docs/Status.html }
+  status_md_pdf:    { kind: pdf,            path: docs/Status.pdf }
+  status_sum_html:  { kind: html,           path: docs/Status_Summary.html }
+  status_sum_pdf:   { kind: pdf,            path: docs/Status_Summary.pdf }
+edges:
+  - { type: derive-from, from: status_md,       to: status_summary,  transform: gen-status-summary }
+  - { type: derive-from, from: status_md,       to: status_md_html,  transform: md-to-html }
+  - { type: derive-from, from: status_md_html,  to: status_md_pdf,   transform: html-to-pdf }
+  - { type: derive-from, from: status_summary,  to: status_sum_html, transform: md-to-html }
+  - { type: derive-from, from: status_sum_html, to: status_sum_pdf,  transform: html-to-pdf }
+transforms:
+  # Two-audience generator (page 1 non-developer / page 2 engineer, §11.4.56).
+  # Ships with STREAM-9/ATM-009; absent until then -> honest SKIP per §11.4.106-E.
+  gen-status-summary: { exec: "scripts/testing/generate_status_summary.sh",
+                        args: ["--two-audience"] }
+  md-to-html:         { builtin: pandoc-html }
+  html-to-pdf:        { builtin: weasyprint-pdf }

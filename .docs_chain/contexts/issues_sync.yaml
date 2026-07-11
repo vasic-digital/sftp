@@ -1,0 +1,25 @@
+# Docs Chain context — issues_sync
+# Chain: docs/Issues.md → docs/Issues_Summary.md → .html → .pdf (§11.4.12 / §11.4.65)
+# Schema: docs_chain CONFIG_SCHEMA.md (context/description/nodes/edges/transforms).
+# Registered by: STREAM-10 (ATM-010), 2026-07-11.
+context: issues_sync
+description: Issues.md -> Issues_Summary.md -> html/pdf (open workable items, always in sync)
+nodes:
+  issues_md:        { kind: markdown, path: docs/Issues.md }
+  issues_summary:   { kind: summary,  path: docs/Issues_Summary.md }
+  issues_md_html:   { kind: html,     path: docs/Issues.html }
+  issues_md_pdf:    { kind: pdf,      path: docs/Issues.pdf }
+  issues_sum_html:  { kind: html,     path: docs/Issues_Summary.html }
+  issues_sum_pdf:   { kind: pdf,      path: docs/Issues_Summary.pdf }
+edges:
+  - { type: derive-from, from: issues_md,       to: issues_summary,  transform: gen-issues-summary }
+  - { type: derive-from, from: issues_md,       to: issues_md_html,  transform: md-to-html }
+  - { type: derive-from, from: issues_md_html,  to: issues_md_pdf,   transform: html-to-pdf }
+  - { type: derive-from, from: issues_summary,  to: issues_sum_html, transform: md-to-html }
+  - { type: derive-from, from: issues_sum_html, to: issues_sum_pdf,  transform: html-to-pdf }
+transforms:
+  # Generator script ships with STREAM-9/ATM-009 (tests/tooling); until then this
+  # context verifies with a ToolAbsentError-class SKIP, never a fake PASS (§11.4.106-E).
+  gen-issues-summary: { exec: "scripts/testing/generate_issues_summary.sh" }
+  md-to-html:         { builtin: pandoc-html }
+  html-to-pdf:        { builtin: weasyprint-pdf }

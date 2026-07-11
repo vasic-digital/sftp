@@ -1,0 +1,76 @@
+# SFTP Enterprise — repository hygiene (§11.4.30)
+
+# --- Secrets / sensitive data (§11.4.10) ------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+id_rsa*
+id_ed25519*
+secrets/
+api_keys.sh
+.netrc
+google-services.json
+GoogleService-Info.plist
+firebase-config*.json
+
+# --- Runtime data / databases ------------------------------------------------
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+users.conf
+!users.conf.example
+
+# --- Logs / QA captures ------------------------------------------------------
+*.log
+qa-results/
+
+# --- Build outputs / caches --------------------------------------------------
+api/bin/
+api/dist/
+# Compiled Go binaries (build products — never versioned, §11.4.30)
+api/sftp-api
+/sftp-api
+*.exe
+*.out.test
+web/dist/
+web/node_modules/
+mobile/build/
+mobile/.gradle/
+mobile/.idea/
+**/build/
+coverage.out
+htmlcov/
+__pycache__/
+.pytest_cache/
+.cache/
+.gradle/
+node_modules/
+
+# --- OS / IDE personal state -------------------------------------------------
+.idea/
+.vscode/
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+.history/
+
+# --- Temp files --------------------------------------------------------------
+*.tmp
+*.swp
+*~
+*.orig
+*.rej
+.docs_chain/tmp
+docs_chain.state.json
+
+# --- CodeGraph local index (its own tracked .gitignore also covers this) -----
+.codegraph/*
+!.codegraph/.gitignore

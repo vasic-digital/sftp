@@ -1,0 +1,16 @@
+# Docs Chain context — continuation_sync
+# Chain: docs/CONTINUATION.md → .html → .pdf (§12.10 / §11.4.65)
+# Schema: docs_chain CONFIG_SCHEMA.md. Registered by STREAM-10 (ATM-010), 2026-07-11.
+# NOTE: docs/CONTINUATION.md is conductor-authored; this context only derives its exports.
+context: continuation_sync
+description: CONTINUATION.md -> html/pdf exports (standing resumption doc, §12.10)
+nodes:
+  contin_md:   { kind: markdown, path: docs/CONTINUATION.md }
+  contin_html: { kind: html,     path: docs/CONTINUATION.html }
+  contin_pdf:  { kind: pdf,      path: docs/CONTINUATION.pdf }
+edges:
+  - { type: derive-from, from: contin_md,   to: contin_html, transform: md-to-html }
+  - { type: derive-from, from: contin_html, to: contin_pdf,  transform: html-to-pdf }
+transforms:
+  md-to-html:  { builtin: pandoc-html }
+  html-to-pdf: { builtin: weasyprint-pdf }

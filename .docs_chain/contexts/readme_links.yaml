@@ -1,0 +1,29 @@
+# Docs Chain context — readme_links
+# Chain: tracked docs → README.md Tracked-Items table → README.html/.pdf (§11.4.57 / §11.4.59 / §11.4.65)
+# Schema: docs_chain CONFIG_SCHEMA.md (multi-input derive-from, catalogue recipe (f)).
+# Registered by STREAM-10 (ATM-010), 2026-07-11.
+#
+# OWNERSHIP NOTE: README.md edits are CONDUCTOR-RESERVED in this project (STREAM-10
+# must not edit README.md). This context is therefore REGISTRATION-ONLY for now:
+# it documents the intended chain so `docs_chain verify` can enumerate it, but the
+# generator script + the actual README section write are the conductor's to land.
+context: readme_links
+description: Tracked docs revision headers -> README Tracked-Items doc-link table + README exports (conductor-owned write target)
+nodes:
+  issues_md:    { kind: markdown, path: docs/Issues.md }
+  fixed_md:     { kind: markdown, path: docs/Fixed.md }
+  contin_md:    { kind: markdown, path: docs/CONTINUATION.md }
+  status_md:    { kind: markdown, path: docs/Status.md }
+  readme_md:    { kind: summary,  path: README.md }
+  readme_html:  { kind: html,     path: README.html }
+  readme_pdf:   { kind: pdf,      path: README.pdf }
+edges:
+  - { type: derive-from, from: [issues_md, fixed_md, contin_md, status_md], to: readme_md,
+      transform: gen-readme-doc-links }
+  - { type: derive-from, from: readme_md,   to: readme_html, transform: md-to-html }
+  - { type: derive-from, from: readme_html, to: readme_pdf,  transform: html-to-pdf }
+transforms:
+  # Conductor-owned generator (README write is reserved). Absent -> honest SKIP (§11.4.106-E).
+  gen-readme-doc-links: { exec: "scripts/testing/update_readme_doc_links.sh" }
+  md-to-html:           { builtin: pandoc-html }
+  html-to-pdf:          { builtin: weasyprint-pdf }
