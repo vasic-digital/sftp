@@ -1,0 +1,12 @@
+# NEGATIVE fixture — MUST FAIL validation.
+# Defect: permission is "public" but public_acknowledged is missing/false.
+# Schema allOf/if/then requires public_acknowledged === true for public.
+version: 1
+accounts:
+  - username: sftp_public
+    permission: public
+    public_acknowledged: false
+    uid: 1003
+    gid: 1003
+    home: /sftp_data/sftp_public
+    enabled: true

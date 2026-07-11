@@ -1,7 +1,7 @@
 # SFTP Project — Issues (workable items)
 
-**Revision:** 1
-**Last modified:** 2026-07-11T18:35:00Z
+**Revision:** 2
+**Last modified:** 2026-07-11T16:12:00Z
 
 Tracked per §11.4.15/§11.4.16/§11.4.54. Status vocabulary: Queued | In progress | Ready for testing | In testing | Reopened | Operator-blocked | Fixed (→ Fixed.md) / Implemented (→ Fixed.md) / Completed (→ Fixed.md). Type: Bug | Feature | Task.
 
@@ -9,7 +9,7 @@ Tracked per §11.4.15/§11.4.16/§11.4.54. Status vocabulary: Queued | In progre
 
 ## §1. [ATM-001] Infrastructure & Foundation — submodules, env, compose, go.mod, layout
 
-**Status:** In progress
+**Status:** Completed (→ Fixed.md)
 **Type:** Task
 **Priority:** TOP (critical path — unblocks ATM-002/003/006)
 
@@ -19,7 +19,7 @@ Add all verified owned submodules at flat paths (§11.4.28) with install_upstrea
 
 ## §2. [ATM-002] Go REST API (Gin) — accounts, super-admin auth, DB, SFTP sync, audit
 
-**Status:** Queued (blocked-by ATM-001)
+**Status:** In progress
 **Type:** Feature
 **Priority:** TOP
 
@@ -29,7 +29,7 @@ Gin server: config load (config module), logging (observability), recovery; supe
 
 ## §3. [ATM-003] SFTP config + permission system — YAML/JSON, renderer, migration
 
-**Status:** Queued (blocked-by ATM-001)
+**Status:** In progress
 **Type:** Feature
 **Priority:** TOP
 
@@ -59,7 +59,7 @@ Gradle KMP scaffold (shared + 4 targets); Auth-KMP, Security-KMP, Config-KMP, St
 
 ## §6. [ATM-006] Bash management scripts — service ctl, setup, backup, firebase config
 
-**Status:** Queued (blocked-by ATM-001)
+**Status:** In progress
 **Type:** Task
 **Priority:** TOP
 
@@ -79,7 +79,7 @@ Web modular init (Analytics/Performance/Crashlytics) behind env flags; mobile pe
 
 ## §8. [ATM-008] Design system & assets — OpenDesign, themes, asset formats
 
-**Status:** In progress
+**Status:** Completed (→ Fixed.md)
 **Type:** Task
 **Priority:** MIDDLE
 
@@ -99,7 +99,7 @@ Extend `tests/pre_build_verification.sh` (constitution, gitignore, env-safety, d
 
 ## §10. [ATM-010] Documentation — manuals, guides, FAQ, tutorials, diagrams, Docs Chain
 
-**Status:** In progress
+**Status:** In progress (core set done in c5e68b9; continues per stream)
 **Type:** Task
 **Priority:** MIDDLE
 

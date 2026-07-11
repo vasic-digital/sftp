@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vasic-digital.example/sftp/accounts.schema.json",
+  "title": "SFTP accounts configuration",
+  "description": "Schema for config_schemas/accounts.yaml and accounts.json. `public` permission requires explicit public_acknowledged: true and is never the default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "accounts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "_comment": { "type": "string" },
+    "version": { "const": 1 },
+    "accounts": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/account" }
+    }
+  },
+  "$defs": {
+    "account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["username", "permission"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_-]{0,31}$",
+          "description": "POSIX-style login name: lowercase, starts with letter or underscore, max 32 chars."
+        },
+        "permission": {
+          "enum": ["read_only", "read_write", "public"],
+          "description": "read_only = download only; read_write = upload + download; public = anonymous-style access, NEVER default, requires public_acknowledged: true."
+        },
+        "public_acknowledged": {
+          "type": "boolean",
+          "default": false,
+          "description": "Explicit operator acknowledgement. MUST be true when permission is public; schema enforces via allOf/if/then below."
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 1001,
+          "description": "Numeric UID inside the container; host home dir must be owned by this UID (docs/research/mvp/MVP.md lines 117-132)."
+        },
+        "gid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 1001,
+          "description": "Numeric GID inside the container; same ownership contract as uid."
+        },
+        "home": {
+          "type": "string",
+          "pattern": "^/sftp_data/[a-z_][a-z0-9_-]{0,31}$",
+          "description": "Path INSIDE the container. With ./data bind-mounted at /sftp_data, home is /sftp_data/<username> (MVP.md line 73)."
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Disabled accounts are kept in config but not rendered to users.conf."
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Free-text operator note."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "permission": { "const": "public" } },
+            "required": ["permission"]
+          },
+          "then": {
+            "properties": { "public_acknowledged": { "const": true } },
+            "required": ["public_acknowledged"]
+          }
+        }
+      ]
+    }
+  }
+}

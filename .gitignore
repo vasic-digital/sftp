@@ -18,6 +18,7 @@ firebase-config*.json
 
 # --- Runtime data / databases ------------------------------------------------
 data/
+backups/
 *.db
 *.db-wal
 *.db-shm

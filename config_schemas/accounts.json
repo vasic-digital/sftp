@@ -1,0 +1,25 @@
+{
+  "$schema": "./schema/accounts.schema.json",
+  "_comment": "JSON form of accounts.yaml — identical schema, validated by scripts/validate_config.sh. public is NEVER default; placeholders only (§11.4.10).",
+  "version": 1,
+  "accounts": [
+    {
+      "username": "sftp_writer",
+      "permission": "read_write",
+      "uid": 1002,
+      "gid": 1002,
+      "home": "/sftp_data/sftp_writer",
+      "enabled": true,
+      "comment": "Example read-write account"
+    },
+    {
+      "username": "sftp_reader",
+      "permission": "read_only",
+      "uid": 1001,
+      "gid": 1001,
+      "home": "/sftp_data/sftp_reader",
+      "enabled": true,
+      "comment": "Example read-only account"
+    }
+  ]
+}

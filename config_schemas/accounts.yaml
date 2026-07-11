@@ -1,0 +1,45 @@
+# ============================================================================
+# accounts.yaml — SFTP account source of truth (EXAMPLE / template)
+# ----------------------------------------------------------------------------
+# Canonical user-facing account configuration for the SFTP Enterprise system.
+# Validated by scripts/validate_config.sh against
+# config_schemas/schema/accounts.schema.json (JSON Schema draft 2020-12);
+# consumed by the API sync layer, which renders it to the container's
+# users.conf (atmoz format — see config_schemas/README.md §"Render pipeline").
+#
+# `public` is NEVER the default permission and no enabled public account
+# ships in this example (project rule — see README §"Permission model").
+# No real credentials live here — placeholders only (§11.4.10).
+# ============================================================================
+version: 1
+
+accounts:
+  # read_write — chrooted into its home, owns it: upload + download.
+  - username: sftp_writer
+    permission: read_write
+    uid: 1002
+    gid: 1002
+    home: /sftp_data/sftp_writer
+    enabled: true
+    comment: "Example read-write account"
+
+  # read_only — chrooted into its home, write-masked: download only.
+  - username: sftp_reader
+    permission: read_only
+    uid: 1001
+    gid: 1001
+    home: /sftp_data/sftp_reader
+    enabled: true
+    comment: "Example read-only account"
+
+  # public — NEVER default. Shown DISABLED + commented out: a public account
+  # may only exist with public_acknowledged: true (explicit operator
+  # acknowledgement in API + UI). Schema rejects public without it.
+  # - username: sftp_public
+  #   permission: public
+  #   public_acknowledged: true   # REQUIRED for permission: public
+  #   uid: 1003
+  #   gid: 1003
+  #   home: /sftp_data/sftp_public
+  #   enabled: false
+  #   comment: "Example public account — opt-in only, never default"

@@ -1,0 +1,9 @@
+# NEGATIVE fixture — MUST FAIL validation.
+# Defect: account entry has no "username" (required property).
+version: 1
+accounts:
+  - permission: read_only
+    uid: 1012
+    gid: 1012
+    home: /sftp_data/sftp_noname
+    enabled: true

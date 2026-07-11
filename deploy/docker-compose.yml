@@ -59,10 +59,14 @@ services:
       retries: 5
       start_period: 10s
 
-  # --- Management API (Go — image/Dockerfile lands with STREAM-2) ------------
+  # --- Management API (Go) ---------------------------------------------------
   api:
-    build: ../api
-    # Fallback once STREAM-2 publishes an image (uncomment, drop `build:`):
+    # Build context is the REPO ROOT (api/go.mod uses `replace => ../<submodule>`),
+    # with the Dockerfile under api/. Pure-Go static build (modernc sqlite).
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    # Fallback once an image is published (uncomment, drop `build:`):
     # image: ${API_IMAGE:-ghcr.io/vasic-digital/sftp-api:latest}
     container_name: ${API_CONTAINER_NAME:-sftp_api}
     env_file:

@@ -1,0 +1,42 @@
+# ============================================================================
+# server.yaml — SFTP server runtime configuration (EXAMPLE / template)
+# ----------------------------------------------------------------------------
+# Server-side settings for the atmoz/sftp container stack. Placeholders only —
+# real host/runtime values live in the git-ignored .env (§11.4.10), which
+# overrides these via the deploy/docker-compose.yml ${VAR:-default} bindings.
+# ============================================================================
+version: 1
+
+server:
+  # SSH daemon port published on the host (container always listens on 22).
+  # Overridden by .env SFTP_PORT. Evidence: deploy/docker-compose.yml L23
+  # "${SFTP_PORT:-7721}:22".
+  port: 7721
+
+  # Management API port (bound to loopback by default; .env API_BIND/API_PORT).
+  api_port: 7722
+  api_bind: 127.0.0.1
+
+paths:
+  # Host directory bind-mounted to /sftp_data inside the container
+  # (deploy/docker-compose.yml L25; MVP.md L45). Per-account homes are
+  # <data_dir>/<username>, owned by the account's numeric uid:gid.
+  data_dir: ./data
+
+  # Rendered atmoz user list, mounted read-only at /etc/sftp/users.conf
+  # (deploy/docker-compose.yml L27). GENERATED — never hand-edit the live file.
+  users_conf: ./users.conf
+
+  # Host SSH host-keys directory (persisted so host identity survives
+  # container recreation). <set-in-.env> — provisioned by scripts/setup.sh.
+  host_keys_dir: <set-in-.env>
+
+logging:
+  # One of: debug | info | warn | error
+  level: info
+
+security:
+  # `public` access is NEVER default anywhere in this system; enabling a
+  # public account requires explicit public_acknowledged: true per account
+  # (see accounts.yaml + schema/accounts.schema.json).
+  allow_public_default: false

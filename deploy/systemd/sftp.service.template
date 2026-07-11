@@ -1,0 +1,30 @@
+# ============================================================================
+# sftp.service.template — systemd --user unit for the SFTP Enterprise stack
+# ----------------------------------------------------------------------------
+# This is a TEMPLATE. Do NOT install it directly: `@PROJECT_ROOT@` must be
+# rendered to the real project path. Use:
+#
+#     scripts/sftp_ctl.sh install
+#
+# which renders this file into ~/.config/systemd/user/sftp.service, runs
+# `systemctl --user daemon-reload`, and `enable --now`s the unit.
+#
+# Rootless-only by construction (§11.4.161): the unit lives in the user
+# manager, drives `podman-compose` as the unprivileged user, and contains
+# no sudo / rootful docker anywhere.
+# ============================================================================
+[Unit]
+Description=SFTP Enterprise stack (atmoz/sftp + postgres + API, rootless Podman)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=@PROJECT_ROOT@/deploy
+ExecStart=/usr/bin/podman-compose -f @PROJECT_ROOT@/deploy/docker-compose.yml up -d
+ExecStop=/usr/bin/podman-compose -f @PROJECT_ROOT@/deploy/docker-compose.yml down
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

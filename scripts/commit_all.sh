@@ -50,9 +50,13 @@ echo $$ > "$LOCK"
 trap 'rm -f "$LOCK"' EXIT
 
 # --- Quiescence check (§11.4.84): no mutation markers, no in-flight mutation gate ---
+# Scan CODE files only (docs legitimately describe the markers); exclude the
+# wrapper + its own guide which define/document the scan.
 MUTATION_MARKERS='MUTATED for paired|// always pass|// MUTATION|# MUTATION|_mutated_'
-if git grep -nE "$MUTATION_MARKERS" -- . ':(exclude)scripts/commit_all.sh' 2>/dev/null; then
-  echo "ABORT: mutation markers present in tracked files (§11.4.84 quiescence violated)" >&2
+if git grep -nE "$MUTATION_MARKERS" -- \
+    '*.go' '*.sh' '*.ts' '*.tsx' '*.kt' '*.py' '*.rs' '*.java' '*.js' \
+    ':(exclude)scripts/commit_all.sh' 2>/dev/null; then
+  echo "ABORT: mutation markers present in tracked code (§11.4.84 quiescence violated)" >&2
   exit 1
 fi
 if [[ -f .git/MUTATION_IN_PROGRESS ]]; then
@@ -67,7 +71,14 @@ if git diff --quiet && git diff --cached --quiet && [[ -z "$(git ls-files --othe
 fi
 
 # --- Secret + forbidden-artifact audit on what WOULD be staged (§11.4.10/§11.4.30) ---
-SECRET_PATTERNS='BEGIN [A-Z ]*PRIVATE KEY|api[_-]?key\s*[:=]\s*["'"'"']?[A-Za-z0-9]{20,}|password\s*[:=]\s*["'"'"']?[^"'"'"'\s#]{8,}|secret\s*[:=]\s*["'"'"']?[A-Za-z0-9]{16,}'
+# High-signal patterns (private keys, real token formats) scan EVERY file —
+# these are unambiguous credential material with near-zero false-positive risk.
+HI_PATTERNS='BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|-----BEGIN OPENSSH PRIVATE KEY'
+# Keyword heuristic (`password:`/`secret:`/`api_key:` with a real-looking value)
+# runs ONLY on config/data files — NOT source (Go/TS/Kotlin/…), where `password`
+# is a routine identifier and golden test vectors legitimately appear. Value must
+# be quoted OR spaced/`=`-adjacent so atmoz line-grammar docs don't false-fire.
+KW_PATTERNS='api[_-]?key\s*[:=][[:space:]]*["'"'"'][A-Za-z0-9]{16,}|password\s*[:=][[:space:]]+["'"'"']?[^"'"'"'\s#]{8,}|password\s*=\s*[^"'"'"'\s#]{8,}|secret\s*[:=][[:space:]]+["'"'"']?[A-Za-z0-9]{16,}'
 CHANGED="$(git diff --name-only; git ls-files --others --exclude-standard)"
 LEAK=0
 while IFS= read -r f; do
@@ -80,11 +91,21 @@ while IFS= read -r f; do
   esac
   # skip binary-ish and this script itself when content-scanning
   case "$f" in scripts/commit_all.sh) continue;; esac
-  if grep -EqI "$SECRET_PATTERNS" "$f" 2>/dev/null; then
-    echo "ABORT: secret-like pattern in $f — audit before commit (§11.4.10)" >&2
-    grep -EnI "$SECRET_PATTERNS" "$f" | sed 's/=.*$/=<redacted>/' >&2 || true
+  # High-signal scan: every file.
+  if grep -EqI "$HI_PATTERNS" "$f" 2>/dev/null; then
+    echo "ABORT: credential material in $f — audit before commit (§11.4.10)" >&2
+    grep -EnI "$HI_PATTERNS" "$f" | sed 's/=.*$/=<redacted>/' >&2 || true
     LEAK=1
   fi
+  # Keyword heuristic: config/data files only (source uses `password` as an identifier).
+  case "$f" in
+    *.env|*.yaml|*.yml|*.json|*.toml|*.conf|*.ini|*.cfg|*.txt|*.properties|users.conf*|*.tfvars)
+      if grep -EqI "$KW_PATTERNS" "$f" 2>/dev/null; then
+        echo "ABORT: secret-like assignment in $f — audit before commit (§11.4.10)" >&2
+        grep -EnI "$KW_PATTERNS" "$f" | sed 's/=.*$/=<redacted>/' >&2 || true
+        LEAK=1
+      fi ;;
+  esac
 done <<< "$CHANGED"
 [[ "$LEAK" -eq 0 ]] || exit 1
 

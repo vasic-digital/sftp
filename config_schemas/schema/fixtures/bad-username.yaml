@@ -1,0 +1,11 @@
+# NEGATIVE fixture — MUST FAIL validation.
+# Defect: username "Bad User!" violates ^[a-z_][a-z0-9_-]{0,31}$
+# (uppercase, space, exclamation mark all forbidden).
+version: 1
+accounts:
+  - username: "Bad User!"
+    permission: read_write
+    uid: 1011
+    gid: 1011
+    home: /sftp_data/sftp_baduser
+    enabled: true

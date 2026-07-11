@@ -1,0 +1,10 @@
+# NEGATIVE fixture — MUST FAIL validation.
+# Defect: permission value "execute" is not in the read_only|read_write|public enum.
+version: 1
+accounts:
+  - username: sftp_bad
+    permission: execute
+    uid: 1010
+    gid: 1010
+    home: /sftp_data/sftp_bad
+    enabled: true

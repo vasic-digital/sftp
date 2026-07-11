@@ -1,11 +1,11 @@
 # SFTP Project — CONTINUATION
 
-**Revision:** 1
-**Last modified:** 2026-07-11T18:35:00Z
+**Revision:** 2
+**Last modified:** 2026-07-11T16:10:00Z
 
 ## §1. Where we are
 
-**PHASE:** Enterprise build-out — Phase 0 complete (ground truth + plan), Phase 1 (parallel streams) launching.
+**PHASE:** Enterprise build-out — Phase 1 foundation COMMITTED + PUSHED (checkpoint c5e68b9 on all 4 upstreams); Phase 2 parallel streams (API / config / bash-ops) in flight.
 
 The project transforms from a basic `atmoz/sftp` compose stub (see `docs/research/mvp/MVP.md`)
 into a full enterprise SFTP management system: Go/Gin REST API, account + permission management,
@@ -15,7 +15,7 @@ Docs Chain synced documentation, OpenDesign UI (light/dark), Firebase integratio
 
 ## §2. Live-state anchors
 
-- **HEAD:** 8e01dff (pre-enterprise baseline; constitution init)
+- **HEAD:** c5e68b9 (ATM-001/008/010 batch-1: enterprise foundation) — pushed to github+gitlab+gitflic+gitverse (evidence: qa-results/push/push_20260711T155549Z.log)
 - **Branch:** main (all work merges to main per §11.4.42 iteration discipline; no force-push §11.4.113)
 - **Remotes:** origin fan-out → github + gitlab + gitflic + gitverse (§2.1 multi-upstream push)
 - **Host:** Go 1.26.2 · Node v22.19.0 · Podman 5.7.1 rootless (no docker — §11.4.161) · 64 GB RAM · ulimit -u 65536
@@ -26,13 +26,14 @@ Docs Chain synced documentation, OpenDesign UI (light/dark), Firebase integratio
 
 | Stream | Item | Status | Scope (disjoint file ownership) |
 |---|---|---|---|
-| STREAM-1 | ATM-001 Infrastructure & Foundation | In progress | `.gitmodules`, `deploy/`, `.env.example`, `api/go.mod`, `.gitignore`, submodule dirs |
-| STREAM-8 | ATM-008 Design system & assets | In progress | `docs/design/`, `web/src/theme/`, `mobile/shared/.../theme/` |
-| STREAM-10 | ATM-010 Documentation | In progress | `docs/` (except plans owned here), `.docs_chain/` |
+| STREAM-2 | ATM-002 Go REST API (Gin) | In progress | `api/**` only (incl. `api/Dockerfile` addendum) |
+| STREAM-3 | ATM-003 SFTP config & permissions | In progress | `config/**`, `users.conf.example`, `scripts/validate_config.sh`, `docs/scripts/validate_config.md` |
+| STREAM-6 | ATM-006 Bash management scripts | In progress | `scripts/{sftp_ctl,setup,backup,firebase_config}.sh`, `deploy/systemd/*`, `tests/test_scripts_smoke.sh`, 4 guides |
 
-Queued (start after ATM-001 lands): ATM-002 (API), ATM-003 (config/permissions), ATM-006 (bash ops).
+Done + verified (checkpoint c5e68b9): STREAM-1 ATM-001, STREAM-8 ATM-008, STREAM-10 ATM-010-partial (core docs + docs_chain contexts).
 Queued (after API contract): ATM-004 (web), ATM-005 (mobile), ATM-007 (firebase).
 Continuous: ATM-009 (tests/QA), ATM-011 (gates/review/release plumbing).
+Conductor notes: compose `api.build` needs `{context: .., dockerfile: api/Dockerfile}` once STREAM-2's Dockerfile lands; `backups/` added to .gitignore for STREAM-6.
 
 ## §4. Terminal goal (this scope)
 
