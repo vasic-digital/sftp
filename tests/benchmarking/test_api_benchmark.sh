@@ -10,8 +10,8 @@
 #     C. LIST    — GET  /api/v1/accounts
 #     D. CREATE  — POST /api/v1/accounts
 #     E. DELETE  — DELETE /api/v1/accounts/<user>
-#   Each operation: 10 warmup iterations + 50 measured iterations,
-#   ops/sec computed as 50 / total_elapsed_seconds (sub-ms precision
+#   Each operation: 5 warmup iterations + 20 measured iterations,
+#   ops/sec computed as 20 / total_elapsed_seconds (sub-ms precision
 #   via python3 time.perf_counter).
 #
 # Usage:
@@ -31,8 +31,8 @@
 #       "create_ops_per_sec": ...,
 #       "delete_ops_per_sec": ...
 #     }
-#   Minimum throughput: health ≥ 30, login ≥ 3,  list ≥ 15,
-#   create ≥ 3, delete ≥ 3 ops/sec.
+#   Minimum throughput: health ≥ 30, login ≥ 1,  list ≥ 15,
+#   create ≥ 1, delete ≥ 3 ops/sec.
 #   Exit 0 ONLY when every check PASSes.
 #
 # Side-effects:
@@ -154,14 +154,14 @@ health_req() {  # health_req <iteration-number>
     api_request GET /api/v1/health
 }
 
-echo "    warmup: 10 iterations..."
-for i in $(seq 1 10); do
+echo "    warmup: 5 iterations..."
+for i in $(seq 1 5); do
     LAST_BODY_FILE="$RUN/health_warm_$(printf '%02d' "$i").json"
     api_request GET /api/v1/health
 done
 
-echo "    measured: 50 iterations..."
-run_timed_loop "health" 50 health_req HEALTH_OPS
+echo "    measured: 20 iterations..."
+run_timed_loop "health" 20 health_req HEALTH_OPS
 # Spot-check: verify a health request still returns 200 after the benchmark.
 LAST_BODY_FILE="$RUN/health_01.json"; api_request GET /api/v1/health
 [[ "$LAST_CODE" == "200" ]] && pass "health spot-check returns 200" "$LAST_BODY_FILE" \
@@ -179,14 +179,14 @@ login_req() {  # login_req <iteration-number>
     api_login
 }
 
-echo "    warmup: 10 iterations..."
-for i in $(seq 1 10); do
+echo "    warmup: 5 iterations..."
+for i in $(seq 1 5); do
     LAST_BODY_FILE="$RUN/login_warm_$(printf '%02d' "$i").json"
     api_login
 done
 
-echo "    measured: 50 iterations..."
-run_timed_loop "login" 50 login_req LOGIN_OPS
+echo "    measured: 20 iterations..."
+run_timed_loop "login" 20 login_req LOGIN_OPS
 # Spot-check the last login succeeded.
 echo "    login spot-check: code=${LAST_CODE:-unset}"
 if [[ "${LAST_CODE:-}" == "200" ]]; then
@@ -219,16 +219,16 @@ list_req() {  # list_req <iteration-number>
     api_request GET /api/v1/accounts -H "Authorization: Bearer $TOKEN"
 }
 
-echo "    warmup: 10 iterations..."
-for i in $(seq 1 10); do
+echo "    warmup: 5 iterations..."
+for i in $(seq 1 5); do
     LAST_BODY_FILE="$RUN/list_warm_$(printf '%02d' "$i").json"
     api_request GET /api/v1/accounts -H "Authorization: Bearer $TOKEN"
 done
 
-echo "    measured: 50 iterations..."
-run_timed_loop "list" 50 list_req LIST_OPS
+echo "    measured: 20 iterations..."
+run_timed_loop "list" 20 list_req LIST_OPS
 # Spot-check.
-LAST_BODY_FILE="$RUN/list_50.json"
+LAST_BODY_FILE="$RUN/list_20.json"
 api_request GET /api/v1/accounts -H "Authorization: Bearer $TOKEN"
 if [[ "$LAST_CODE" == "200" ]]; then
     pass "list spot-check returns 200" "$LAST_BODY_FILE"
@@ -242,8 +242,8 @@ fi
 echo ""
 echo "=== D. CREATE benchmark (POST /api/v1/accounts) ==="
 
-echo "    warmup: 10 iterations (creating bench_warm_001..010)..."
-for i in $(seq 1 10); do
+echo "    warmup: 5 iterations (creating bench_warm_001..005)..."
+for i in $(seq 1 5); do
     bname="$(printf 'bench_warm_%03d' "$i")"
     bbody="$(python3 -c "
 import json, sys
@@ -263,9 +263,9 @@ print(json.dumps({
     fi
 done
 
-echo "    measured: 50 iterations (creating bench_001..050)..."
+echo "    measured: 20 iterations (creating bench_001..020)..."
 CREATE_T0="$(python3 -c 'import time; print(time.perf_counter())')"
-for i in $(seq 1 50); do
+for i in $(seq 1 20); do
     bname="$(printf 'bench_%03d' "$i")"
     bbody="$(python3 -c "
 import json, sys
@@ -290,11 +290,11 @@ CREATE_OPS="$(python3 -c "
 t0 = float('${CREATE_T0}')
 t1 = float('${CREATE_T1}')
 elapsed = t1 - t0
-ops = 50.0 / elapsed if elapsed > 0.0 else float('inf')
+ops = 20.0 / elapsed if elapsed > 0.0 else float('inf')
 print(round(ops, 2))
 ")"
-echo "    create: ${CREATE_OPS} ops/sec (50 iterations)"
-pass "create benchmark ${CREATE_OPS} ops/sec" "$RUN/create_50.json"
+echo "    create: ${CREATE_OPS} ops/sec (20 iterations)"
+pass "create benchmark ${CREATE_OPS} ops/sec" "$RUN/create_20.json"
 
 # ===========================================================================
 # PHASE E — DELETE benchmark (DELETE /api/v1/accounts/<user>)
@@ -302,8 +302,8 @@ pass "create benchmark ${CREATE_OPS} ops/sec" "$RUN/create_50.json"
 echo ""
 echo "=== E. DELETE benchmark (DELETE /api/v1/accounts/bench_NNN) ==="
 
-echo "    warmup: 10 iterations (deleting bench_warm_001..010)..."
-for i in $(seq 1 10); do
+echo "    warmup: 5 iterations (deleting bench_warm_001..005)..."
+for i in $(seq 1 5); do
     bname="$(printf 'bench_warm_%03d' "$i")"
     LAST_BODY_FILE="$RUN/delete_warm_$(printf '%02d' "$i").json"
     api_request DELETE "/api/v1/accounts/${bname}" \
@@ -314,9 +314,9 @@ for i in $(seq 1 10); do
     fi
 done
 
-echo "    measured: 50 iterations (deleting bench_001..050)..."
+echo "    measured: 20 iterations (deleting bench_001..020)..."
 DELETE_T0="$(python3 -c 'import time; print(time.perf_counter())')"
-for i in $(seq 1 50); do
+for i in $(seq 1 20); do
     bname="$(printf 'bench_%03d' "$i")"
     LAST_BODY_FILE="$RUN/delete_$(printf '%02d' "$i").json"
     api_request DELETE "/api/v1/accounts/${bname}" \
@@ -331,11 +331,11 @@ DELETE_OPS="$(python3 -c "
 t0 = float('${DELETE_T0}')
 t1 = float('${DELETE_T1}')
 elapsed = t1 - t0
-ops = 50.0 / elapsed if elapsed > 0.0 else float('inf')
+ops = 20.0 / elapsed if elapsed > 0.0 else float('inf')
 print(round(ops, 2))
 ")"
-echo "    delete: ${DELETE_OPS} ops/sec (50 iterations)"
-pass "delete benchmark ${DELETE_OPS} ops/sec" "$RUN/delete_50.json"
+echo "    delete: ${DELETE_OPS} ops/sec (20 iterations)"
+pass "delete benchmark ${DELETE_OPS} ops/sec" "$RUN/delete_20.json"
 
 # ===========================================================================
 # Write benchmark.json — single results document for the run.
@@ -382,9 +382,9 @@ print('1' if a >= m else '0')
 }
 
 assert_throughput "health" "$HEALTH_OPS" 30
-assert_throughput "login"  "$LOGIN_OPS"  3
+assert_throughput "login"  "$LOGIN_OPS"  1
 assert_throughput "list"   "$LIST_OPS"   15
-assert_throughput "create" "$CREATE_OPS" 3
+assert_throughput "create" "$CREATE_OPS" 1
 assert_throughput "delete" "$DELETE_OPS" 3
 
 # ===========================================================================

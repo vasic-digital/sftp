@@ -1,0 +1,11 @@
+Filesystem     1K-blocks  Used Available Use% Mounted on
+tmpfs                 16     0        16   0% /tmp/.private/milosvasic/tmp.qwaOBpfYhY/diskfull/mnt
+SATURATION-CONFIRMED: probe write failed with ENOSPC
+Filesystem     1K-blocks  Used Available Use% Mounted on
+tmpfs                 16    16         0 100% /tmp/.private/milosvasic/tmp.qwaOBpfYhY/diskfull/mnt
+total 16
+drwxrwxrwt 2 root root   100 Jul 11 23:23 .
+drwxr-xr-x 3 root root    60 Jul 11 23:23 ..
+-rw-r--r-- 1 root root 16384 Jul 11 23:23 filler
+-rw-r--r-- 1 root root     0 Jul 11 23:23 pad_1
+-rw-r--r-- 1 root root     0 Jul 11 23:23 .saturation_probe

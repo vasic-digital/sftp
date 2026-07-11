@@ -4,7 +4,6 @@ import {
   assertPublicAcknowledged,
   clearTokens,
   getAccessToken,
-  getRefreshToken,
   storeTokens,
 } from './client';
 import { ApiError, TokenPair } from './types';
@@ -23,6 +22,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+function storeAccessExpiry(): void {
+  const expiresAt = Date.now() + TOKENS.expires_in * 1000;
+  localStorage.setItem('sftp.expires_at', String(expiresAt));
+}
+
 describe('ApiClient', () => {
   let client: ApiClient;
 
@@ -37,11 +41,11 @@ describe('ApiClient', () => {
     clearTokens();
   });
 
-  it('login stores both tokens', async () => {
+  it('login stores access token (refresh token is HttpOnly cookie)', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse(TOKENS));
     await client.login('admin', 'secret');
     expect(getAccessToken()).toBe('access-1');
-    expect(getRefreshToken()).toBe('refresh-1');
+    // refresh token is no longer in localStorage — it lives in an HttpOnly cookie
   });
 
   it('sends Authorization header with stored access token', async () => {
@@ -52,8 +56,17 @@ describe('ApiClient', () => {
     expect(headers.get('Authorization')).toBe('Bearer access-1');
   });
 
+  it('sends credentials:include on all requests', async () => {
+    storeTokens(TOKENS);
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse([]));
+    await client.listAccounts();
+    const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit;
+    expect(init.credentials).toBe('include');
+  });
+
   it('on 401 performs one silent refresh then retries the request', async () => {
     storeTokens(TOKENS);
+    storeAccessExpiry();
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(jsonResponse({ error: 'expired' }, 401))
@@ -149,5 +162,16 @@ describe('ApiClient', () => {
     storeTokens(TOKENS);
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 204 }));
     await expect(client.deleteAccount('alice')).resolves.toBeUndefined();
+  });
+
+  it('logout clears access token and calls server', async () => {
+    storeTokens(TOKENS);
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ message: 'logged out' }));
+    await client.logout();
+    expect(getAccessToken()).toBeNull();
+    const logoutCall = vi.mocked(fetch).mock.calls.find((c) =>
+      String(c[0]).includes('/auth/logout'),
+    );
+    expect(logoutCall).toBeDefined();
   });
 });

@@ -3,7 +3,11 @@
  *
  * - Base URL: VITE_API_BASE_URL env with a sane default; overridable per
  *   browser via localStorage (Settings screen).
- * - Auth: Bearer access token + one silent refresh on 401, then retry once.
+ * - Auth: Bearer access token + HttpOnly refresh-token cookie. The access
+ *   token is short-lived (15 min) and stored in memory + localStorage for
+ *   page-reload survival. The refresh token lives in an HttpOnly cookie
+ *   (XSS-resistant). On 401 the client silently calls /auth/refresh (cookie
+ *   sent automatically via credentials:'include') and retries once.
  * - Public-permission guard: client-side mirror of the server's HTTP 422
  *   rule — permission "public" requires public_acknowledged === true.
  */
@@ -19,10 +23,11 @@ import {
 
 const DEFAULT_API_BASE = '/api/v1';
 const ACCESS_TOKEN_KEY = 'sftp.access_token';
-const REFRESH_TOKEN_KEY = 'sftp.refresh_token';
 const EXPIRES_AT_KEY = 'sftp.expires_at';
 const REFRESH_LEAD_SECONDS = 60;
 const API_BASE_OVERRIDE_KEY = 'sftp.api_base_override';
+
+// ---- Base URL helpers ----
 
 export function getApiBase(): string {
   const override =
@@ -45,23 +50,16 @@ export function getDefaultApiBase(): string {
   return (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/+$/, '');
 }
 
+// ---- Access-token helpers (localStorage — short-lived, 15 min) ----
+// The refresh token is stored in an HttpOnly cookie and is NOT accessible
+// from JavaScript.
+
 export function getAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
-export function storeTokens(tokens: TokenPair): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
-}
-
-export function clearTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(EXPIRES_AT_KEY);
+export function isAuthenticated(): boolean {
+  return getAccessToken() !== null;
 }
 
 function getExpiresAt(): number | null {
@@ -80,9 +78,18 @@ function clearExpiresAt(): void {
   localStorage.removeItem(EXPIRES_AT_KEY);
 }
 
-export function isAuthenticated(): boolean {
-  return getAccessToken() !== null;
+// ---- Token storage (access token ONLY; refresh token is in HttpOnly cookie) ----
+
+export function storeTokens(tokens: TokenPair): void {
+  localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
 }
+
+export function clearTokens(): void {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  clearExpiresAt();
+}
+
+// ---- Validation ----
 
 /**
  * Validates the public-permission guard before create/update.
@@ -93,6 +100,8 @@ export function assertPublicAcknowledged(req: AccountRequest): void {
     throw new ApiError(422, 'public permission requires explicit acknowledgement');
   }
 }
+
+// ---- Error handling ----
 
 async function parseError(response: Response): Promise<ApiError> {
   let message = `HTTP ${response.status}`;
@@ -106,6 +115,8 @@ async function parseError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, message);
 }
 
+// ---- ApiClient ----
+
 export class ApiClient {
   /** Called when a refresh attempt ultimately fails (session expired). */
   onSessionExpired?: () => void;
@@ -113,22 +124,31 @@ export class ApiClient {
   private refreshPromise: Promise<boolean> | null = null;
   private refreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Low-level fetch with credentials so HttpOnly cookies are always sent.
+   */
   private async rawFetch(path: string, init: RequestInit = {}): Promise<Response> {
-    return fetch(`${getApiBase()}${path}`, init);
+    return fetch(`${getApiBase()}${path}`, {
+      ...init,
+      credentials: 'include',
+    });
   }
 
+  /**
+   * Call the refresh endpoint. The refresh token is read from the HttpOnly
+   * cookie automatically (credentials:'include'). No refresh_token field is
+   * sent in the body — the cookie carries it. The response includes a new
+   * access token in the JSON body (and rotates the cookie).
+   */
   private async refreshAccessToken(): Promise<boolean> {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) return false;
     try {
       const response = await this.rawFetch('/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: refreshToken }),
+        body: '{}',
       });
       if (!response.ok) {
         clearTokens();
-        clearExpiresAt();
         this.stopProactiveRefresh();
         return false;
       }
@@ -139,7 +159,6 @@ export class ApiClient {
       return true;
     } catch {
       clearTokens();
-      clearExpiresAt();
       this.stopProactiveRefresh();
       return false;
     }
@@ -158,7 +177,7 @@ export class ApiClient {
   /**
    * Start the proactive token refresh timer. Safe to call when a timer is
    * already running (it will be rescheduled).  Called by AuthContext on mount
-   * when a stored session already exists.
+   * when a stored access token already exists.
    */
   startProactiveRefresh(): void {
     this.scheduleProactiveRefresh();
@@ -241,10 +260,31 @@ export class ApiClient {
     return tokens;
   }
 
-  logout(): void {
+  /**
+   * Log out: clear local access token, stop proactive refresh, and call
+   * the server to revoke the refresh token + clear the HttpOnly cookie.
+   * Server call is fire-and-forget — local state is cleared immediately.
+   */
+  async logout(): Promise<void> {
+    const token = getAccessToken();
     clearTokens();
-    clearExpiresAt();
     this.stopProactiveRefresh();
+    // Fire-and-forget server-side logout to clear the cookie and revoke.
+    if (token) {
+      try {
+        const headers = new Headers();
+        headers.set('Authorization', `Bearer ${token}`);
+        headers.set('Content-Type', 'application/json');
+        // Send empty body — the refresh token is read from the cookie.
+        await this.rawFetch('/auth/logout', {
+          method: 'POST',
+          headers,
+          body: '{}',
+        });
+      } catch {
+        // Server logout is best-effort; local state is already cleared.
+      }
+    }
   }
 
   async me(): Promise<AdminIdentity> {

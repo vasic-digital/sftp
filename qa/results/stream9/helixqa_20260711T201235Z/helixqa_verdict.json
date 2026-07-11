@@ -1,0 +1,86 @@
+{
+  "session": "helixqa_20260711T201235Z",
+  "suites": {
+    "api-benchmarking": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-chaos": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-ddos": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-lifecycle": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-performance": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-scaling": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-security": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-stress": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "challenges": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "e2e-journey": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "go-tests": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "web-screenshots": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "web-tests": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "web-ui": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "web-ux": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    }
+  },
+  "totals": {
+    "PASS": 0,
+    "FAIL": 0,
+    "SKIP": 0,
+    "UNKNOWN": 15
+  }
+}

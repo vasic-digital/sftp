@@ -78,7 +78,7 @@ run_one() {
     t0="$(date +%s)"
     local rc=0
     if [[ -x "$script" ]]; then
-        bash "$script" > "$log" 2>&1 || rc=$?
+        timeout --signal=TERM --kill-after=10 300 bash "$script" > "$log" 2>&1 || rc=$?
     else
         echo "SKIP: $script not found or not executable" | tee "$log"
         rc=3

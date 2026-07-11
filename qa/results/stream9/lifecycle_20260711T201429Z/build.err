@@ -1,0 +1,5 @@
+# github.com/vasic-digital/sftp/api/internal/api
+internal/api/handlers_auth.go:6:2: "strings" imported and not used
+internal/api/handlers_auth.go:71:4: s.setRefreshTokenCookie undefined (type *Server has no field or method setRefreshTokenCookie)
+internal/api/handlers_auth.go:91:13: s.readRefreshToken undefined (type *Server has no field or method readRefreshToken)
+internal/api/handlers_auth.go:107:4: s.setRefreshTokenCookie undefined (type *Server has no field or method setRefreshTokenCookie)

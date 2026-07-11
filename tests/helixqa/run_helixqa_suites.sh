@@ -101,8 +101,8 @@ for suite_name in "${RUN_SUITES[@]}"; do
     t0="$(date +%s)"
     rc=0
 
-    # Execute in project root
-    (cd "$ROOT" && eval "$cmd") > "$log" 2>&1 || rc=$?
+    # Execute in project root with timeout guard (300s = 5 min max per suite)
+    (cd "$ROOT" && timeout --signal=TERM --kill-after=10 300 bash -c "$cmd") > "$log" 2>&1 || rc=$?
 
     t1=
     t1="$(date +%s)"

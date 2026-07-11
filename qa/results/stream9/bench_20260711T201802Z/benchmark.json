@@ -1,0 +1,7 @@
+{
+  "health_ops_per_sec": 180.2,
+  "login_ops_per_sec": 2.37,
+  "list_ops_per_sec": 195.84,
+  "create_ops_per_sec": 2.32,
+  "delete_ops_per_sec": 180.33
+}

@@ -18,7 +18,6 @@ import (
 	"github.com/vasic-digital/sftp/api/internal/vault"
 
 	mwgin "digital.vasic.middleware/pkg/gin"
-	"digital.vasic.middleware/pkg/logging"
 	"digital.vasic.middleware/pkg/recovery"
 	"digital.vasic.middleware/pkg/requestid"
 )
@@ -58,9 +57,17 @@ func (s *Server) Engine() *gin.Engine {
 
 	r.Use(mwgin.Wrap(requestid.New()))
 	r.Use(mwgin.Wrap(recovery.New(&recovery.Config{PrintStack: false})))
-	r.Use(mwgin.Wrap(logging.New(&logging.Config{
-		SkipPaths: map[string]struct{}{"/api/v1/health": {}},
-	})))
+	// Gin-native request logger — reads c.Writer.Status() AFTER c.Next()
+	// so the logged status code is always the actual response status.
+	// The generic logging middleware wrapped via mwgin.Wrap cannot be used
+	// here because its statusRecorder wraps c.Writer but Gin handlers write
+	// to c.Writer directly, bypassing the wrapper (the Wrap adapter
+	// ignores the wrapped http.ResponseWriter and only calls c.Next()).
+	r.Use(s.requestLogger())
+	r.Use(s.securityHeadersMiddleware())
+	if s.cfg.CORSOrigin != "" {
+		r.Use(s.corsMiddleware())
+	}
 
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", s.handleHealth)
@@ -84,6 +91,27 @@ func (s *Server) Engine() *gin.Engine {
 	secured.POST("/sync", s.handleSync)
 
 	return r
+}
+
+// requestLogger logs every HTTP request AFTER the handler has written the
+// response, ensuring the logged status code is the actual status — never
+// the default 200 from a wrapper that Gin's internals bypassed.
+func (s *Server) requestLogger() gin.HandlerFunc {
+	skipPaths := map[string]struct{}{"/api/v1/health": {}}
+	return func(c *gin.Context) {
+		if _, skip := skipPaths[c.Request.URL.Path]; skip {
+			c.Next()
+			return
+		}
+		start := time.Now()
+		c.Next()
+		log.Printf("[HTTP] %s %s %d %s",
+			c.Request.Method,
+			c.Request.URL.Path,
+			c.Writer.Status(),
+			time.Since(start),
+		)
+	}
 }
 
 // handleHealth is the unauthenticated liveness probe.
@@ -187,6 +215,45 @@ func (s *Server) rateLimitMiddleware(rate int, window time.Duration) gin.Handler
 			c.Abort()
 			return
 		}
+		c.Next()
+	}
+}
+
+// corsMiddleware adds CORS headers when the request Origin matches the
+// configured CORSOrigin. Preflight OPTIONS requests receive a 204.
+// credentials mode is enabled so HttpOnly cookies are sent cross-origin
+// during development (Vite dev server on a different port).
+func (s *Server) corsMiddleware() gin.HandlerFunc {
+	allowed := s.cfg.CORSOrigin
+	return func(c *gin.Context) {
+		origin := c.GetHeader("Origin")
+		if origin != allowed {
+			c.Next()
+			return
+		}
+		c.Header("Access-Control-Allow-Origin", allowed)
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Max-Age", "86400")
+
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
+}
+
+// securityHeadersMiddleware sets response headers that harden the API
+// against common browser-side attacks. These are additive — they never
+// reject a request.
+func (s *Server) securityHeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+		c.Header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 		c.Next()
 	}
 }

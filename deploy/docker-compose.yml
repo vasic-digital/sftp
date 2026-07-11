@@ -22,7 +22,10 @@ services:
     ports:
       - "${SFTP_PORT:-7721}:22"
     volumes:
-      - "${SFTP_DATA_DIR:-./data}:/sftp_data"
+      # atmoz/sftp creates user homes under /home/<username>/
+      # (the chroot target). Mount host data at /home so SFTP users
+      # see the host-persisted directories.
+      - "${SFTP_DATA_DIR:-./data}:/home"
       # :ro — the container must never rewrite the user spec (§11.4.10).
       - "${SFTP_USERS_CONF:-./users.conf}:/etc/sftp/users.conf:ro"
     environment:

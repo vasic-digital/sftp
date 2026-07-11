@@ -60,6 +60,10 @@ type Config struct {
 	// VaultDataDir is the filesystem directory where the persistent
 	// encrypted vault stores its data blobs (default data/vault).
 	VaultDataDir string `json:"vault_data_dir" yaml:"vault_data_dir"`
+	// CORSOrigin is the allowed Origin for CORS requests. When empty
+	// (default) no CORS headers are emitted — use this when the API and
+	// SPA are served from the same origin or behind a reverse proxy.
+	CORSOrigin string `json:"cors_origin" yaml:"cors_origin"`
 }
 
 // Default returns the baseline configuration before file/env overrides.
@@ -177,6 +181,9 @@ func applyEnv(c *Config) {
 	}
 	if v := getenv("VAULT_DATA_DIR"); v != "" {
 		c.VaultDataDir = v
+	}
+	if v := getenv("API_CORS_ORIGIN"); v != "" {
+		c.CORSOrigin = v
 	}
 }
 

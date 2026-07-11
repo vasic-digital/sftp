@@ -4,7 +4,7 @@ import { apiClient, clearTokens, isAuthenticated } from '../api/client';
 interface AuthContextValue {
   authenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   sessionExpired: boolean;
   clearSessionExpired: () => void;
 }
@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSessionExpired(true);
     };
     // Resume proactive refresh for a stored session (page reload, etc.)
+    // isAuthenticated() checks for a stored access token — if present,
+    // the refresh cookie will be used to rotate it.
     if (isAuthenticated()) {
       apiClient.startProactiveRefresh();
     }
@@ -41,8 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuthenticated(true);
         setSessionExpired(false);
       },
-      logout: () => {
-        apiClient.logout();
+      logout: async () => {
+        await apiClient.logout();
         setAuthenticated(false);
       },
     }),

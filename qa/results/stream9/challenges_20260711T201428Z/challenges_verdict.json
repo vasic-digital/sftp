@@ -1,0 +1,8 @@
+{
+  "bank": "sftp_challenges.yaml",
+  "total": 6,
+  "pass": 1,
+  "fail": 5,
+  "skip": 0,
+  "overall": "FAIL"
+}

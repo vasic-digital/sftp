@@ -350,17 +350,17 @@ func TestFullAccountJourney(t *testing.T) {
 	if len(lines) != 2 {
 		t.Fatalf("users.conf lines = %d, want 2:\n%s", len(lines), content)
 	}
-	// alice: read_write, sha512-crypt hash, auto uid 1001, no option suffix.
-	if !strings.HasPrefix(lines[0], "alice:$6$:1001:1001:/alice") && !strings.HasPrefix(lines[0], "alice:$6$") {
+	// alice: read_write, sha512-crypt hash, :e at position 3 (encrypted-password flag), auto uid 1001.
+	if !strings.HasPrefix(lines[0], "alice:$6$") {
 		t.Fatalf("alice line malformed: %q", lines[0])
 	}
 	parts := strings.Split(lines[0], ":")
-	if len(parts) != 5 || !strings.HasPrefix(parts[1], "$6$") || parts[2] != "1001" || parts[3] != "1001" || parts[4] != "/alice" {
+	if len(parts) != 6 || !strings.HasPrefix(parts[1], "$6$") || parts[2] != "e" || parts[3] != "1001" || parts[4] != "1001" || parts[5] != "/alice" {
 		t.Fatalf("alice line fields wrong: %q", lines[0])
 	}
-	// pubacct: public → '*' password + :e chroot.
-	if lines[1] != "pubacct:*:1002:1002:/pubacct:e" {
-		t.Fatalf("pubacct line = %q, want pubacct:*:1002:1002:/pubacct:e", lines[1])
+	// pubacct: public '*' password + :e at position 3.
+	if lines[1] != "pubacct:*:e:1002:1002:/pubacct" {
+		t.Fatalf("pubacct line = %q, want pubacct:*:e:1002:1002:/pubacct", lines[1])
 	}
 
 	// Delete alice → then 404 on get.

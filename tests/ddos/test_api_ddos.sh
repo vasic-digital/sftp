@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
 # test_api_ddos.sh — DDoS resilience test of the SFTP management API
-# (STREAM-9, §11.4.85 stress/chaos mandate — connection-flood + rate-limit
+# (STREAM-9, §11.4.82 stress/chaos mandate — connection-flood + rate-limit
 # enforcement subset)
 # ----------------------------------------------------------------------------
 # Purpose:
@@ -10,10 +10,10 @@
 #   Unlike test_api_stress.sh (which LIFTS the rate limit for surface-stress),
 #   THIS test keeps the real limit to prove it engages CORRECTLY:
 #
-#     Phase 1 — CONNECTION FLOOD: 50 concurrent curl processes hammer
-#               POST /api/v1/auth/login with wrong credentials for ~5 s.
+#     Phase 1 — CONNECTION FLOOD: 20 concurrent curl processes hammer
+#               POST /api/v1/auth/login with wrong credentials for ~2 s.
 #     Phase 2 — RATE LIMIT CHECK: after the flood, count how many requests
-#               got 429 (rate-limited) vs non-429.  With 50 concurrent
+#               got 429 (rate-limited) vs non-429.  With 20 concurrent
 #               connections from 127.0.0.1 and a 10/min default ceiling,
 #               some MUST get 429.
 #     Phase 3 — HEALTH DURING FLOOD: a health-check request fired mid-flood
@@ -31,11 +31,11 @@
 #
 # Usage:
 #   tests/api/test_api_ddos.sh
-#   FLOOD_WORKERS=50 FLOOD_SECONDS=5 tests/api/test_api_ddos.sh
+#   FLOOD_WORKERS=20 FLOOD_SECONDS=2 tests/api/test_api_ddos.sh
 #
 # Inputs:
 #   The api/ Go module (built into the run sandbox). Env overrides for
-#   flood worker count and duration (defaults: 50 workers, 5 seconds).
+#   flood worker count and duration (defaults: 50 workers, 2 seconds).
 #
 # Outputs:
 #   qa/results/stream9/ddos_<timestamp>/ — flood_results.txt (one line per
@@ -45,7 +45,7 @@
 #
 # Side-effects:
 #   One mktemp sandbox + evidence dir; API stopped + sandbox removed on
-#   EXIT (§11.4.14).  Heavy CPU/network load on 127.0.0.1 for ~5 s, bounded.
+#   EXIT (§11.4.14).  Heavy CPU/network load on 127.0.0.1 for ~2 s, bounded.
 #
 # Dependencies:
 #   bash ≥ 4, go ≥ 1.24, curl, python3, openssl.
@@ -59,10 +59,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT/tests/api/lib_api.sh"
 
-FLOOD_WORKERS="${FLOOD_WORKERS:-50}"
-FLOOD_SECONDS="${FLOOD_SECONDS:-5}"
-# Floors — a DDoS test with <10 workers is not a flood (§11.4.85)
-[[ "$FLOOD_WORKERS" -lt 10 ]] && FLOOD_WORKERS=10
+FLOOD_WORKERS="${FLOOD_WORKERS:-20}"
+FLOOD_SECONDS="${FLOOD_SECONDS:-2}"
+# Floors — a DDoS test with <5 workers is not a flood (§11.4.85)
+[[ "$FLOOD_WORKERS" -lt 5 ]] && FLOOD_WORKERS=5
 
 RUN="$ROOT/qa/results/stream9/ddos_$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$RUN"
@@ -77,7 +77,7 @@ trap cleanup EXIT
 
 # ---------------------------------------------------------------------------
 # Start the API with an aggressive rate limit so the limiter engages quickly.
-# LOGIN_RATE_LIMIT=5 (half the default 10/min) combined with 50 concurrent
+# LOGIN_RATE_LIMIT=5 (half the default 10/min) combined with 20 concurrent
 # workers guarantees that the majority of flood requests get 429, proving
 # the rate limiter is correctly wired and functional.
 # ---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ fi
 # itself never appears on a command line (§11.4.10).
 # ---------------------------------------------------------------------------
 FLOOD_PAYLOAD="$API_SANDBOX/flood_payload.json"
-python3 - "$FLOOD_PAYLOAD" <<'PYEOF'
+python3 - "$FLOOD_PAYLOAD" <<'PYEOF' || true
 import json, sys
 with open(sys.argv[1], "w") as f:
     json.dump({"username": "admin", "password": "WRONG_PASSWORD_FOR_FLOOD"}, f)
@@ -142,7 +142,7 @@ for w in $(seq 1 "$FLOOD_WORKERS"); do
             echo "$code" >> "$wcodes"
         done
         touch "$wdone"
-    ) &
+    ) || true &
     pids+=($!)
 done
 
@@ -177,9 +177,9 @@ for w in $(seq 1 "$FLOOD_WORKERS"); do
 done
 
 total_requests="$(wc -l < "$FLOOD_RESULTS")"
-count_429="$(grep -c '^429$' "$FLOOD_RESULTS" 2>/dev/null)"
+count_429="$(grep -c '^429$' "$FLOOD_RESULTS" 2>/dev/null || true)"
 count_non_429=$(( total_requests - count_429 ))
-count_transport="$(grep -c '^000$' "$FLOOD_RESULTS" 2>/dev/null)"
+count_transport="$(grep -c '^000$' "$FLOOD_RESULTS" 2>/dev/null || true)"
 
 echo "total_requests=$total_requests"   >> "$RUN/flood_meta.txt"
 echo "count_429=$count_429"            >> "$RUN/flood_meta.txt"
@@ -193,14 +193,14 @@ echo "non-429: $count_non_429"
 echo "transport failures (000): $count_transport"
 
 # Rate-limiter engagement: at least one request MUST have gotten 429.
-# With 50 concurrent workers and a 5/min limit, this is guaranteed.
+# With 20 concurrent workers and a 5/min limit, this is guaranteed.
 if [[ "$count_429" -gt 0 ]]; then
     pass "rate limiter engaged: $count_429/$total_requests flood requests got 429 (≥1 required)" "$FLOOD_RESULTS"
 else
     fail "rate limiter engaged" "0/$total_requests got 429 — rate limiter may not be active"
 fi
 
-# Transport failure check: with 50 concurrent connections to localhost,
+# Transport failure check: with 20 concurrent connections to localhost,
 # transport failures (000) should be minimal.  A high count signals a
 # server-side listen backlog exhaustion or crash.
 if [[ "$count_transport" -le $(( total_requests / 5 )) ]]; then

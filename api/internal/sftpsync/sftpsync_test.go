@@ -52,9 +52,9 @@ func TestRenderGolden(t *testing.T) {
 	}
 
 	got := Render(accounts, hashes)
-	want := "alice:" + aliceHash + ":1000:1000:/sftp_data/alice\n" +
-		"bob:" + carolHash + ":1001:1001:/sftp_data/bob:e\n" +
-		"carol:*:1002:1002:/sftp_data/carol:e\n"
+	want := "alice:" + aliceHash + ":e:1000:1000:/sftp_data/alice\n" +
+		"bob:" + carolHash + ":e:1001:1001:/sftp_data/bob\n" +
+		"carol:*:e:1002:1002:/sftp_data/carol\n"
 
 	if got != want {
 		t.Fatalf("golden render mismatch:\n--- got ---\n%s--- want ---\n%s", got, want)
@@ -105,7 +105,7 @@ func TestRenderFailClosedWithoutHash(t *testing.T) {
 		mkAccount("alice", store.PermissionReadWrite, nil, nil, "/a", true),
 	}
 	out := Render(accounts, nil)
-	if !strings.HasPrefix(out, "alice:*:") {
+	if !strings.HasPrefix(out, "alice:*:e:") {
 		t.Fatalf("missing hash must render '*' (no password login), got %q", out)
 	}
 }
@@ -115,11 +115,11 @@ func TestRenderPublicNeverGetsPassword(t *testing.T) {
 		mkAccount("pub", store.PermissionPublic, nil, nil, "/p", true),
 	}
 	out := Render(accounts, func(string) string { return "$6$salt$somehash" })
-	if !strings.HasPrefix(out, "pub:*:") {
-		t.Fatalf("public account must render '*' even when a hash is provisioned, got %q", out)
+	if !strings.HasPrefix(out, "pub:*:e:") {
+		t.Fatalf("public account must render '*' with encrypted flag at position 3, got %q", out)
 	}
-	if !strings.HasSuffix(strings.TrimSpace(out), ":e") {
-		t.Fatalf("public account must be chrooted, got %q", out)
+	if !strings.HasSuffix(strings.TrimSpace(out), ":/p") {
+		t.Fatalf("public account home dir must be last field, got %q", out)
 	}
 }
 
@@ -140,7 +140,7 @@ func TestWriteAtomicAndPerms(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read back: %v", err)
 	}
-	if !strings.HasPrefix(string(content), "alice:*:1001:1001:/a:e") {
+	if !strings.HasPrefix(string(content), "alice:*:e:1001:1001:/a") {
 		t.Fatalf("file content = %q", content)
 	}
 	info, err := os.Stat(path)
@@ -184,8 +184,8 @@ func TestRenderedCryptHashVerifiesWithOpenSSL(t *testing.T) {
 	}
 	out := Render(accounts, func(string) string { return h })
 	fields := strings.Split(strings.TrimSpace(out), ":")
-	if len(fields) != 5 {
-		t.Fatalf("line fields = %d, want 5: %q", len(fields), out)
+	if len(fields) != 6 {
+		t.Fatalf("line fields = %d, want 6: %q", len(fields), out)
 	}
 	if !crypt.Verify("S3cret!Pass", fields[1]) {
 		t.Fatal("rendered hash does not verify against the original password")

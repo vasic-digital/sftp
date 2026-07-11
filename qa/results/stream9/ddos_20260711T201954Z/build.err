@@ -1,0 +1,3 @@
+# github.com/vasic-digital/sftp/api/internal/sftpsync
+internal/sftpsync/sftpsync.go:133:13: undefined: chrootOption
+internal/sftpsync/sftpsync.go:136:13: undefined: chrootOption

@@ -4,7 +4,11 @@
 //
 // File format (project MVP spec, docs/research/mvp/MVP.md):
 //
-//	user:password:uid:gid:home_directory[:options]
+//	user:password:e:uid:gid:home_directory
+//
+// The "e" at position 3 (immediately after the password) is the encrypted-
+// password flag: it tells the entrypoint to pass `-e` to chpasswd so the
+// $6$ pre-hashed password is stored verbatim rather than re-hashed.
 //
 // PASSWORD FIELD DECISION (evidence-based, §11.4.6 — no guessing):
 //
@@ -22,23 +26,18 @@
 // PERMISSION MAPPING DECISION (evidence-based):
 //
 //	The users.conf format has no read/write permission semantics — that is
-//	filesystem UID/GID ownership. atmoz's only per-user option flag is `e`
-//	(chroot to home). Therefore:
-//	  - every account renders its home dir as the 5th field;
-//	  - read_write accounts get NO option suffix (full access to their
-//	    home, which is the container-default behaviour);
-//	  - read_only accounts get the `:e` chroot suffix so the session is
-//	    confined to the home directory (the only restriction the atmoz
-//	    layer can express); the read-only enforcement itself is a
-//	    filesystem-ownership concern handled by the deploy layer
-//	    (documented in api/README.md as a known boundary — the API cannot
-//	    chown host directories from inside rootless constraints);
+//	filesystem UID/GID ownership. atmoz's only per-user field is `e` at
+//	position 3 (encrypted-password flag). Therefore:
+//	  - every account renders :e at position 3 (all passwords are $6$ crypt
+//	    hashes that must be stored verbatim);
+//	  - read_only enforcement is a filesystem-ownership concern handled by
+//	    the deploy layer (documented boundary — the API cannot chown host
+//	    directories from inside rootless constraints);
 //	  - public accounts are rendered with password `*` (impossible
-//	    password — no password login) plus the `:e` chroot suffix; public
-//	    accounts are reachable only with key-based auth provisioned out
-//	    of band. Public access is NEVER a default anywhere in the system
-//	    (the API layer 422s any public grant without explicit
-//	    acknowledgement).
+//	    password — no password login); public accounts are reachable only
+//	    with key-based auth provisioned out of band. Public access is NEVER
+//	    a default anywhere in the system (the API layer 422s any public
+//	    grant without explicit acknowledgement).
 //
 // UID/GID DEFAULT: 1001, auto-incrementing per account in username order
 // when the account carries no explicit uid/gid (MVP uses 1000+; 1001 is
@@ -63,9 +62,11 @@ const DefaultUID = 1001
 // for public accounts, which authenticate by key only).
 const noLoginPassword = "*"
 
-// chrootOption is the atmoz users.conf option that chroots the session to
-// the user's home directory.
-const chrootOption = "e"
+// encryptedPasswordFlag is the atmoz users.conf flag placed at position 3
+// (immediately after the password field). It tells the entrypoint to pass
+// `-e` to chpasswd so the pre-hashed $6$ crypt value is stored verbatim
+// instead of being double-hashed as plaintext.
+const encryptedPasswordFlag = "e"
 
 // HashFunc resolves the sha512-crypt ($6$) users.conf password field for
 // an account. The store deliberately never holds plaintext, so the API
@@ -118,20 +119,42 @@ func resolveIDs(a *store.Account, next *int) (int, int) {
 }
 
 // renderLine builds one users.conf line for the account.
+//
+// atmoz/sftp users.conf format (positional):
+//
+//	user:password:e:uid:gid:home_directory
+//
+// The "e" at position 3 (IMMEDIATELY after the password) is the encrypted-
+// password flag: it tells the entrypoint's create-sftp-user script to call
+// chpasswd -e, storing the pre-hashed $6$ value verbatim. Without "e" in
+// this position, chpasswd re-hashes the field as plaintext → double-hashing
+// → all authentication fails.
+//
+// PERMISSION HANDLING:
+//   - read_write: full $6$ crypt hash with :e for verbatim storage
+//   - read_only:  same as read_write — filesystem permissions enforce
+//     the write restriction at the deploy layer (chown root:root / chmod 755
+//     on the host-side data dirs)
+//   - public:     password "*" (impossible password — no password login),
+//     still with :e so the "encrypted" flag is set; public accounts are
+//     reachable only via key-based auth provisioned out of band
+//
+// PERMISSION MAPPING DECISION (evidence-based):
+// The users.conf format has no read/write permission semantics — that is
+// filesystem UID/GID ownership. atmoz's only per-user option flag is "e"
+// (position 3, encrypted-password). Therefore:
+//   - every account renders :e at position 3 (all passwords are $6$ crypt
+//     hashes);
+//   - read_only enforcement is a filesystem-ownership concern handled by
+//     the deploy layer (documented boundary — the API cannot chown host
+//     directories from inside rootless constraints).
 func renderLine(a *store.Account, uid, gid int, hashes HashFunc) string {
 	password := ""
 	if hashes != nil {
 		password = hashes(a.Username)
 	}
-	options := ""
-	switch a.Permission {
-	case store.PermissionReadWrite:
-		// Default container behaviour: full access to the home dir.
-	case store.PermissionReadOnly:
-		options = chrootOption
-	case store.PermissionPublic:
+	if a.Permission == store.PermissionPublic {
 		password = noLoginPassword
-		options = chrootOption
 	}
 	if password == "" {
 		// Defensive: never render an empty password (that would mean an
@@ -139,11 +162,7 @@ func renderLine(a *store.Account, uid, gid int, hashes HashFunc) string {
 		// provisioned for the account — fail safe to no-password-login.
 		password = noLoginPassword
 	}
-	line := fmt.Sprintf("%s:%s:%d:%d:%s", a.Username, password, uid, gid, a.HomeDir)
-	if options != "" {
-		line += ":" + options
-	}
-	return line
+	return fmt.Sprintf("%s:%s:e:%d:%d:%s", a.Username, password, uid, gid, a.HomeDir)
 }
 
 // Write renders the accounts and atomically writes the users.conf file
