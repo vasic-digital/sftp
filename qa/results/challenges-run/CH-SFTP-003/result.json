@@ -1,0 +1,24 @@
+{
+  "challenge_id": "CH-SFTP-003",
+  "challenge_name": "Account CRUD lifecycle (create list read update delete)",
+  "status": "passed",
+  "start_time": "2026-07-11T22:26:21.862326122+03:00",
+  "end_time": "2026-07-11T22:26:23.550028655+03:00",
+  "duration": 1687702550,
+  "assertions": null,
+  "metrics": null,
+  "outputs": {
+    "exit_code": "0",
+    "stderr": "2026/07/11 22:26:22 sftp-api: super-admin \"admin\" seeded\n2026/07/11 22:26:22 firebase: disabled\n2026/07/11 22:26:22 sftp-api: listening on 127.0.0.1:7722 (version 0.1.0-dev)\n2026/07/11 22:26:23 sftp-api: received terminated, shutting down gracefully\n2026/07/11 22:26:23 sftp-api: shutdown complete",
+    "stdout": "[CH-SFTP-003] Starting API on port 7722 ...\n[GIN-debug] [WARNING] Running in \"debug\" mode. Switch to \"release\" mode in production.\n - using env:\texport GIN_MODE=release\n - using code:\tgin.SetMode(gin.ReleaseMode)\n\n[GIN-debug] GET    /api/v1/health            --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleHealth-fm (4 handlers)\n[GIN-debug] POST   /api/v1/auth/login        --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleLogin-fm (5 handlers)\n[GIN-debug] POST   /api/v1/auth/refresh      --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleRefresh-fm (5 handlers)\n[GIN-debug] GET    /api/v1/auth/me           --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleMe-fm (5 handlers)\n[GIN-debug] POST   /api/v1/auth/logout       --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleLogout-fm (5 handlers)\n[GIN-debug] GET    /api/v1/accounts          --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleListAccounts-fm (5 handlers)\n[GIN-debug] POST   /api/v1/accounts          --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleCreateAccount-fm (5 handlers)\n[GIN-debug] GET    /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleGetAccount-fm (5 handlers)\n[GIN-debug] PUT    /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleUpdateAccount-fm (5 handlers)\n[GIN-debug] DELETE /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleDeleteAccount-fm (5 handlers)\n[GIN-debug] POST   /api/v1/sync              --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleSync-fm (5 handlers)\n[CH-SFTP-003] API ready (PID 682207)\n2026/07/11 22:26:23 [HTTP] POST /api/v1/auth/login 200 214.911051ms\n2026/07/11 22:26:23 [HTTP] POST /api/v1/accounts 200 216.580836ms\n  PASS: create crdtest-1783797983 (read_write) → 201\n2026/07/11 22:26:23 [HTTP] GET /api/v1/accounts 200 212.175µs\n  PASS: list accounts includes crdtest-1783797983\n2026/07/11 22:26:23 [HTTP] GET /api/v1/accounts/crdtest-1783797983 200 164.285µs\n  PASS: read crdtest-1783797983 → 200\n2026/07/11 22:26:23 [HTTP] PUT /api/v1/accounts/crdtest-1783797983 200 231.886µs\n  PASS: update to read_only → 200\n2026/07/11 22:26:23 [HTTP] GET /api/v1/accounts/crdtest-1783797983 200 140.994µs\n  PASS: verify updated permission is read_only\n2026/07/11 22:26:23 [HTTP] DELETE /api/v1/accounts/crdtest-1783797983 200 178.021µs\n  PASS: delete crdtest-1783797983 → 204\n2026/07/11 22:26:23 [HTTP] GET /api/v1/accounts/crdtest-1783797983 200 178.854µs\n  PASS: GET deleted account → 404 (confirmed removed)\n\nCH-SFTP-003: 7 PASS, 0 FAIL"
+  },
+  "logs": {
+    "challenge_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-003/challenge.log",
+    "output_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-003/output.log",
+    "api_requests": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-003/api_requests.log",
+    "api_responses": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-003/api_responses.log"
+  },
+  "recorded_actions": [
+    "ShellChallenge: executed /run/media/milosvasic/DATA4TB/Projects/sftp/qa/challenges/scripts/ch_sftp_003_crud.sh, exit_code=0, status=passed"
+  ]
+}

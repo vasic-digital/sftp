@@ -1,0 +1,24 @@
+{
+  "challenge_id": "CH-SFTP-005",
+  "challenge_name": "Firebase graceful degrade when disabled",
+  "status": "passed",
+  "start_time": "2026-07-11T22:26:11.217125308+03:00",
+  "end_time": "2026-07-11T22:26:12.452382116+03:00",
+  "duration": 1235256820,
+  "assertions": null,
+  "metrics": null,
+  "outputs": {
+    "exit_code": "0",
+    "stderr": "2026/07/11 22:26:11 sftp-api: super-admin \"admin\" seeded\n2026/07/11 22:26:11 firebase: disabled\n2026/07/11 22:26:11 sftp-api: listening on 127.0.0.1:7722 (version 0.1.0-dev)\n2026/07/11 22:26:12 sftp-api: received terminated, shutting down gracefully\n2026/07/11 22:26:12 sftp-api: shutdown complete",
+    "stdout": "[CH-SFTP-005] Starting API on port 7722 (FIREBASE_ENABLED=false) ...\n[GIN-debug] [WARNING] Running in \"debug\" mode. Switch to \"release\" mode in production.\n - using env:\texport GIN_MODE=release\n - using code:\tgin.SetMode(gin.ReleaseMode)\n\n[GIN-debug] GET    /api/v1/health            --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleHealth-fm (4 handlers)\n[GIN-debug] POST   /api/v1/auth/login        --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleLogin-fm (5 handlers)\n[GIN-debug] POST   /api/v1/auth/refresh      --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleRefresh-fm (5 handlers)\n[GIN-debug] GET    /api/v1/auth/me           --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleMe-fm (5 handlers)\n[GIN-debug] POST   /api/v1/auth/logout       --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleLogout-fm (5 handlers)\n[GIN-debug] GET    /api/v1/accounts          --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleListAccounts-fm (5 handlers)\n[GIN-debug] POST   /api/v1/accounts          --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleCreateAccount-fm (5 handlers)\n[GIN-debug] GET    /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleGetAccount-fm (5 handlers)\n[GIN-debug] PUT    /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleUpdateAccount-fm (5 handlers)\n[GIN-debug] DELETE /api/v1/accounts/:username --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleDeleteAccount-fm (5 handlers)\n[GIN-debug] POST   /api/v1/sync              --\u003e github.com/vasic-digital/sftp/api/internal/api.(*Server).handleSync-fm (5 handlers)\n[CH-SFTP-005] API ready (PID 681765)\n  PASS: API serves health endpoint (200)\n  PASS: firebase field is 'disabled' (expected unavailable or disabled)\n  PASS: API continues to serve traffic (no crash)\n\nCH-SFTP-005: 3 PASS, 0 FAIL"
+  },
+  "logs": {
+    "challenge_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-005/challenge.log",
+    "output_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-005/output.log",
+    "api_requests": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-005/api_requests.log",
+    "api_responses": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-005/api_responses.log"
+  },
+  "recorded_actions": [
+    "ShellChallenge: executed /run/media/milosvasic/DATA4TB/Projects/sftp/qa/challenges/scripts/ch_sftp_005_firebase.sh, exit_code=0, status=passed"
+  ]
+}

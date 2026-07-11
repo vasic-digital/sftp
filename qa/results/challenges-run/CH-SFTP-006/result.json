@@ -1,0 +1,24 @@
+{
+  "challenge_id": "CH-SFTP-006",
+  "challenge_name": "Web SPA loads all 4 screens without runtime errors",
+  "status": "passed",
+  "start_time": "2026-07-11T22:26:12.452598282+03:00",
+  "end_time": "2026-07-11T22:26:21.862154697+03:00",
+  "duration": 9409556418,
+  "assertions": null,
+  "metrics": null,
+  "outputs": {
+    "exit_code": "0",
+    "stderr": "",
+    "stdout": "[CH-SFTP-006] Web SPA visual-proof challenge\n  PASS: Node.js available: v22.19.0\n  PASS: web/node_modules present\n  PASS: web/dist build output present\n[CH-SFTP-006] Installing playwright ...\n  PASS: playwright module available\nInstalling dependencies...\nSwitching to root user to install dependencies...\nFailed to install browsers\nError: Installation process exited with code: 1\n[CH-SFTP-006] WARNING: playwright browser install had issues, trying anyway\n[CH-SFTP-006] Running screenshot harness ...\ncaptured login-light.png\ncaptured dashboard-light.png\ncaptured account-new-light.png\ncaptured account-edit-light.png\ncaptured settings-light.png\ncaptured login-dark.png\ncaptured dashboard-dark.png\ncaptured account-new-dark.png\ncaptured account-edit-dark.png\ncaptured settings-dark.png\ncaptured account-new-public-guard-light.png\nscreenshots OK → /run/media/milosvasic/DATA4TB/Projects/sftp/web/qa/results/stream4/screenshots/\n  PASS: Playwright screenshot harness completed without errors\n  PASS: generated 11 screenshot files (\u003e= 5 expected)\n\nCH-SFTP-006: 6 PASS, 0 FAIL"
+  },
+  "logs": {
+    "challenge_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-006/challenge.log",
+    "output_log": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-006/output.log",
+    "api_requests": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-006/api_requests.log",
+    "api_responses": "/run/media/milosvasic/DATA4TB/Projects/sftp/qa/results/challenges-run/logs/CH-SFTP-006/api_responses.log"
+  },
+  "recorded_actions": [
+    "ShellChallenge: executed /run/media/milosvasic/DATA4TB/Projects/sftp/qa/challenges/scripts/ch_sftp_006_web.sh, exit_code=0, status=passed"
+  ]
+}
