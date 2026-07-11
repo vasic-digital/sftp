@@ -1,0 +1,1 @@
+{"accounts":[{"username":"alice","permission":"read_write","uid":null,"gid":null,"home_dir":"/alice","enabled":true,"created_at":"2026-07-11T20:24:34Z","updated_at":"2026-07-11T20:24:34Z"},{"username":"bob","permission":"read_write","uid":null,"gid":null,"home_dir":"/bob","enabled":true,"created_at":"2026-07-11T20:24:34Z","updated_at":"2026-07-11T20:24:34Z"}],"count":2}

@@ -23,7 +23,7 @@ Two-audience digest of `docs/Status.md` (§11.4.56). Regenerated on every Status
 
 - **Phase:** Phase 1 — parallel streams (see `docs/CONTINUATION.md` §1/§3).
 - **Plan:** `docs/plans/master_implementation_plan.md` (11 streams).
-- **Active streams:** STREAM-1 (ATM-001 infra), STREAM-8 (ATM-008 design), STREAM-10 (ATM-010 docs, this doc set).
+- **Active streams:** STREAM-1 (FTP-001 infra), STREAM-8 (FTP-008 design), STREAM-10 (FTP-010 docs, this doc set).
 - **Status table:** `docs/Status.md` — all 7 component rows PENDING, zero operator-blocked.
 - **Sync engine:** Docs Chain contexts under `.docs_chain/contexts/` (issues_sync, fixed_sync, status_sync, continuation_sync, readme_links); `docs_chain verify --all` is the deterministic gate (§11.4.50).
 - **Binding anchors:** §11.4.44 (revision headers), §11.4.45/§11.4.56 (this doc pair), §11.4.65 (md→html/pdf exports), §11.4.106 (Docs Chain), §11.4.123 (rock-solid proof or deep research), §11.4.185 (manual QA final confirmation before any tag).

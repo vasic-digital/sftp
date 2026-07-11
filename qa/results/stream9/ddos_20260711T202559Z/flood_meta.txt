@@ -1,0 +1,9 @@
+flood_start_epoch=1783801563
+health_during_flood_code=200
+flood_end_epoch=1783801565
+flood_duration_seconds=2
+total_requests=1002
+count_429=998
+count_non_429=4
+count_transport=0
+post_flood_login_code=429

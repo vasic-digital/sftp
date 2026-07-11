@@ -1,0 +1,21 @@
+{
+  "session": "helixqa_20260711T202649Z",
+  "suites": {
+    "api-lifecycle": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "api-security": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    }
+  },
+  "totals": {
+    "PASS": 0,
+    "FAIL": 0,
+    "SKIP": 0,
+    "UNKNOWN": 2
+  }
+}

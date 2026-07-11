@@ -229,17 +229,17 @@ fi
 # Grammar assertions (§11.4.5 captured content):
 #   read_write (none left — bob flipped) → check alice read_only has :e,
 #   pub2 has '*' + ':e', and any $6$ line has NO :e suffix requirement.
-if grep -qE '^alice:\$6\$[^:]+:[0-9]+:[0-9]+:/alice:e$' "$API_USERS_CONF"; then
+if grep -qE '^alice:\$6\$[^:]+:e:[0-9]+:[0-9]+:/alice$' "$API_USERS_CONF"; then
     pass "read_only account renders with \$6\$ hash + :e chroot suffix" "$RUN/09_users.conf"
 else
     fail "read_only render grammar" "line: $(grep '^alice:' "$API_USERS_CONF" || echo missing)"
 fi
-if grep -qE '^bob:\$6\$[^:]+:[0-9]+:[0-9]+:/bob:e$' "$API_USERS_CONF"; then
+if grep -qE '^bob:\$6\$[^:]+:e:[0-9]+:[0-9]+:/bob$' "$API_USERS_CONF"; then
     pass "updated read_only account (bob) re-renders with :e suffix" "$RUN/09_users.conf"
 else
     fail "updated account re-render" "line: $(grep '^bob:' "$API_USERS_CONF" || echo missing)"
 fi
-if grep -qE '^pub2:\*:[0-9]+:[0-9]+:/pub2:e$' "$API_USERS_CONF"; then
+if grep -qE '^pub2:\*:e:[0-9]+:[0-9]+:/pub2$' "$API_USERS_CONF"; then
     pass "public account renders with '*' password + :e suffix" "$RUN/09_users.conf"
 else
     fail "public render grammar" "line: $(grep '^pub2:' "$API_USERS_CONF" || echo missing)"

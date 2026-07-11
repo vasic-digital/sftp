@@ -49,7 +49,7 @@
 
 ## §2. Phase 4 — Work Streams
 
-### STREAM-12 (ATM-012): Test Hardening — Fix All Failing Tests [TOP]
+### STREAM-12 (FTP-012): Test Hardening — Fix All Failing Tests [TOP]
 **Priority:** TOP (blocks all validation)
 **Scope:** `tests/`
 **Track:** T2
@@ -62,7 +62,7 @@
 6. Verify: all 14 test scripts PASS against live API
 7. Capture evidence: per-script verdict + output
 
-### STREAM-13 (ATM-013): Code-Level Bug Fixes [TOP]
+### STREAM-13 (FTP-013): Code-Level Bug Fixes [TOP]
 **Priority:** TOP
 **Scope:** `api/internal/api/router.go`, `web/index.html`, `docs/`
 **Track:** T2
@@ -72,7 +72,7 @@
 3. Export missing doc PDFs (K6, K7): Issues_Summary, Fixed_Summary, Status_Summary, API reference
 4. Capture evidence for each fix
 
-### STREAM-14 (ATM-014): Container Deployment Verification [MIDDLE]
+### STREAM-14 (FTP-014): Container Deployment Verification [MIDDLE]
 **Priority:** MIDDLE
 **Scope:** `deploy/`, container runtime
 **Track:** T3
@@ -86,7 +86,7 @@
 7. Graceful shutdown + restart persistence
 8. Capture evidence: container logs + SFTP transcript
 
-### STREAM-15 (ATM-015): Security Hardening [MIDDLE]
+### STREAM-15 (FTP-015): Security Hardening [MIDDLE]
 **Priority:** MIDDLE
 **Scope:** `web/`, `api/`
 **Track:** T3
@@ -98,7 +98,7 @@
 3. Security headers audit (X-Frame-Options, X-Content-Type-Options, etc.)
 4. Capture evidence: browser devtools screenshot showing HttpOnly cookie
 
-### STREAM-16 (ATM-016): Vault Key Rotation [LOW]
+### STREAM-16 (FTP-016): Vault Key Rotation [LOW]
 **Priority:** LOW
 **Scope:** `api/internal/vault/`
 **Track:** T2
@@ -109,7 +109,7 @@
 4. Add CLI command or API endpoint to trigger rotation
 5. Capture evidence: test output
 
-### STREAM-17 (ATM-017): Mobile Android Verification [LOW]
+### STREAM-17 (FTP-017): Mobile Android Verification [LOW]
 **Priority:** LOW
 **Scope:** `mobile/`
 **Track:** T4
@@ -120,7 +120,7 @@
 4. Document host requirements for iOS, HarmonyOS, AuroraOS
 5. Capture evidence: build output + APK file info
 
-### STREAM-18 (ATM-018): Production Config Hardening [LOW]
+### STREAM-18 (FTP-018): Production Config Hardening [LOW]
 **Priority:** LOW
 **Scope:** `.env.example`, `deploy/`, `config_schemas/`
 **Track:** T4
@@ -140,18 +140,18 @@
 | Track | Alias | Phase 4 Streams |
 |---|---|---|
 | T1 (main) | default (conductor) | Orchestration, commit/push, reviews |
-| T2 (backend) | deepseek | ATM-012 (test fixes), ATM-013 (bug fixes), ATM-016 (vault rotation) |
-| T3 (clients) | claude4 | ATM-014 (container verification), ATM-015 (security hardening) |
-| T4 (QA) | opencode | ATM-017 (mobile verify), ATM-018 (config hardening) |
+| T2 (backend) | deepseek | FTP-012 (test fixes), FTP-013 (bug fixes), FTP-016 (vault rotation) |
+| T3 (clients) | claude4 | FTP-014 (container verification), FTP-015 (security hardening) |
+| T4 (QA) | opencode | FTP-017 (mobile verify), FTP-018 (config hardening) |
 
 ### Priority Order (§11.4.42/§11.4.72)
-1. ATM-012 (test fixes) — TOP, blocks all validation
-2. ATM-013 (bug fixes) — TOP, correctness
-3. ATM-014 (container) — MIDDLE, production readiness
-4. ATM-015 (security) — MIDDLE
-5. ATM-016 (vault rotation) — LOW
-6. ATM-017 (mobile) — LOW
-7. ATM-018 (config) — LOW
+1. FTP-012 (test fixes) — TOP, blocks all validation
+2. FTP-013 (bug fixes) — TOP, correctness
+3. FTP-014 (container) — MIDDLE, production readiness
+4. FTP-015 (security) — MIDDLE
+5. FTP-016 (vault rotation) — LOW
+6. FTP-017 (mobile) — LOW
+7. FTP-018 (config) — LOW
 
 ### Auto-Backfill (§11.4.103(B))
 When any track completes its assigned stream, immediately claim the next unassigned stream from the queue. No track idles while actionable items exist (§11.4.192).

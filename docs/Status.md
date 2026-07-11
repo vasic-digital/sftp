@@ -14,13 +14,13 @@ _None._
 
 | Component | Status | Evidence |
 |---|---|---|
-| SFTP container (atmoz/sftp, rootless Podman, port 7721) | PENDING | — (compose definition lands with ATM-001; live login test with ATM-003 container round-trip) |
-| REST API (Go/Gin, port 7722) | PENDING | — (not yet built — ATM-002) |
-| Web admin (React/TypeScript SPA) | PENDING | — (not yet built — ATM-004) |
-| Mobile clients (KMP: Android/iOS/HarmonyOS/AuroraOS) | PENDING | — (not yet built — ATM-005) |
-| Ops scripts (service ctl, setup, backup, systemd --user) | PENDING | — (not yet built — ATM-006) |
-| Test matrix + Challenges + HelixQA | PENDING | — (gate suite in progress — ATM-009) |
-| Documentation + Docs Chain sync | PENDING | — (first docs batch this revision — ATM-010; `docs_chain verify` not yet run) |
+| SFTP container (atmoz/sftp, rootless Podman, port 7721) | PENDING | — (compose definition lands with FTP-001; live login test with FTP-003 container round-trip) |
+| REST API (Go/Gin, port 7722) | PENDING | — (not yet built — FTP-002) |
+| Web admin (React/TypeScript SPA) | PENDING | — (not yet built — FTP-004) |
+| Mobile clients (KMP: Android/iOS/HarmonyOS/AuroraOS) | PENDING | — (not yet built — FTP-005) |
+| Ops scripts (service ctl, setup, backup, systemd --user) | PENDING | — (not yet built — FTP-006) |
+| Test matrix + Challenges + HelixQA | PENDING | — (gate suite in progress — FTP-009) |
+| Documentation + Docs Chain sync | PENDING | — (first docs batch this revision — FTP-010; `docs_chain verify` not yet run) |
 
 ## Notes
 
