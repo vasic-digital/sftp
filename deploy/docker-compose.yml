@@ -8,11 +8,18 @@
 #   cp .env.example .env            # then edit .env with real values
 #   podman-compose -f deploy/docker-compose.yml up -d
 #
-# The compose spec's top-level `version:` key is obsolete, but atmoz/sftp
-# examples and podman-compose still accept '3.8' — kept for compatibility
-# with the MVP deployment doc (docs/research/mvp/MVP.md).
+# Production hardening (Phase 4 FTP-018):
+#   - Resource limits on every service (mem_limit, cpus).
+#   - Dedicated internal network (sftp_net) for service isolation.
+#   - JSON-file logging with rotation (10 MB / 3 files).
+#   - depends_on with health checks (requires podman-compose >= 1.0.6).
 # ============================================================================
 version: '3.8'
+
+networks:
+  sftp_net:
+    driver: bridge
+    internal: false   # false = host can reach services; set true for pure-internal
 
 services:
   # --- SFTP server (atmoz/sftp) ----------------------------------------------
@@ -30,7 +37,18 @@ services:
       - "${SFTP_USERS_CONF:-./users.conf}:/etc/sftp/users.conf:ro"
     environment:
       SFTP_USERS_FILE: /etc/sftp/users.conf
+    networks:
+      - sftp_net
     restart: unless-stopped
+    # --- Resource limits (production; tune per host) ---
+    mem_limit: 256m
+    cpus: 1.0
+    # --- Logging ---
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       # Portable: bash /dev/tcp probe inside the alpine-based image — no nc,
       # no ssh-keyscan dependency. PASS = sshd accepts TCP on :22.
@@ -50,11 +68,22 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sftp_net
     # Port 5432 is NOT published by default — the API reaches it over the
     # internal network. For local dev/debug uncomment:
     # ports:
     #   - "127.0.0.1:5432:5432"
     restart: unless-stopped
+    # --- Resource limits (production; tune per host) ---
+    mem_limit: 512m
+    cpus: 1.0
+    # --- Logging ---
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sftp} -d ${POSTGRES_DB:-sftp}"]
       interval: 10s
@@ -76,12 +105,23 @@ services:
       - ../.env
     ports:
       - "${API_BIND:-127.0.0.1}:${API_PORT:-7722}:7722"
+    networks:
+      - sftp_net
     depends_on:
       postgres:
         condition: service_healthy
       sftp:
         condition: service_healthy
     restart: unless-stopped
+    # --- Resource limits (production; tune per host) ---
+    mem_limit: 256m
+    cpus: 0.5
+    # --- Logging ---
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   postgres_data:

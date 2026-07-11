@@ -1,0 +1,25 @@
+<!-- Minimal SFTP-branded launcher foreground: a filled circle with "SFTP" text hint.
+     This is a build-enabling placeholder; a proper branded adaptive icon should replace
+     it before release (§11.4.162 OpenDesign tokens). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="24"
+        android:translateY="24">
+        <!-- Outer circle -->
+        <path
+            android:fillColor="#1565C0"
+            android:pathData="M30,0 C46.569,0 60,13.431 60,30 C60,46.569 46.569,60 30,60 C13.431,60 0,46.569 0,30 C0,13.431 13.431,0 30,0 Z"/>
+        <!-- Folder icon hint -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M15,20 L25,15 L45,15 L45,40 L15,40 Z"/>
+        <!-- Lock icon hint -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M25,28 L35,28 L35,32 C35,34.761 32.761,37 30,37 C27.239,37 25,34.761 25,32 Z"/>
+    </group>
+</vector>

@@ -3,6 +3,8 @@ package vault
 import (
 	"bytes"
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"errors"
 	"os"
 	"path/filepath"
@@ -253,6 +255,131 @@ func TestStoreOverwrite(t *testing.T) {
 		t.Errorf("overwrite: got %q, want %q", got, "updated")
 	}
 }
+
+func TestRotateKeyRoundTrip(t *testing.T) {
+	v, _ := openTestVault(t)
+	ctx := context.Background()
+
+	// Store several entries before rotation.
+	entries := map[string]string{
+		"alice":   "hash-for-alice",
+		"bob":     "hash-for-bob",
+		"charlie": "hash-for-charlie",
+	}
+	for k, val := range entries {
+		if err := v.Store(ctx, k, val); err != nil {
+			t.Fatalf("store %s: %v", k, err)
+		}
+	}
+
+	// Rotate the master key.
+	if err := v.RotateKey(); err != nil {
+		t.Fatalf("rotate: %v", err)
+	}
+
+	// Every entry must still be readable and return the original value.
+	for k, want := range entries {
+		got, err := v.Load(ctx, k)
+		if err != nil {
+			t.Errorf("load %s after rotate: %v", k, err)
+			continue
+		}
+		if got != want {
+			t.Errorf("rotate: %s: got %q, want %q", k, got, want)
+		}
+	}
+}
+
+func TestRotateKeyOldKeyFailsDecryption(t *testing.T) {
+	ctx := context.Background()
+	dir := filepath.Join(t.TempDir(), "vault")
+	v, err := New(VaultConfig{DataDir: dir})
+	if err != nil {
+		t.Fatalf("new vault: %v", err)
+	}
+
+	const testKey = "alice"
+	const testVal = "secret-for-alice"
+	if err := v.Store(ctx, testKey, testVal); err != nil {
+		t.Fatalf("store: %v", err)
+	}
+
+	// Snapshot the OLD master key bytes BEFORE rotation so we can prove it
+	// stops working afterwards.
+	oldKeyHex, err := os.ReadFile(v.cfg.MasterKeyPath)
+	if err != nil {
+		t.Fatalf("read old master key: %v", err)
+	}
+	oldKey := make([]byte, hexDecodedLen(len(oldKeyHex)))
+	n, decErr := hexDecode(oldKey, oldKeyHex)
+	if decErr != nil || n != 32 {
+		t.Fatalf("decode old master key: n=%d err=%v", n, decErr)
+	}
+	oldKey = oldKey[:n]
+
+	if err := v.RotateKey(); err != nil {
+		t.Fatalf("rotate: %v", err)
+	}
+
+	// Load through the vault still works (new key is active).
+	got, err := v.Load(ctx, testKey)
+	if err != nil {
+		t.Fatalf("load with new key: %v", err)
+	}
+	if got != testVal {
+		t.Fatalf("new key load: got %q, want %q", got, testVal)
+	}
+
+	// Now manually try to decrypt the re-encrypted blob with the OLD key.
+	// GCM authentication MUST fail — proving the entry was genuinely
+	// re-encrypted with the new key.
+	raw, err := os.ReadFile(entryPath(dir, testKey))
+	if err != nil {
+		t.Fatalf("read raw entry: %v", err)
+	}
+	oldBlock, err := aes.NewCipher(oldKey)
+	if err != nil {
+		t.Fatalf("old cipher: %v", err)
+	}
+	oldGCM, err := cipher.NewGCM(oldBlock)
+	if err != nil {
+		t.Fatalf("old gcm: %v", err)
+	}
+	nonceSize := oldGCM.NonceSize()
+	if len(raw) < nonceSize {
+		t.Fatalf("raw entry too short: %d < %d", len(raw), nonceSize)
+	}
+	_, err = oldGCM.Open(nil, raw[:nonceSize], raw[nonceSize:], nil)
+	if err == nil {
+		t.Fatal("old key decrypted re-encrypted entry: rotation did NOT happen")
+	}
+	t.Logf("old key correctly rejected: %v", err)
+}
+
+func TestRotateKeyEmptyVault(t *testing.T) {
+	v, _ := openTestVault(t)
+	ctx := context.Background()
+
+	// Rotate on a vault that has never stored anything.
+	if err := v.RotateKey(); err != nil {
+		t.Fatalf("rotate empty vault: %v", err)
+	}
+
+	// The vault must still be usable: store → load must work with the new key.
+	const want = "data-after-empty-rotate"
+	if err := v.Store(ctx, "post", want); err != nil {
+		t.Fatalf("store after rotate: %v", err)
+	}
+	got, err := v.Load(ctx, "post")
+	if err != nil {
+		t.Fatalf("load after rotate: %v", err)
+	}
+	if got != want {
+		t.Errorf("empty-rotate: got %q, want %q", got, want)
+	}
+}
+
+func hexDecodedLen(hexLen int) int { return hexLen / 2 }
 
 func readRawBlob(t *testing.T, dataDir, key string) []byte {
 	t.Helper()

@@ -61,6 +61,9 @@ dependencies {
     implementation(compose.material)
     implementation(compose.foundation)
     implementation(compose.runtime)
+    // Shared module's ApiClient exposes Ktor types (HttpClientEngine) in its
+    // public constructor — the consuming app needs Ktor on its compile classpath.
+    implementation("io.ktor:ktor-client-core:2.3.12")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core-ktx:1.13.1")

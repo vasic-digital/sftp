@@ -1,0 +1,83 @@
+# ============================================================================
+# sftp-api.service — systemd --user unit for the SFTP Enterprise API (Go)
+# ----------------------------------------------------------------------------
+# This is a TEMPLATE. Do NOT install it directly: `@PROJECT_ROOT@` must be
+# rendered to the real project path. Use:
+#
+#     scripts/sftp_ctl.sh install-api
+#
+# which renders this file into ~/.config/systemd/user/sftp-api.service, runs
+# `systemctl --user daemon-reload`, and `enable --now`s the unit.
+#
+# Runs the Go API BINARY directly (NOT containerized) so the API is a
+# first-class systemd --user service. The SFTP/PG containers are managed
+# separately by sftp.service (the compose-stack unit).
+#
+# Prerequisites:
+#   - The binary is built: cd api && go build -o /usr/local/bin/sftp-api ./cmd/sftp-api
+#   - .env is present at the repo root with JWT_SECRET + SUPERADMIN_PASSWORD set.
+#   - DB_PATH and VAULT_DATA_DIR directories exist and are writable.
+#
+# Rootless-only by construction (§11.4.161): the unit lives in the user
+# manager, runs as the unprivileged user, and contains no sudo / rootful
+# docker anywhere.
+# ============================================================================
+[Unit]
+Description=SFTP Enterprise Management API
+Documentation=https://github.com/vasic-digital/sftp
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# Working directory is the repository root — DB_PATH, USERS_CONF_PATH, and
+# VAULT_DATA_DIR are resolved relative to this.
+WorkingDirectory=@PROJECT_ROOT@
+
+# Load secrets from the git-ignored .env (§11.4.10). The EnvironmentFile
+# directive reads KEY=VALUE pairs; lines starting with # are ignored.
+# systemd --user EnvironmentFile does NOT support shell-style variable
+# expansion — keep values literal.
+EnvironmentFile=@PROJECT_ROOT@/.env
+
+# Explicit overrides for critical paths (fall back to defaults if .env is
+# missing a key — the API will fail-fast on Validate() for missing
+# JWT_SECRET/SUPERADMIN_PASSWORD).
+Environment=API_BIND=127.0.0.1
+Environment=API_PORT=7722
+Environment=DB_PATH=@PROJECT_ROOT@/data/sftp.db
+Environment=USERS_CONF_PATH=@PROJECT_ROOT@/data/users.conf
+Environment=VAULT_DATA_DIR=@PROJECT_ROOT@/data/vault
+
+ExecStart=/usr/local/bin/sftp-api
+
+# Restart policy: always restart on crash, with a 2 s backoff to avoid
+# thrashing the systemd rate-limit. RestartSec doubles as the cooldown
+# between restarts.
+Restart=always
+RestartSec=2
+
+# Security hardening (user-scoped, no privilege escalation).
+# These are best-effort within the user manager; some may be no-op
+# depending on the kernel / systemd version.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@PROJECT_ROOT@/data
+ReadOnlyPaths=@PROJECT_ROOT@/.env
+
+# Resource limits (conservative defaults; tune per host).
+MemoryMax=512M
+CPUQuota=200%
+LimitNOFILE=4096
+
+# Logging: journald captures stdout/stderr. The API writes structured
+# messages to stderr via log.Printf (no external log file needed).
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sftp-api
+
+[Install]
+WantedBy=default.target

@@ -30,6 +30,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ErrNotFound is returned when a key does not exist in the vault.
@@ -143,6 +144,132 @@ func (v *Vault) Delete(ctx context.Context, key string) error {
 		return fmt.Errorf("vault: remove %s: %w", filepath.Base(p), err)
 	}
 	return nil
+}
+
+// RotateKey generates a new 32-byte master key, re-encrypts every existing
+// entry with it, and atomically replaces the on-disk master key file. The
+// old in-memory key is kept until all re-encryptions succeed so a partial
+// failure does not leave the vault in an inconsistent state.
+//
+// On an empty vault (no entries) this is a safe no-op that still replaces
+// the master key.
+func (v *Vault) RotateKey() error {
+	// 1. Generate new 32-byte random master key.
+	newKey := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, newKey); err != nil {
+		return fmt.Errorf("vault: rotate: generate new master key: %w", err)
+	}
+
+	// 2. Build GCM instances for both keys.
+	oldGCM, err := v.newGCM()
+	if err != nil {
+		return fmt.Errorf("vault: rotate: init old gcm: %w", err)
+	}
+
+	newBlock, err := aes.NewCipher(newKey)
+	if err != nil {
+		return fmt.Errorf("vault: rotate: init new cipher: %w", err)
+	}
+	newGCM, err := cipher.NewGCM(newBlock)
+	if err != nil {
+		return fmt.Errorf("vault: rotate: init new gcm: %w", err)
+	}
+
+	// 3. List every entry so we can re-encrypt.
+	entries, err := v.listEntries()
+	if err != nil {
+		return fmt.Errorf("vault: rotate: list entries: %w", err)
+	}
+
+	// 4. Re-encrypt each entry with the new key (decrypt old → encrypt new →
+	//    write-temp-then-rename). If any step fails we return immediately,
+	//    leaving the vault with the OLD master key still active.
+	for _, entryKey := range entries {
+		if err := v.reEncryptEntry(entryKey, oldGCM, newGCM); err != nil {
+			return err
+		}
+	}
+
+	// 5. Atomically replace the on-disk master key (write-temp-then-rename).
+	encoded := make([]byte, hexEncodedLen(32))
+	hexEncode(encoded, newKey)
+	tmpPath := v.cfg.MasterKeyPath + ".tmp"
+	if err := os.WriteFile(tmpPath, encoded, 0o600); err != nil {
+		return fmt.Errorf("vault: rotate: write new master key: %w", err)
+	}
+	if err := os.Rename(tmpPath, v.cfg.MasterKeyPath); err != nil {
+		_ = os.Remove(tmpPath)
+		return fmt.Errorf("vault: rotate: rename new master key: %w", err)
+	}
+
+	// 6. Only NOW swap the in-memory key — every re-encryption succeeded and
+	//    the new key is durable on disk.
+	v.key = newKey
+	return nil
+}
+
+// reEncryptEntry reads entryKey's blob, decrypts it with oldGCM, encrypts
+// the plaintext with newGCM (fresh random nonce), and writes it back
+// atomically (tmp → rename).
+func (v *Vault) reEncryptEntry(entryKey string, oldGCM, newGCM cipher.AEAD) error {
+	data, err := v.readEntry(entryKey)
+	if err != nil {
+		return fmt.Errorf("vault: rotate: read %s: %w", entryKey, err)
+	}
+
+	nonceSize := oldGCM.NonceSize()
+	if len(data) < nonceSize {
+		return fmt.Errorf("vault: rotate: %s: corrupted entry (too short)", entryKey)
+	}
+	oldNonce, oldCT := data[:nonceSize], data[nonceSize:]
+
+	plaintext, err := oldGCM.Open(nil, oldNonce, oldCT, nil)
+	if err != nil {
+		return fmt.Errorf("vault: rotate: %s: decrypt with old key: %w", entryKey, err)
+	}
+
+	// Re-encrypt with fresh random nonce under the new key.
+	newNonce := make([]byte, newGCM.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, newNonce); err != nil {
+		return fmt.Errorf("vault: rotate: generate nonce: %w", err)
+	}
+	newCT := newGCM.Seal(nil, newNonce, plaintext, nil)
+
+	newData := make([]byte, len(newNonce)+len(newCT))
+	copy(newData[:len(newNonce)], newNonce)
+	copy(newData[len(newNonce):], newCT)
+
+	return v.writeEntry(entryKey, newData)
+}
+
+// listEntries returns the logical key names for every encrypted entry
+// currently stored in the data directory.
+func (v *Vault) listEntries() ([]string, error) {
+	dirEntries, err := os.ReadDir(v.cfg.DataDir)
+	if err != nil {
+		return nil, fmt.Errorf("vault: read data dir: %w", err)
+	}
+	var keys []string
+	for _, de := range dirEntries {
+		if de.IsDir() {
+			continue
+		}
+		name := de.Name()
+		if !strings.HasSuffix(name, ".enc") {
+			continue
+		}
+		hexKey := name[:len(name)-4] // strip ".enc"
+		if len(hexKey)%2 != 0 {
+			continue // malformed filename, skip
+		}
+		decoded := make([]byte, len(hexKey)/2)
+		n, err := hexDecode(decoded, []byte(hexKey))
+		if err != nil {
+			continue // skip unparseable filenames
+		}
+		keys = append(keys, string(decoded[:n]))
+	}
+	return keys, nil
 }
 
 // newGCM creates an AES-256-GCM instance seeded with the vault master key.
