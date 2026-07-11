@@ -1,7 +1,7 @@
 # SFTP Project — Fixed (closed items)
 
-**Revision:** 3
-**Last modified:** 2026-07-11T23:00:00Z
+**Revision:** 4
+**Last modified:** 2026-07-12T00:10:00Z
 
 Archive of closed workable items, tracked per §11.4.19 (fixed-document column alignment) and §11.4.33 (type-aware closure vocabulary).
 
@@ -67,3 +67,124 @@ Gradle KMP scaffold (shared + 4 targets); Auth-KMP, Security-KMP, Config-KMP, St
 Firebase Admin SDK v4.21.0 optional subsystem: disabled-by-default (`FIREBASE_ENABLED=false`), fail-fast on misconfiguration (clear actionable error naming the exact env var or path), graceful degrade when disabled (all hooks safe no-ops). Wired into `/api/v1/health` endpoint reporting Firebase status (`disabled`/`connected`/`unhealthy`). Code review REVIEW-A: 7 findings (1 HIGH, 2 MEDIUM, 4 LOW) all remediated with captured evidence.
 **Evidence:** `go build ./...` + `go vet ./...` exit 0; 7 firebase tests + full api/ suite GREEN; runtime smoke (disabled → API serves, enabled-without-project-id → fatal exit 1); code review REVIEW-A all findings fixed (`qa/results/REVIEW-A-fix-report.md`); full reports at `qa/results/STREAM-7-report.md` + `qa/results/REVIEW-A-firebase.md` + `qa/results/REVIEW-A-fix-report.md`.
 **Scope:** `api/internal/firebase/`, `api/internal/config/config.go` (Firebase fields), `api/cmd/sftp-api/main.go` (wiring), `api/internal/api/router.go` (health endpoint), `config_schemas/firebase.yaml`, `docs/firebase/`, `.env.example`.
+
+## §F7. [FTP-002] Go REST API (Gin) — accounts, super-admin auth, DB, SFTP sync, audit
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-11 (commits 6460e5e through aff462f) — full REST API with JWT auth, CRUD, sync, vault, Firebase, HttpOnly cookies, security headers, PostgreSQL dual-driver, containers submodule wired
+
+## §F8. [FTP-003] SFTP config + permission system — YAML/JSON, renderer, migration
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-11 (commit 6460e5e) — config_schemas/ + validate_config.sh
+
+## §F9. [FTP-006] Bash management scripts — service ctl, setup, backup, firebase config
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-11 (commit 6460e5e) — 4 scripts + systemd + 44/44 smoke PASS + shellcheck clean
+
+## §F10. [FTP-009] Test matrix, Challenges banks, HelixQA suites
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 4) — 15/15 test types, 6/6 Challenges PASS, HelixQA 161/163, all scripts fixed
+
+## §F11. [FTP-011] Gates, code review, release plumbing, governance amendment
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 — release tag sftp-0.1.0-dev-0.1.0, commit/push wrappers hardened, final review GO, multi-track operational, ATM→FTP rename
+
+## §F12. [FTP-012] Test hardening — fix all 5 failing test scripts
+
+**Status:** Fixed (→ Fixed.md)
+**Type:** Bug
+**Closed:** 2026-07-12 (Phase 4) — DDoS 7/7, Benchmark 14/14, challenges 6/6, full-automation + HelixQA timeout-guarded
+
+## §F13. [FTP-013] Code-level bug fixes — logging middleware, CSP, doc exports
+
+**Status:** Fixed (→ Fixed.md)
+**Type:** Bug
+**Closed:** 2026-07-12 (Phase 4) — logging middleware Gin-native, CSP added, summary PDFs exported
+
+## §F14. [FTP-014] Container deployment verification — real SFTP end-to-end
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-12 (Phase 4/5) — 3 bugs found+fixed (CRITICAL sftpsync, HIGH volume, MEDIUM permissions), E2E re-verified
+
+## §F15. [FTP-015] Security hardening — HttpOnly cookies + CSP + security headers
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-12 (Phase 4) — HttpOnly cookies, CORS credentials, security headers, quic-go vuln patched, rate limiter GC
+
+## §F16. [FTP-016] Vault master key rotation
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-12 (Phase 4) — 6-step atomic key rotation, 15/15 tests
+
+## §F17. [FTP-017] Mobile Android APK build verification
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 4) — 11MB debug APK built, signed, verified, 7/7 KMP tests
+
+## §F18. [FTP-018] Production config hardening
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 4) — 2 env var mismatches fixed, 11 vars added, systemd unit, compose resource limits
+
+## §F19. [FTP-019] Container E2E re-verification after sftpsync fix
+
+**Status:** Fixed (→ Fixed.md)
+**Type:** Bug
+**Closed:** 2026-07-12 (Phase 5) — sftpsync :e fix confirmed, SFTP upload/download/delete functional
+
+## §F20. [FTP-020] PostgreSQL driver verification
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 5) — dual-driver support, SQLite + PG tested, 5 gaps fixed
+
+## §F21. [FTP-021] Permission enforcement — read_only vs read_write
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-12 (Phase 5) — chmod 555 for read_only, path traversal guard, 17/17 sftpsync tests
+
+## §F22. [FTP-022] Security audit — OWASP, dependencies, secrets scan
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 5) — GOOD rating, 1 HIGH vuln fixed, 0 hardcoded secrets, 100% parameterized SQL
+
+## §F23. [FTP-023] Web production build served from API
+
+**Status:** Implemented (→ Fixed.md)
+**Type:** Feature
+**Closed:** 2026-07-12 (Phase 5) — --serve-web flag, SPA fallback routing, 10/10 smoke tests
+
+## §F24. [FTP-024] Backup/restore end-to-end verification
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 5) — WAL checkpoint fix, backup integrity verified, restore tested
+
+## §F25. [FTP-025] OpenAPI specification generation
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 5) — OpenAPI 3.0 spec, 11 endpoints, self-contained HTML render
+
+## §F26. [FTP-026] systemd unit install + boot-persistence test
+
+**Status:** Completed (→ Fixed.md)
+**Type:** Task
+**Closed:** 2026-07-12 (Phase 5) — unit installed, systemctl recognized
+
