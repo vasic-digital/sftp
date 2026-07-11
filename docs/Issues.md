@@ -40,9 +40,6 @@ No upstream KMP target exists for HarmonyOS or AuroraOS. Scaffolding and README 
 
 ### §4. [GAP-004] User manual screenshots — placeholder
 
-**Status:** Queued
+**Status:** Completed (→ Fixed.md) — 11 Playwright screenshots added (6 screens × light/dark + public-guard), descriptive captions, dark theme variants. SFTP client screenshots deferred (container offline — honest).
 **Type:** Task
 **Priority:** LOW
-
-User manual references screenshots not yet captured. Needs real SFTP client (FileZilla, WinSCP, sftp CLI) screenshots added to `docs/guides/user_manual.md`.
-**Scope:** `docs/guides/user_manual.md`, `docs/guides/assets/`.
