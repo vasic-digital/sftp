@@ -253,6 +253,20 @@ func ProvisionHomeDirs(dataDir string, accounts []*store.Account) ([]string, err
 		for _, sub := range splitDirs(a.HomeDir) {
 			sub = strings.TrimPrefix(sub, "/")
 			p := filepath.Join(dataDir, a.Username, sub)
+			// Path traversal guard: ensure the resolved path stays
+			// within dataDir. Username is already validated at
+			// creation time (^[a-z_][a-z0-9_-]{0,31}$) but home-dir
+			// subdirectories are free-form — validate here.
+			absData, _ := filepath.Abs(dataDir)
+			absP, err := filepath.Abs(p)
+			if err != nil {
+				errs = append(errs, fmt.Sprintf("%s: cannot resolve: %v", p, err))
+				continue
+			}
+			if !strings.HasPrefix(filepath.Clean(absP), filepath.Clean(absData)+string(os.PathSeparator)) {
+				errs = append(errs, fmt.Sprintf("%s: path escapes data directory %s", p, dataDir))
+				continue
+			}
 			if err := ensureDir(p, perm); err != nil {
 				errs = append(errs, fmt.Sprintf("%s: %v", p, err))
 				continue
