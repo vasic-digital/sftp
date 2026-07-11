@@ -211,3 +211,96 @@ func TestIssuePairEmptySubject(t *testing.T) {
 		t.Errorf("empty subject accepted")
 	}
 }
+
+func TestTokenPairHasJTI(t *testing.T) {
+	s := newTestService(t)
+	pair, err := s.IssuePair("admin")
+	if err != nil {
+		t.Fatalf("issue: %v", err)
+	}
+	claims, err := s.ValidateAccess(pair.AccessToken)
+	if err != nil {
+		t.Fatalf("validate access: %v", err)
+	}
+	if claims.JTI == "" {
+		t.Fatalf("access token missing JTI")
+	}
+	claims, err = s.ValidateRefresh(pair.RefreshToken)
+	if err != nil {
+		t.Fatalf("validate refresh: %v", err)
+	}
+	if claims.JTI == "" {
+		t.Fatalf("refresh token missing JTI")
+	}
+}
+
+func TestRevokeRefreshToken(t *testing.T) {
+	s := newTestService(t)
+	pair, err := s.IssuePair("admin")
+	if err != nil {
+		t.Fatalf("issue: %v", err)
+	}
+	// Validate before revoke — must succeed.
+	if _, err := s.ValidateRefresh(pair.RefreshToken); err != nil {
+		t.Fatalf("validate before revoke: %v", err)
+	}
+	// Revoke the refresh token.
+	if err := s.RevokeRefreshToken(pair.RefreshToken); err != nil {
+		t.Fatalf("revoke: %v", err)
+	}
+	// Validate after revoke — must fail with ErrTokenRevoked.
+	if _, err := s.ValidateRefresh(pair.RefreshToken); !errors.Is(err, ErrTokenRevoked) {
+		t.Fatalf("validate after revoke: err = %v, want ErrTokenRevoked", err)
+	}
+	// Access token from the same pair is NOT revoked.
+	if _, err := s.ValidateAccess(pair.AccessToken); err != nil {
+		t.Fatalf("access token wrongly revoked: %v", err)
+	}
+}
+
+func TestRevokeAccessTokenRejected(t *testing.T) {
+	s := newTestService(t)
+	pair, err := s.IssuePair("admin")
+	if err != nil {
+		t.Fatalf("issue: %v", err)
+	}
+	// RevokeRefreshToken must reject an access token.
+	if err := s.RevokeRefreshToken(pair.AccessToken); !errors.Is(err, ErrInvalidToken) {
+		t.Fatalf("revoke access token: err = %v, want ErrInvalidToken", err)
+	}
+}
+
+func TestIsJTIRevoked(t *testing.T) {
+	s := newTestService(t)
+	pair, err := s.IssuePair("admin")
+	if err != nil {
+		t.Fatalf("issue: %v", err)
+	}
+	claims, err := s.ValidateRefresh(pair.RefreshToken)
+	if err != nil {
+		t.Fatalf("validate refresh: %v", err)
+	}
+	if s.IsJTIRevoked(claims.JTI) {
+		t.Fatalf("JTI must not be revoked before RevokeRefreshToken")
+	}
+	if err := s.RevokeRefreshToken(pair.RefreshToken); err != nil {
+		t.Fatalf("revoke: %v", err)
+	}
+	if !s.IsJTIRevoked(claims.JTI) {
+		t.Fatalf("JTI must be revoked after RevokeRefreshToken")
+	}
+}
+
+func TestRevokeExpiredRefreshTokenFails(t *testing.T) {
+	s := newTestService(t)
+	s.now = func() time.Time { return time.Now().Add(-200 * time.Hour) }
+	pair, err := s.IssuePair("admin")
+	if err != nil {
+		t.Fatalf("issue: %v", err)
+	}
+	// Restore clock so RevokeRefreshToken sees an expired token.
+	s.now = time.Now
+	if err := s.RevokeRefreshToken(pair.RefreshToken); !errors.Is(err, ErrInvalidToken) {
+		t.Fatalf("revoke expired: err = %v, want ErrInvalidToken", err)
+	}
+}

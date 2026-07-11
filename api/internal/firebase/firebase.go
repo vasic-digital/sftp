@@ -93,7 +93,7 @@ func New(ctx context.Context, opts Options) (*Client, error) {
 		option.WithCredentialsFile(opts.ServiceAccountPath),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("firebase: admin SDK init failed (check the service account JSON at %q): %w", opts.ServiceAccountPath, err)
+		return nil, fmt.Errorf("firebase: admin SDK init failed (check the service account JSON at %q): %v", opts.ServiceAccountPath, err)
 	}
 
 	authClient, err := app.Auth(ctx)

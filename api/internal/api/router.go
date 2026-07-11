@@ -75,6 +75,7 @@ func (s *Server) Engine() *gin.Engine {
 	secured := v1.Group("")
 	secured.Use(s.authMiddleware())
 	secured.GET("/auth/me", s.handleMe)
+	secured.POST("/auth/logout", s.handleLogout)
 	secured.GET("/accounts", s.handleListAccounts)
 	secured.POST("/accounts", s.handleCreateAccount)
 	secured.GET("/accounts/:username", s.handleGetAccount)

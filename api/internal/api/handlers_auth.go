@@ -106,6 +106,29 @@ func (s *Server) handleRefresh(c *gin.Context) {
 	})
 }
 
+// logoutRequest is the body of POST /api/v1/auth/logout.
+type logoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// handleLogout revokes the provided refresh token so it cannot be reused.
+func (s *Server) handleLogout(c *gin.Context) {
+	var req logoutRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, codeBadRequest, "invalid JSON body")
+		return
+	}
+	if req.RefreshToken == "" {
+		respondError(c, http.StatusBadRequest, codeValidation, "refresh_token is required")
+		return
+	}
+	if err := s.authn.RevokeRefreshToken(req.RefreshToken); err != nil {
+		respondError(c, http.StatusUnauthorized, codeUnauthorized, "invalid or expired refresh token")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+}
+
 // handleMe returns the identity carried by the caller's access token.
 func (s *Server) handleMe(c *gin.Context) {
 	claims, ok := claimsFromContext(c)

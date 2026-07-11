@@ -7,8 +7,11 @@
 package authn
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -63,6 +66,7 @@ func VerifyPassword(hash, password string) error {
 type Claims struct {
 	Subject   string
 	Kind      string
+	JTI       string
 	ExpiresAt time.Time
 	IssuedAt  time.Time
 }
@@ -84,6 +88,8 @@ type Service struct {
 	issuer        string
 	now           func() time.Time // overridable in tests
 	signingMethod *jwt.SigningMethodHMAC
+	revokedMu     sync.RWMutex
+	revokedJTIs   map[string]time.Time // JTI → when it was revoked
 }
 
 // NewService creates a token service. secret must be non-empty; callers
@@ -105,6 +111,7 @@ func NewService(secret string, accessTTL, refreshTTL time.Duration) (*Service, e
 		issuer:        "sftp-api",
 		now:           time.Now,
 		signingMethod: jwt.SigningMethodHS256,
+		revokedJTIs:   make(map[string]time.Time),
 	}, nil
 }
 
@@ -135,13 +142,27 @@ func (s *Service) IssuePair(subject string) (*TokenPair, error) {
 	}, nil
 }
 
+// generateJTI returns a random 16-byte hex-encoded JWT ID.
+func generateJTI() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("authn: generate jti: %w", err)
+	}
+	return hex.EncodeToString(b), nil
+}
+
 // sign produces one signed JWT of the given kind.
 func (s *Service) sign(subject, kind string, ttl time.Duration) (string, time.Time, error) {
+	jti, err := generateJTI()
+	if err != nil {
+		return "", time.Time{}, err
+	}
 	now := s.now().UTC()
 	exp := now.Add(ttl)
 	claims := jwt.MapClaims{
 		"iss":  s.issuer,
 		"sub":  subject,
+		"jti":  jti,
 		"kind": kind,
 		"iat":  now.Unix(),
 		"exp":  exp.Unix(),
@@ -159,9 +180,44 @@ func (s *Service) ValidateAccess(tokenString string) (*Claims, error) {
 	return s.validate(tokenString, kindAccess)
 }
 
-// ValidateRefresh parses + validates a refresh token.
+// ErrTokenRevoked is returned when a valid refresh token has been revoked.
+var ErrTokenRevoked = errors.New("authn: token has been revoked")
+
+// ValidateRefresh parses + validates a refresh token and checks it has not
+// been revoked.
 func (s *Service) ValidateRefresh(tokenString string) (*Claims, error) {
-	return s.validate(tokenString, kindRefresh)
+	claims, err := s.validate(tokenString, kindRefresh)
+	if err != nil {
+		return nil, err
+	}
+	if claims.JTI != "" && s.IsJTIRevoked(claims.JTI) {
+		return nil, fmt.Errorf("%w: jti %s", ErrTokenRevoked, claims.JTI)
+	}
+	return claims, nil
+}
+
+// RevokeRefreshToken parses a refresh token and marks its JTI as revoked.
+// Future calls to ValidateRefresh with this token will fail.
+func (s *Service) RevokeRefreshToken(tokenString string) error {
+	claims, err := s.validate(tokenString, kindRefresh)
+	if err != nil {
+		return err
+	}
+	if claims.JTI == "" {
+		return fmt.Errorf("%w: token has no jti", ErrInvalidToken)
+	}
+	s.revokedMu.Lock()
+	s.revokedJTIs[claims.JTI] = time.Now().UTC()
+	s.revokedMu.Unlock()
+	return nil
+}
+
+// IsJTIRevoked reports whether jti has been revoked.
+func (s *Service) IsJTIRevoked(jti string) bool {
+	s.revokedMu.RLock()
+	defer s.revokedMu.RUnlock()
+	_, ok := s.revokedJTIs[jti]
+	return ok
 }
 
 // validate enforces signature, algorithm, issuer, expiry, and kind.
@@ -191,6 +247,7 @@ func (s *Service) validate(tokenString, wantKind string) (*Claims, error) {
 	if kind != wantKind {
 		return nil, fmt.Errorf("%w: token kind %q is not %q", ErrInvalidToken, kind, wantKind)
 	}
+	jti, _ := mapClaims["jti"].(string)
 
 	exp, err := mapClaims.GetExpirationTime()
 	if err != nil {
@@ -204,6 +261,7 @@ func (s *Service) validate(tokenString, wantKind string) (*Claims, error) {
 	return &Claims{
 		Subject:   subject,
 		Kind:      kind,
+		JTI:       jti,
 		ExpiresAt: exp.Time,
 		IssuedAt:  iat.Time,
 	}, nil

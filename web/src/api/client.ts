@@ -20,6 +20,8 @@ import {
 const DEFAULT_API_BASE = '/api/v1';
 const ACCESS_TOKEN_KEY = 'sftp.access_token';
 const REFRESH_TOKEN_KEY = 'sftp.refresh_token';
+const EXPIRES_AT_KEY = 'sftp.expires_at';
+const REFRESH_LEAD_SECONDS = 60;
 const API_BASE_OVERRIDE_KEY = 'sftp.api_base_override';
 
 export function getApiBase(): string {
@@ -59,6 +61,23 @@ export function storeTokens(tokens: TokenPair): void {
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(EXPIRES_AT_KEY);
+}
+
+function getExpiresAt(): number | null {
+  const val = localStorage.getItem(EXPIRES_AT_KEY);
+  if (!val) return null;
+  const num = parseInt(val, 10);
+  return isNaN(num) ? null : num;
+}
+
+function storeExpiresAt(expiresIn: number): void {
+  const expiresAt = Date.now() + expiresIn * 1000;
+  localStorage.setItem(EXPIRES_AT_KEY, String(expiresAt));
+}
+
+function clearExpiresAt(): void {
+  localStorage.removeItem(EXPIRES_AT_KEY);
 }
 
 export function isAuthenticated(): boolean {
@@ -92,6 +111,7 @@ export class ApiClient {
   onSessionExpired?: () => void;
 
   private refreshPromise: Promise<boolean> | null = null;
+  private refreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
   private async rawFetch(path: string, init: RequestInit = {}): Promise<Response> {
     return fetch(`${getApiBase()}${path}`, init);
@@ -108,13 +128,19 @@ export class ApiClient {
       });
       if (!response.ok) {
         clearTokens();
+        clearExpiresAt();
+        this.stopProactiveRefresh();
         return false;
       }
       const tokens = (await response.json()) as TokenPair;
       storeTokens(tokens);
+      storeExpiresAt(tokens.expires_in);
+      this.scheduleProactiveRefresh();
       return true;
     } catch {
       clearTokens();
+      clearExpiresAt();
+      this.stopProactiveRefresh();
       return false;
     }
   }
@@ -127,6 +153,45 @@ export class ApiClient {
       });
     }
     return this.refreshPromise;
+  }
+
+  /**
+   * Start the proactive token refresh timer. Safe to call when a timer is
+   * already running (it will be rescheduled).  Called by AuthContext on mount
+   * when a stored session already exists.
+   */
+  startProactiveRefresh(): void {
+    this.scheduleProactiveRefresh();
+  }
+
+  /** Cancel the proactive refresh timer.  Idempotent. */
+  stopProactiveRefresh(): void {
+    if (this.refreshTimerId !== null) {
+      clearTimeout(this.refreshTimerId);
+      this.refreshTimerId = null;
+    }
+  }
+
+  /** (Re)schedule the next proactive refresh based on stored expires_at. */
+  private scheduleProactiveRefresh(): void {
+    this.stopProactiveRefresh();
+    const expiresAt = getExpiresAt();
+    if (!expiresAt) return;
+    const delay = Math.max(
+      0,
+      expiresAt - Date.now() - REFRESH_LEAD_SECONDS * 1000,
+    );
+    this.refreshTimerId = setTimeout(() => {
+      void this.performProactiveRefresh();
+    }, delay);
+  }
+
+  /** Callback fired by the refresh timer. */
+  private async performProactiveRefresh(): Promise<void> {
+    const ok = await this.refreshAccessToken();
+    if (!ok) {
+      this.onSessionExpired?.();
+    }
   }
 
   /** Authenticated request with one silent 401 → refresh → retry cycle. */
@@ -171,11 +236,15 @@ export class ApiClient {
     if (!response.ok) throw await parseError(response);
     const tokens = (await response.json()) as TokenPair;
     storeTokens(tokens);
+    storeExpiresAt(tokens.expires_in);
+    this.scheduleProactiveRefresh();
     return tokens;
   }
 
   logout(): void {
     clearTokens();
+    clearExpiresAt();
+    this.stopProactiveRefresh();
   }
 
   async me(): Promise<AdminIdentity> {

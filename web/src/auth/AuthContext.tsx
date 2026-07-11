@@ -21,8 +21,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthenticated(false);
       setSessionExpired(true);
     };
+    // Resume proactive refresh for a stored session (page reload, etc.)
+    if (isAuthenticated()) {
+      apiClient.startProactiveRefresh();
+    }
     return () => {
       apiClient.onSessionExpired = undefined;
+      apiClient.stopProactiveRefresh();
     };
   }, []);
 

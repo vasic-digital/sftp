@@ -180,6 +180,7 @@ func TestSecuredEndpointsRequireToken(t *testing.T) {
 		{http.MethodGet, "/api/v1/accounts"},
 		{http.MethodPost, "/api/v1/accounts"},
 		{http.MethodGet, "/api/v1/auth/me"},
+		{http.MethodPost, "/api/v1/auth/logout"},
 		{http.MethodPost, "/api/v1/sync"},
 	} {
 		rec, _ := e.do(t, tc.method, tc.path, nil, "")
@@ -523,4 +524,90 @@ func TestNoPasswordInAnyResponse(t *testing.T) {
 		}
 	}
 	_ = fmt.Sprintf // keep import used if assertions change
+}
+
+func TestLogoutRequiresAuth(t *testing.T) {
+	e := newTestEnv(t)
+	// POST without bearer token → 401.
+	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": "anything",
+	}, "")
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("logout without token: status = %d, want 401; body = %s", rec.Code, raw)
+	}
+}
+
+func TestLogoutInvalidatesRefreshToken(t *testing.T) {
+	e := newTestEnv(t)
+	e.seedAdmin(t)
+	tokens := e.login(t)
+	access, _ := tokens["access_token"].(string)
+	refresh, _ := tokens["refresh_token"].(string)
+
+	// Step 1: refresh still works before logout.
+	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": refresh,
+	}, "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("refresh before logout: status = %d, want 200; body = %s", rec.Code, raw)
+	}
+	// Extract the new refresh token after refresh (refresh rotation).
+	var before map[string]any
+	_ = json.Unmarshal(raw, &before)
+	newRefreshBefore, _ := before["refresh_token"].(string)
+
+	// Step 2: logout with the original refresh token (authenticated).
+	rec, raw = e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": refresh,
+	}, access)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("logout: status = %d, want 200; body = %s", rec.Code, raw)
+	}
+
+	// Step 3: the revoked refresh token can no longer be used.
+	rec, raw = e.do(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+		"refresh_token": refresh,
+	}, "")
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("refresh after logout: status = %d, want 401; body = %s", rec.Code, raw)
+	}
+
+	// Step 4: the NEW refresh token from step 1 (not revoked) still works.
+	if newRefreshBefore != "" {
+		rec, raw = e.do(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
+			"refresh_token": newRefreshBefore,
+		}, "")
+		if rec.Code != http.StatusOK {
+			t.Fatalf("refresh with un-revoked new token: status = %d, want 200; body = %s", rec.Code, raw)
+		}
+	}
+}
+
+func TestLogoutEmptyRefreshTokenRejected(t *testing.T) {
+	e := newTestEnv(t)
+	e.seedAdmin(t)
+	tokens := e.login(t)
+	access, _ := tokens["access_token"].(string)
+
+	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": "",
+	}, access)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("logout with empty token: status = %d, want 400; body = %s", rec.Code, raw)
+	}
+}
+
+func TestLogoutWithAccessTokenRejected(t *testing.T) {
+	e := newTestEnv(t)
+	e.seedAdmin(t)
+	tokens := e.login(t)
+	access, _ := tokens["access_token"].(string)
+
+	// An access token cannot be used as a refresh_token for revocation.
+	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
+		"refresh_token": access,
+	}, access)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("logout with access token as refresh: status = %d, want 401; body = %s", rec.Code, raw)
+	}
 }
