@@ -1,7 +1,7 @@
 # SFTP Enterprise Management System — User Manual
 
-**Revision:** 1
-**Last modified:** 2026-07-11T23:00:00Z
+**Revision:** 2
+**Last modified:** 2026-07-12T00:00:00Z
 
 This guide is for SFTP end users -- people who connect to upload, download, and manage files on the enterprise SFTP server. If you are a system administrator looking for account management, see the [Administrator Guide](admin_guide.md) instead.
 
@@ -22,7 +22,7 @@ This guide is for SFTP end users -- people who connect to upload, download, and 
 7. [Public shares](#7-public-shares)
 8. [Understanding your directory layout](#8-understanding-your-directory-layout)
 9. [Troubleshooting common issues](#9-troubleshooting-common-issues)
-10. [Screenshots (to be added)](#10-screenshots-to-be-added)
+10. [Screenshots](#10-screenshots)
 
 ---
 
@@ -291,15 +291,93 @@ data/
 
 ---
 
-## 10. Screenshots (to be added)
+## 10. Screenshots
 
-Screenshots of the connection and file-transfer process will be added in a subsequent release. This section will include:
+### 10.1 Web Admin SPA (Administrator interface)
 
-- FileZilla Site Manager configuration screen showing the SFTP settings.
-- FileZilla main interface with local and remote file panels.
-- WinSCP login screen with the SFTP protocol selected.
-- Command-line sftp session showing a successful login, upload, and download.
-- Common error messages and their resolutions in graphical clients.
+The SFTP service is managed through a React/TypeScript single-page application built on the OpenDesign token system. All screenshots below were captured via Playwright with host-rendered pixel proof against the live API.
+
+#### Login screen
+
+The super-admin login screen. Only authenticated administrators can manage accounts.
+
+![Login screen (light theme)](assets/login-light.png)
+
+*Login screen in light theme. Enter the super-admin credentials configured in `.env` (default port 7722 for the API).*
+
+<details>
+<summary>Dark theme variant</summary>
+
+![Login screen (dark theme)](assets/login-dark.png)
+</details>
+
+#### Dashboard -- Account list
+
+The dashboard displays all configured SFTP accounts with their current permission level, home directory, and status. This is the primary view for monitoring and managing SFTP access.
+
+![Dashboard (light theme)](assets/dashboard-light.png)
+
+*Dashboard showing the SFTP account list. Each row represents one account with its username, permission level (read_only or read_write), home directory on the server, and current status.*
+
+<details>
+<summary>Dark theme variant</summary>
+
+![Dashboard (dark theme)](assets/dashboard-dark.png)
+</details>
+
+#### Creating a new account
+
+The account creation form captures the username, password, permission level, and home directory for a new SFTP user. Choosing "Public" access triggers a mandatory confirmation guard.
+
+![New account form (light theme)](assets/account-new-light.png)
+
+*New account form. Fill in the username, password (stored as `:e` encrypted in users.conf), permission level, and the chroot home directory under `/data`.*
+
+<details>
+<summary>Dark theme variant</summary>
+
+![New account form (dark theme)](assets/account-new-dark.png)
+</details>
+
+#### Public-access confirmation guard
+
+When "Public" access is selected, the UI REQUIRES explicit acknowledgement that the admin understands the implications. Public access is NEVER the default -- this guard is the enforcement point.
+
+![Public-access guard (light theme)](assets/account-new-public-guard-light.png)
+
+*Public-access guard dialog. The admin must explicitly confirm they understand public access means no authentication is required. This guard is the programmatic enforcement of the project's public-never-default rule.*
+
+#### Editing an account -- Permissions
+
+The account editor is where permissions (`read_only` vs `read_write`) are set. This is the central control for enforcing the principle of least privilege on the SFTP server.
+
+![Account editor (light theme)](assets/account-edit-light.png)
+
+*Account editor showing the permission selector. Choose `read_only` to restrict the user to downloads and directory listings only, or `read_write` to allow uploads, deletes, and renames.*
+
+<details>
+<summary>Dark theme variant</summary>
+
+![Account editor (dark theme)](assets/account-edit-dark.png)
+</details>
+
+#### Settings panel
+
+The settings screen allows configuration of server-level parameters including the API endpoint and SFTP port.
+
+![Settings (light theme)](assets/settings-light.png)
+
+*Settings panel showing server configuration. The API base URL and SFTP port (default 7721) are configurable here.*
+
+<details>
+<summary>Dark theme variant</summary>
+
+![Settings (dark theme)](assets/settings-dark.png)
+</details>
+
+### 10.2 SFTP client screenshots
+
+Real SFTP client sessions (command-line `sftp`, FileZilla, WinSCP) showing connection, file upload, and file download will be captured and added when the server is next running with test accounts available. The server was not reachable at time of writing (connection refused on port 7721).
 
 ---
 
