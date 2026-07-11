@@ -1,0 +1,1 @@
+{"code":"validation_error","error":"store: validation error: username \"\u003cimg src=x onerror=alert(1)\u003e\" must match ^[a-z_][a-z0-9_-]{0,31}$"}

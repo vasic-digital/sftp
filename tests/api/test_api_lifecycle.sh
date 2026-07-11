@@ -254,8 +254,8 @@ api_request PUT /api/v1/accounts/bob \
 LAST_BODY_FILE="$RUN/09_sync2.json"
 api_request POST /api/v1/sync -H "Authorization: Bearer $API_TOKEN"
 cp "$API_USERS_CONF" "$RUN/09_users_rw.conf"
-if grep -qE '^bob:\$6\$[^:]+:[0-9]+:[0-9]+:/bob$' "$API_USERS_CONF"; then
-    pass "read_write account renders with \$6\$ hash and NO option suffix" "$RUN/09_users_rw.conf"
+if grep -qE '^bob:\$6\$[^:]+:e:[0-9]+:[0-9]+:/bob$' "$API_USERS_CONF"; then
+    pass "read_write account renders with \$6\$ hash and :e option" "$RUN/09_users_rw.conf"
 else
     fail "read_write render grammar" "line: $(grep '^bob:' "$API_USERS_CONF" || echo missing)"
 fi
