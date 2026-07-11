@@ -20,6 +20,13 @@
 //  6. api.NewServer + http.Server with graceful shutdown on
 //     SIGINT/SIGTERM: http.Server.Shutdown first, then store.Close.
 //
+// Compose management mode (§11.4.76):
+//
+//  When invoked with --compose-up, --compose-down, or --compose-status,
+//  the binary manages the SFTP stack through the containers submodule
+//  (vasic-digital/containers) instead of starting the API server. No
+//  ad-hoc podman/docker commands are used.
+//
 // Credentials discipline (§11.4.10): SUPERADMIN_PASSWORD and JWT_SECRET are
 // consumed from the environment and NEVER printed, logged, or written to
 // any response.
@@ -28,6 +35,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,6 +47,7 @@ import (
 	"github.com/vasic-digital/sftp/api/internal/api"
 	"github.com/vasic-digital/sftp/api/internal/authn"
 	"github.com/vasic-digital/sftp/api/internal/config"
+	stackpkg "github.com/vasic-digital/sftp/api/internal/containers"
 	"github.com/vasic-digital/sftp/api/internal/firebase"
 	"github.com/vasic-digital/sftp/api/internal/store"
 	"github.com/vasic-digital/sftp/api/internal/vault"
@@ -48,12 +57,106 @@ import (
 const shutdownTimeout = 15 * time.Second
 
 func main() {
+	// Compose management flags (§11.4.76 — containers submodule is the
+	// sole orchestration layer).
+	composeUp := flag.Bool("compose-up", false, "Start SFTP compose stack via the containers layer")
+	composeDown := flag.Bool("compose-down", false, "Stop SFTP compose stack")
+	composeStatus := flag.Bool("compose-status", false, "Show health of SFTP compose stack")
+	flag.Parse()
+
+	if *composeUp || *composeDown || *composeStatus {
+		projectRoot := resolveProjectRoot()
+		if err := runComposeCmd(*composeUp, *composeDown, *composeStatus, projectRoot); err != nil {
+			log.Printf("sftp-api: compose: %v", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	// Default: API server mode.
 	if err := run(); err != nil {
-		// Log the error class only — error messages from config.Validate
-		// never contain secret material (they state that a value is
-		// missing/invalid, not its content).
 		log.Printf("sftp-api: fatal: %v", err)
 		os.Exit(1)
+	}
+}
+
+// resolveProjectRoot returns the project root directory. It checks
+// SFTP_PROJECT_ROOT first, then falls back to the current working
+// directory. Scripts (sftp_ctl.sh) always set SFTP_PROJECT_ROOT.
+func resolveProjectRoot() string {
+	if v := os.Getenv("SFTP_PROJECT_ROOT"); v != "" {
+		return v
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("sftp-api: cannot determine project root: %v (set SFTP_PROJECT_ROOT)", err)
+	}
+	return wd
+}
+
+// runComposeCmd dispatches a compose management command (up/down/status)
+// through the containers submodule. It prints a human-readable summary
+// and exits zero on success.
+func runComposeCmd(up, down, status bool, projectRoot string) error {
+	ctx := context.Background()
+
+	stk, err := stackpkg.New(stackpkg.Config{
+		ProjectRoot: projectRoot,
+	})
+	if err != nil {
+		return fmt.Errorf("init stack: %w", err)
+	}
+
+	switch {
+	case up:
+		log.Printf("sftp-api: starting stack via containers layer (compose file: %s)", stk.ComposeFile())
+		if err := stk.Start(ctx); err != nil {
+			return fmt.Errorf("start stack: %w", err)
+		}
+		log.Printf("sftp-api: stack started — verify with: sftp-api --compose-status")
+		return nil
+
+	case down:
+		log.Printf("sftp-api: stopping stack via containers layer")
+		if err := stk.Stop(ctx); err != nil {
+			return fmt.Errorf("stop stack: %w", err)
+		}
+		log.Printf("sftp-api: stack stopped")
+		return nil
+
+	case status:
+		report, err := stk.Health(ctx)
+		if err != nil {
+			return fmt.Errorf("health: %w", err)
+		}
+		fmt.Println("=== SFTP Enterprise stack (containers layer) ===")
+		fmt.Printf("Compose file : %s\n", stk.ComposeFile())
+		fmt.Println()
+		if len(report.Services) == 0 {
+			fmt.Println("No services found — stack may not be started.")
+			return nil
+		}
+		for _, s := range report.Services {
+			marker := "  "
+			if !s.Healthy {
+				marker = "! "
+			}
+			healthStr := s.Health
+			if healthStr == "" {
+				healthStr = "—"
+			}
+			fmt.Printf("%s%-16s  state=%-10s  health=%s\n",
+				marker, s.Name, s.State, healthStr)
+		}
+		if report.AllHealthy {
+			fmt.Println("\nAll services healthy.")
+		} else {
+			fmt.Println("\nOne or more services are NOT healthy.")
+		}
+		return nil
+
+	default:
+		return fmt.Errorf("no compose command specified")
 	}
 }
 

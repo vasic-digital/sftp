@@ -1,7 +1,7 @@
 # SFTP Project — Issues (workable items)
 
-**Revision:** 5
-**Last modified:** 2026-07-11T20:05:00Z
+**Revision:** 6
+**Last modified:** 2026-07-12T00:00:00Z
 
 Tracked per §11.4.15/§11.4.16/§11.4.54. Status vocabulary: Queued | In progress | Ready for testing | In testing | Reopened | Operator-blocked | Fixed (→ Fixed.md) / Implemented (→ Fixed.md) / Completed (→ Fixed.md). Type: Bug | Feature | Task.
 
@@ -59,7 +59,7 @@ OpenDesign tokens integrated into web + mobile builds; light/dark theme packs; `
 
 ## §9. [FTP-009] Test matrix, Challenges banks, HelixQA suites
 
-**Status:** In progress — 15/15 test types covered, 6/6 Challenges PASS (100%), HelixQA 161/163 GREEN; 5 test scripts have minor failures pending fixes (FTP-012)
+**Status:** Completed (→ Fixed.md) — 15/15 test types covered, 6/6 Challenges PASS, HelixQA 161/163, all test scripts fixed and verified (Phase 4)
 **Type:** Task
 **Priority:** TOP (gates every closure)
 
@@ -89,7 +89,7 @@ Commit/push wrappers with quiescence check (§11.4.84) + detached push to all up
 
 ## §12. [FTP-012] Test hardening — fix all 5 failing test scripts
 
-**Status:** In progress (fix agent dispatched 2026-07-11)
+**Status:** Fixed (→ Fixed.md) — all 5 scripts fixed and verified PASS (DDoS 7/7, Benchmark 14/14, full-automation, challenges 6/6, helixqa); logging middleware fixed; CSP added; missing PDFs exported
 **Type:** Bug
 **Priority:** TOP (blocks all validation)
 
@@ -156,3 +156,75 @@ Verify Gradle build produces debug APK, verify APK artifact, document host requi
 Production-ready .env.example review, PostgreSQL driver verification (currently only SQLite tested), TLS/HTTPS setup guide, backup automation script verification.
 **Acceptance:** Config validation passes; PostgreSQL start + query verified; backup restore tested.
 **Scope:** `.env.example`, `deploy/`, `config_schemas/`.
+
+## §19. [FTP-019] Container E2E re-verification after sftpsync fix
+
+**Status:** Queued
+**Type:** Bug
+**Priority:** TOP
+
+Re-run full container deployment test after CRITICAL sftpsync `:e` position fix + volume mapping `/sftp_data`→`/home`. Verify password auth works through real atmoz/sftp container.
+**Scope:** `deploy/`, container runtime.
+
+## §20. [FTP-020] PostgreSQL driver verification
+
+**Status:** Queued
+**Type:** Task
+**Priority:** TOP
+
+Start PostgreSQL (podman or system), switch API to pgx driver, verify all CRUD operations identical to SQLite. Production DB must work.
+**Scope:** `api/internal/store/`, `deploy/`.
+
+## §21. [FTP-021] Permission enforcement — read_only vs read_write
+
+**Status:** Queued
+**Type:** Feature
+**Priority:** MIDDLE
+
+Implement filesystem-level read_only enforcement: RO users must be denied write operations. Test: RO upload rejected, RW upload accepted.
+**Scope:** `deploy/`, `api/internal/sftpsync/`.
+
+## §22. [FTP-022] Security audit — OWASP, dependencies, secrets scan
+
+**Status:** Queued
+**Type:** Task
+**Priority:** MIDDLE
+
+Run govulncheck, npm audit, check for known CVEs, scan for hardcoded secrets, verify security headers on all responses.
+**Scope:** `api/`, `web/`.
+
+## §23. [FTP-023] Web production build served from API
+
+**Status:** Queued
+**Type:** Feature
+**Priority:** LOW
+
+Build web SPA (`npm run build`), embed or serve static files from API with SPA fallback routing so the API serves its own admin UI.
+**Scope:** `web/`, `api/`.
+
+## §24. [FTP-024] Backup/restore end-to-end verification
+
+**Status:** Queued
+**Type:** Task
+**Priority:** LOW
+
+Run scripts/backup.sh against live data, verify integrity, run restore, verify data matches. Capture real backup+restore transcript.
+**Scope:** `scripts/`, `data/`.
+
+## §25. [FTP-025] OpenAPI specification generation
+
+**Status:** Queued
+**Type:** Task
+**Priority:** LOW
+
+Generate OpenAPI 3.0 spec from Gin routes or hand-author from API reference. Export to YAML+JSON+HTML.
+**Scope:** `docs/api/`, `api/`.
+
+## §26. [FTP-026] systemd unit install + boot-persistence test
+
+**Status:** Queued
+**Type:** Task
+**Priority:** LOW
+
+Install sftp-api.service and sftp.service as systemd --user units, enable lingering, verify stop+start cycle survives. Test with systemctl --user.
+**Scope:** `deploy/systemd/`.

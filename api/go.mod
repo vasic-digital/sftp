@@ -6,6 +6,8 @@ replace digital.vasic.auth => ../auth
 
 replace digital.vasic.cache => ../cache
 
+replace digital.vasic.containers => ../containers
+
 replace digital.vasic.concurrency => ../concurrency
 
 replace digital.vasic.config => ../config
@@ -42,6 +44,7 @@ replace digital.vasic.watcher => ../watcher
 
 require (
 	digital.vasic.config v0.0.0-00010101000000-000000000000
+	digital.vasic.containers v0.0.0-00010101000000-000000000000
 	digital.vasic.database v0.0.0-00010101000000-000000000000
 	digital.vasic.middleware v0.0.0-00010101000000-000000000000
 	firebase.google.com/go/v4 v4.21.0

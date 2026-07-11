@@ -165,6 +165,8 @@ main() {
   1. Review/edit .env (ports, DB driver, Firebase flags) — it is chmod 600 + git-ignored.
   2. Prepare the atmoz user spec: cp users.conf.example users.conf  (then edit; git-ignored).
   3. Start the stack:        scripts/sftp_ctl.sh start
+     (Container orchestration flows through the containers submodule — §11.4.76.
+      Ports are mapped from .env: SFTP=${SFTP_PORT:-7721}, API=${API_PORT:-7722}.)
   4. Check stack health:     scripts/sftp_ctl.sh status
   5. (Optional) auto-start at login: scripts/sftp_ctl.sh install  (systemd --user)
   6. (Optional) Firebase web config: scripts/firebase_config.sh --check

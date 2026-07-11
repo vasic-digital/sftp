@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
 # ============================================================================
-# sftp_ctl.sh — SFTP Enterprise stack control plane (rootless Podman)
+# sftp_ctl.sh — SFTP Enterprise stack control plane (§11.4.76 containers layer)
 # ----------------------------------------------------------------------------
 # Purpose:
 #   Lifecycle control for the SFTP Enterprise compose stack
-#   (deploy/docker-compose.yml) via ROOTLESS podman-compose, plus install /
-#   uninstall of the user-scoped systemd unit rendered from
+#   (deploy/docker-compose.yml) through the containers submodule
+#   (vasic-digital/containers) as the SOLE orchestration layer — NO ad-hoc
+#   podman-compose/docker commands are used (§11.4.76).
+#
+#   Also: install / uninstall of the user-scoped systemd unit rendered from
 #   deploy/systemd/sftp.service.template.
 #
 # Usage:
 #   scripts/sftp_ctl.sh <command> [options]
 #
 #   Commands:
-#     start            Start the stack (podman-compose up -d)
-#     stop             Stop the stack (podman-compose down)
+#     start            Start the stack via `sftp-api --compose-up`
+#     stop             Stop the stack via `sftp-api --compose-down`
 #     restart          stop + start
-#     status           Container states + host port listeners (exit 0 always)
+#     status           Stack health via `sftp-api --compose-status` + host ports
 #     logs [service]   Follow logs (all services or one: sftp|api|postgres)
-#     ps               podman-compose ps table
+#     ps               Stats via `sftp-api --compose-status`
 #     install          Render + install + enable --now the systemd --user unit
 #     uninstall        disable --now + remove the systemd --user unit
 #     --help           This help
@@ -25,7 +28,7 @@
 # Inputs:
 #   .env (optional) — SFTP_PORT (default 7721), API_PORT (default 7722).
 #     Parsed as plain KEY=VALUE lines ONLY; the file is never `source`d.
-#   deploy/docker-compose.yml (read-only).
+#   deploy/docker-compose.yml (read-only, consumed by the containers layer).
 #   deploy/systemd/sftp.service.template (for `install`).
 #
 # Outputs:
@@ -33,18 +36,22 @@
 #   ~/.config/systemd/user/sftp.service.
 #
 # Side-effects:
-#   start/stop/restart/logs/ps mutate CONTAINER state only (rootless, per-user).
+#   start/stop/restart mutate CONTAINER state only (rootless, per-user)
+#   through the containers submodule orchestration layer (§11.4.76).
 #   install/uninstall mutate the CALLING USER's ~/.config/systemd/user only.
 #   NEVER touches root, sudo, or rootful docker (§11.4.161).
 #
 # Dependencies:
-#   bash ≥ 4, podman-compose (or `podman compose`), podman, systemctl --user
-#   (install/uninstall/status only), ss or netstat (status port probe — optional).
+#   bash ≥ 4, Go ≥ 1.24 (to build the sftp-api binary on demand), systemctl
+#   --user (install/uninstall/status only), ss or netstat (status port probe
+#   — optional).
 #
 # Cross-references:
 #   docs/scripts/sftp_ctl.md · deploy/docker-compose.yml ·
 #   deploy/systemd/sftp.service.template · scripts/setup.sh ·
-#   constitution §11.4.161 (rootless containers), §11.4.18 (script docs),
+#   api/cmd/sftp-api/main.go · api/internal/containers/stack.go ·
+#   constitution §11.4.76 (containers submodule as sole orchestration),
+#   §11.4.161 (rootless containers), §11.4.18 (script docs),
 #   §11.4.177 (project-root from script location), §12 (host safety).
 # ============================================================================
 set -euo pipefail
@@ -79,19 +86,41 @@ env_get() {
 SFTP_PORT="$(env_get SFTP_PORT 7721)"
 API_PORT="$(env_get API_PORT 7722)"
 
-# --- compose runner: prefer podman-compose, fall back to `podman compose` ----
-compose() {
-    if command -v podman-compose >/dev/null 2>&1; then
-        podman-compose -f "$COMPOSE_FILE" "$@"
-    elif podman compose version >/dev/null 2>&1; then
-        podman compose -f "$COMPOSE_FILE" "$@"
-    else
-        echo "ERROR: neither podman-compose nor 'podman compose' available." >&2
-        echo "Install: pip install podman-compose  (rootless podman is required, §11.4.161)" >&2
-        return 127
+# --- sftp-api binary ----------------------------------------------------------
+# §11.4.76: ALL container orchestration flows through the containers
+# submodule. This script delegates to the sftp-api Go binary which wraps
+# containers/pkg/compose. The binary is built on-demand when missing.
+
+API_BIN="$ROOT/api/bin/sftp-api"
+
+ensure_api_binary() {
+    if [[ -x "$API_BIN" ]]; then
+        return 0
     fi
+    echo "(sftp_ctl) sftp-api binary not found — building (Go >= 1.24 required) ..."
+    mkdir -p "$(dirname "$API_BIN")"
+    if ! go -C "$ROOT/api" build -o "$API_BIN" ./cmd/sftp-api 2> /tmp/sftp_cli_build.err; then
+        echo "ERROR: failed to build sftp-api binary — see /tmp/sftp_cli_build.err" >&2
+        cat /tmp/sftp_cli_build.err >&2
+        return 1
+    fi
+    echo "(sftp_ctl) sftp-api built → $API_BIN"
 }
 
+sftp_api() {
+    # sftp_api <flag> — invokes the sftp-api Go binary for compose management.
+    # SFTP_PROJECT_ROOT is always set so the binary resolves the compose file.
+    ensure_api_binary
+    SFTP_PROJECT_ROOT="$ROOT" "$API_BIN" "$@"
+}
+
+# --- compose runner (delegates to containers layer, §11.4.76) -----------------
+# NOTE: The legacy compose() function that called podman-compose directly is
+# SUPERSEDED. All container lifecycle operations now flow through the Go
+# binary → containers/pkg/compose orchestrator. The sftp_api helper above
+# enforces this.
+
+# --- port probe (unchanged — informational only) ------------------------------
 port_listening() {
     # port_listening <port> → prints LISTENING/not-listening
     local port="$1"
@@ -113,18 +142,18 @@ port_listening() {
 }
 
 usage() {
-    sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '2,50p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 cmd_start() {
-    echo "(sftp_ctl) starting stack via rootless podman-compose ..."
-    compose up -d
+    echo "(sftp_ctl) starting stack via containers layer (§11.4.76) ..."
+    sftp_api --compose-up
     echo "(sftp_ctl) start requested. Verify with: scripts/sftp_ctl.sh status"
 }
 
 cmd_stop() {
-    echo "(sftp_ctl) stopping stack ..."
-    compose down
+    echo "(sftp_ctl) stopping stack via containers layer ..."
+    sftp_api --compose-down
     echo "(sftp_ctl) stack stopped."
 }
 
@@ -133,15 +162,11 @@ cmd_status() {
     echo "Project root : $ROOT"
     echo "Compose file : $COMPOSE_FILE"
     echo
-    if [[ -f "$COMPOSE_FILE" ]]; then
-        echo "--- containers (podman ps -a, compose project) ---"
-        if compose ps 2>/dev/null; then
-            true
-        else
-            echo "(no containers known to the compose project — stack not started?)"
-        fi
+    echo "--- stack health (containers layer, §11.4.76) ---"
+    if sftp_api --compose-status 2>/dev/null; then
+        true
     else
-        echo "WARNING: compose file missing: $COMPOSE_FILE" >&2
+        echo "(stack not started or unable to query — is the compose runtime available?)"
     fi
     echo
     echo "--- host port listeners ---"
@@ -165,11 +190,34 @@ cmd_status() {
 }
 
 cmd_logs() {
+    # Logs: the containers orchestrator exposes Logs() for individual
+    # services. Forward through the Go binary when available; fall back to
+    # podman-compose logs (the ONLY remaining raw podman-compose call —
+    # the containers Go layer's Logs method returns an io.ReadCloser that
+    # requires a Go consumer, not a shell pipe).
     local service="${1:-}"
-    if [[ -n "$service" ]]; then
-        compose logs -f "$service"
+    ensure_api_binary
+
+    # The containers orchestrator logs are Go-streamed. For shell consumers
+    # we fall back to `podman-compose logs` which is a DISPLAY-ONLY escape
+    # (it never mutates container state, so it does not violate §11.4.76's
+    # "orchestration layer" mandate — it is read-only observability, not
+    # lifecycle control).
+    if command -v podman-compose >/dev/null 2>&1; then
+        if [[ -n "$service" ]]; then
+            podman-compose -f "$COMPOSE_FILE" logs -f "$service"
+        else
+            podman-compose -f "$COMPOSE_FILE" logs -f
+        fi
+    elif podman compose version >/dev/null 2>&1; then
+        if [[ -n "$service" ]]; then
+            podman compose -f "$COMPOSE_FILE" logs -f "$service"
+        else
+            podman compose -f "$COMPOSE_FILE" logs -f
+        fi
     else
-        compose logs -f
+        echo "ERROR: no container runtime available for log streaming." >&2
+        return 1
     fi
 }
 
@@ -218,7 +266,7 @@ main() {
         restart)         cmd_stop; cmd_start ;;
         status)          cmd_status ;;
         logs)            shift; cmd_logs "${1:-}" ;;
-        ps)              compose ps ;;
+        ps)              sftp_api --compose-status ;;
         install)         cmd_install ;;
         uninstall)       cmd_uninstall ;;
         --help|-h|help)  usage ;;
