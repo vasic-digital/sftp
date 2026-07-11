@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP FAQ</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP FAQ</h1>
+</header>
+<h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T15:23:48Z</p>
+<p>Quick answers about the enterprise SFTP management system. Deeper
+coverage: <a href="../guides/">guides</a> · <a
+href="../tutorials/">tutorials</a> · <a
+href="../architecture/">architecture</a>. Answers referencing
+not-yet-built components cite their ATM item.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-what-is-this-project">What is this project?</a></li>
+<li><a href="#2-what-do-i-need-to-install-it">What do I need to install
+it?</a></li>
+<li><a href="#3-do-i-need-root-or-sudo">Do I need root or sudo?</a></li>
+<li><a href="#4-which-ports-does-it-use">Which ports does it
+use?</a></li>
+<li><a href="#5-how-do-i-create-the-first-administrator">How do I create
+the first administrator?</a></li>
+<li><a href="#6-how-do-i-add-an-sftp-user">How do I add an SFTP
+user?</a></li>
+<li><a href="#7-what-do-read_only-and-read_write-mean">What do read_only
+and read_write mean?</a></li>
+<li><a href="#8-can-a-user-be-public--anonymous">Can a user be public /
+anonymous?</a></li>
+<li><a
+href="#9-why-cant-a-user-write-into-their-home-directory-top-level">Why
+can’t a user write into their home directory top level?</a></li>
+<li><a
+href="#10-where-is-user-data-stored-and-how-do-i-back-it-up">Where is
+user data stored, and how do I back it up?</a></li>
+<li><a href="#11-are-passwords-stored-in-plaintext">Are passwords stored
+in plaintext?</a></li>
+<li><a href="#12-can-i-use-ssh-keys-instead-of-passwords">Can I use SSH
+keys instead of passwords?</a></li>
+<li><a href="#13-is-there-a-web-interface-a-mobile-app">Is there a web
+interface? A mobile app?</a></li>
+<li><a href="#14-is-firebase-required">Is Firebase required?</a></li>
+<li><a href="#15-what-languages-is-the-ui-available-in">What languages
+is the UI available in?</a></li>
+<li><a href="#16-how-do-i-upgrade-safely">How do I upgrade
+safely?</a></li>
+<li><a href="#17-how-do-i-get-support--report-a-bug">How do I get
+support / report a bug?</a></li>
+</ol>
+<h2 id="what-is-this-project">1. What is this project?</h2>
+<p>An enterprise-grade SFTP management system: an
+<code>atmoz/sftp</code> server in rootless Podman, wrapped by a Go REST
+API (port 7722), a React web admin console, and KMP mobile clients
+(Android/iOS/HarmonyOS/AuroraOS). It manages accounts, permissions,
+audit logging, backups, and config — so you never hand-edit
+<code>users.conf</code> again.</p>
+<h2 id="what-do-i-need-to-install-it">2. What do I need to install
+it?</h2>
+<p>A Linux host with Podman ≥ 3.4 (host reference 5.7.1) and
+<code>podman-compose</code>
+(<code>pip3 install --user podman-compose</code>), plus an sftp client
+for testing. No Docker daemon, no Kubernetes. Full steps: <a
+href="../guides/deployment_guide.md">deployment guide</a> or the
+10-minute <a href="../tutorials/quickstart.md">quickstart</a>.</p>
+<h2 id="do-i-need-root-or-sudo">3. Do I need root or sudo?</h2>
+<p>No. The entire stack runs in <strong>rootless Podman</strong> under
+an unprivileged user, with <code>systemctl --user</code> units
+(§11.4.161). The only optional host-admin touchpoints are opening a
+firewall port and <code>loginctl enable-linger</code> (survive logout) —
+see <a href="../guides/troubleshooting_guide.md">troubleshooting</a>
+§7–§8.</p>
+<h2 id="which-ports-does-it-use">4. Which ports does it use?</h2>
+<ul>
+<li><strong>7721/tcp</strong> — SFTP (maps to container sshd port 22;
+configurable via <code>SFTP_PORT</code>).</li>
+<li><strong>7722/tcp</strong> — REST API (configurable via
+<code>API_PORT</code>; bind to loopback or put behind TLS — see <a
+href="../guides/security_guide.md">security guide</a> §8).</li>
+</ul>
+<h2 id="how-do-i-create-the-first-administrator">5. How do I create the
+first administrator?</h2>
+<p>Run <code>bash scripts/setup.sh</code> (ATM-006): it prompts for the
+super-admin username/password (never echoed, §11.4.10) and calls the
+single-shot bootstrap endpoint. A second bootstrap attempt returns
+<code>409</code> — by design.</p>
+<h2 id="how-do-i-add-an-sftp-user">6. How do I add an SFTP user?</h2>
+<p>Three ways, all equivalent: REST API
+(<code>POST /api/v1/accounts</code>), web console (Accounts → New),
+mobile app (Accounts → +). See <a
+href="../guides/user_management_guide.md">user management guide</a> and
+<a href="../tutorials/api_quickstart.md">API quickstart</a>. Direct
+<code>users.conf</code> edits are not supported — the API re-renders
+that file from the DB.</p>
+<h2 id="what-do-read_only-and-read_write-mean">7. What do read_only and
+read_write mean?</h2>
+<p><code>read_only</code> — list and download only;
+uploads/renames/deletes are rejected (verified by a live container
+round-trip in ATM-003). <code>read_write</code> — full access inside the
+user’s own home subtree. These are the only two permission values; the
+model is detailed in <a
+href="../architecture/permissions_model.md">permissions_model.md</a>.</p>
+<h2 id="can-a-user-be-public-anonymous">8. Can a user be public /
+anonymous?</h2>
+<p>Only deliberately. <code>public</code> defaults to <code>false</code>
+everywhere; enabling it requires an explicit acknowledgement in the
+request/console, forces <code>read_only</code>, and is audit-logged. It
+is never on by default (operator mandate, ATM-002).</p>
+<h2 id="why-cant-a-user-write-into-their-home-directory-top-level">9.
+Why can’t a user write into their home directory top level?</h2>
+<p>Because OpenSSH chroot requires the chroot directory to be root-owned
+and non-user-writable — this is what makes the confinement trustworthy.
+Each user gets a writable subdirectory (e.g. <code>upload/</code>) for
+their files; the provisioner creates it automatically. Details: <a
+href="../guides/troubleshooting_guide.md">troubleshooting §4</a>.</p>
+<h2 id="where-is-user-data-stored-and-how-do-i-back-it-up">10. Where is
+user data stored, and how do I back it up?</h2>
+<p>All user homes live under the host data directory
+(<code>./data</code> by default, <code>SFTP_DATA_DIR</code>), mapped
+into the container. <code>bash scripts/backup.sh</code> (ATM-006)
+snapshots the DB + data + <code>users.conf</code>;
+<code>backup.sh restore &lt;id&gt;</code> restores. Delete-account
+retains data unless <code>purge_data=true</code>.</p>
+<h2 id="are-passwords-stored-in-plaintext">11. Are passwords stored in
+plaintext?</h2>
+<p>No. The API DB stores Argon2id hashes, and <code>users.conf</code>
+carries <code>crypt</code> hashes with the <code>:e</code> marker that
+atmoz/sftp supports. Plaintext never appears in logs, audit entries, or
+API responses (§11.4.10).</p>
+<h2 id="can-i-use-ssh-keys-instead-of-passwords">12. Can I use SSH keys
+instead of passwords?</h2>
+<p>Yes — recommended for production. Attach a public key to an account
+(<code>POST /api/v1/accounts/&lt;user&gt;/keys</code>, ATM-002); the
+container appends it to <code>authorized_keys</code> via the
+<code>.ssh/keys/</code> mount. A key-only account has an empty password
+field. Global <code>PasswordAuthentication no</code> is the production
+end-state.</p>
+<h2 id="is-there-a-web-interface-a-mobile-app">13. Is there a web
+interface? A mobile app?</h2>
+<ul>
+<li><strong>Web:</strong> React/TypeScript SPA with OpenDesign
+light/dark themes (ATM-004).</li>
+<li><strong>Mobile:</strong> KMP + Compose Multiplatform clients for
+Android, iOS, HarmonyOS, AuroraOS (ATM-005).</li>
+</ul>
+<p>Both consume the same REST API and enforce the same guards (e.g. the
+public-flag acknowledgement).</p>
+<h2 id="is-firebase-required">14. Is Firebase required?</h2>
+<p>No — it is opt-in (ATM-007). Analytics/Performance/Crashlytics
+initialize only behind env flags, and App Distribution is used for
+mobile builds. Config files are fetched by
+<code>scripts/firebase_config.sh</code> into git-ignored paths; no
+Firebase credentials are ever committed.</p>
+<h2 id="what-languages-is-the-ui-available-in">15. What languages is the
+UI available in?</h2>
+<p>English first (<code>en</code>), via the i18n client stack on web and
+the in-project KMP i18n on mobile (ATM-004/005). The architecture keeps
+localization data-driven so additional languages drop in without code
+changes.</p>
+<h2 id="how-do-i-upgrade-safely">16. How do I upgrade safely?</h2>
+<p>Fetch + ff-merge, snapshot with <code>backup.sh</code>, pull new
+images, restart, and re-run the verification steps — migrations apply
+automatically on API start. Rollback = restore snapshot + pin previous
+image. Full procedure: <a
+href="../guides/deployment_guide.md">deployment guide §7–§8</a>.</p>
+<h2 id="how-do-i-get-support-report-a-bug">17. How do I get support /
+report a bug?</h2>
+<p>Open an issue on the project repository. For deployment problems,
+first run the <a
+href="../guides/troubleshooting_guide.md">troubleshooting guide</a>
+playbooks and include <code>podman logs</code> output and the failing
+verification step in your report.</p>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/Issues.md</code> ATM-001..ATM-011 ·
+<code>docs/research/mvp/MVP.md</code> ·
+<code>docs/CONTINUATION.md</code> · sibling docs in
+<code>docs/guides/</code>, <code>docs/tutorials/</code>,
+<code>docs/architecture/</code>.</li>
+<li>External fetched this revision:
+<code>https://github.com/atmoz/sftp</code> ·
+<code>https://github.com/containers/podman-compose</code> ·
+<code>https://docs.podman.io/en/latest/</code> (facts as cited in the
+guides).</li>
+</ul>
+</body>
+</html>

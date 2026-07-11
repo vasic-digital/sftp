@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP Issues</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP Issues</h1>
+</header>
+<h1 id="sftp-project-issues-workable-items">SFTP Project — Issues
+(workable items)</h1>
+<p><strong>Revision:</strong> 4 <strong>Last modified:</strong>
+2026-07-11T23:00:00Z</p>
+<p>Tracked per §11.4.15/§11.4.16/§11.4.54. Status vocabulary: Queued |
+In progress | Ready for testing | In testing | Reopened |
+Operator-blocked | Fixed (→ Fixed.md) / Implemented (→ Fixed.md) /
+Completed (→ Fixed.md). Type: Bug | Feature | Task.</p>
+<hr />
+<h2
+id="atm-001-infrastructure-foundation-submodules-env-compose-go.mod-layout">§1.
+[ATM-001] Infrastructure &amp; Foundation — submodules, env, compose,
+go.mod, layout</h2>
+<p><strong>Status:</strong> Completed (→ Fixed.md)
+<strong>Type:</strong> Task <strong>Priority:</strong> TOP (critical
+path — unblocks ATM-002/003/006)</p>
+<p>Add all verified owned submodules at flat paths (§11.4.28) with
+install_upstreams (§11.4.36) + helix-deps.yaml records (§11.4.31);
+create the missing <code>.env.example</code> (full enterprise config
+surface); <code>.gitignore</code> matrix (§11.4.30 — <code>.env</code>,
+data, secrets, build outputs, <code>.db-wal/.db-shm</code>);
+<code>deploy/docker-compose.yml</code> (atmoz/sftp + postgres + api,
+rootless-podman compatible); <code>go.mod</code> for <code>api/</code>
+(Go 1.26) with <code>replace</code> directives to local module
+submodules; directory skeleton + placeholder READMEs;
+<code>VERSION = 0.1.0-dev</code>. <strong>Acceptance:</strong>
+<code>git submodule status</code> lists all modules;
+<code>go list -m all</code> resolves;
+<code>podman-compose -f deploy/docker-compose.yml config</code>
+validates; no secret in tracked files (grep audit captured).
+<strong>Scope:</strong> <code>.gitmodules</code>, <code>deploy/</code>,
+<code>.env.example</code>, <code>.gitignore</code>,
+<code>api/go.mod</code>, <code>VERSION</code>, <code>*/README.md</code>
+placeholders.</p>
+<h2
+id="atm-002-go-rest-api-gin-accounts-super-admin-auth-db-sftp-sync-audit">§2.
+[ATM-002] Go REST API (Gin) — accounts, super-admin auth, DB, SFTP sync,
+audit</h2>
+<p><strong>Status:</strong> In testing (core landed in 6460e5e, 5/5 pkgs
+GREEN; awaiting STREAM-9 integration evidence) <strong>Type:</strong>
+Feature <strong>Priority:</strong> TOP</p>
+<p>Gin server: config load (config module), logging (observability),
+recovery; super-admin bootstrap + login + JWT middleware
+(auth/middleware) + rate limiting (ratelimiter); accounts CRUD with
+<code>read_only|read_write</code> permission enum and never-default
+<code>public</code> flag (explicit acknowledgement required); DB
+abstraction SQLite (dev) / PostgreSQL (prod) via database module with
+embedded migrations; atomic users.conf render + per-user directory
+provisioning + container reload; audit log; OpenAPI spec;
+<code>/healthz</code> <code>/readyz</code>. <strong>Acceptance:</strong>
+unit tests GREEN; real curl CRUD round-trip transcript in
+<code>docs/qa/ATM-002/</code>; OpenAPI served; code-review GO
+(§11.4.125/§11.4.142). <strong>Scope:</strong> <code>api/</code> (except
+go.mod from ATM-001), <code>docs/qa/ATM-002/</code>.</p>
+<h2
+id="atm-003-sftp-config-permission-system-yamljson-renderer-migration">§3.
+[ATM-003] SFTP config + permission system — YAML/JSON, renderer,
+migration</h2>
+<p><strong>Status:</strong> Completed (→ Fixed.md) — config_schemas/ +
+validate_config.sh selftest 4-bad/1-good, in 6460e5e
+<strong>Type:</strong> Feature <strong>Priority:</strong> TOP</p>
+<p><code>config/server.yaml</code> + <code>config/accounts.yaml</code>
+with JSON-schema docs + examples; strict loader (unknown field = error);
+users.conf renderer (atmoz format) + directory provisioner + permission
+enforcement (RO write-mask / RW full); import of existing users.conf
+(MVP migration path); golden-file tests; real container round-trip
+evidence (RO upload denied, RW upload allowed).
+<strong>Acceptance:</strong> golden tests GREEN; captured container
+transcript in <code>docs/qa/ATM-003/</code>. <strong>Scope:</strong>
+<code>config/</code>, <code>api/internal/config*</code> (shared with
+ATM-002 — coordinated via conductor), <code>docs/qa/ATM-003/</code>.</p>
+<h2
+id="atm-006-bash-management-scripts-service-ctl-setup-backup-firebase-config">§6.
+[ATM-006] Bash management scripts — service ctl, setup, backup, firebase
+config</h2>
+<p><strong>Status:</strong> Completed (→ Fixed.md) — 4 scripts + systemd
++ 44/44 smoke PASS + shellcheck clean, in 6460e5e <strong>Type:</strong>
+Task <strong>Priority:</strong> TOP</p>
+<p><code>scripts/service_ctl.sh</code> (start/stop/restart/status,
+rootless podman-compose, no sudo); systemd <code>--user</code> units +
+installer; <code>scripts/setup.sh</code> (first-time env init — secrets
+never echoed per §11.4.10, super-admin creation, smoke);
+<code>scripts/backup.sh</code> (DB + data snapshots + restore);
+<code>scripts/firebase_config.sh</code> (dynamic Firebase config
+acquisition, git-ignored outputs). Every script: §11.4.18 doc block +
+<code>docs/scripts/&lt;name&gt;.md</code> + shellcheck clean.
+<strong>Acceptance:</strong> real start/stop cycle transcript in
+<code>docs/qa/ATM-006/</code>; docs present for every script.
+<strong>Scope:</strong> <code>scripts/</code> (non-testing),
+<code>deploy/systemd/</code>, <code>docs/scripts/</code>.</p>
+<h2
+id="atm-008-design-system-assets-opendesign-themes-asset-formats">§8.
+[ATM-008] Design system &amp; assets — OpenDesign, themes, asset
+formats</h2>
+<p><strong>Status:</strong> Completed (→ Fixed.md)
+<strong>Type:</strong> Task <strong>Priority:</strong> MIDDLE</p>
+<p>OpenDesign tokens integrated into web + mobile builds; light/dark
+theme packs; <code>docs/design/</code> assets: SVG authoritative + PNG
+renders + PDF boards + Figma/PenPot/PSD exports where tooling permits;
+asset manifest + pre-build gate validation. <strong>Acceptance:</strong>
+tokens consumed by both builds; manifest gate GREEN; assets present per
+manifest. <strong>Scope:</strong> <code>docs/design/</code>,
+<code>web/src/theme/</code>, <code>mobile/**/theme/</code>.</p>
+<h2 id="atm-009-test-matrix-challenges-banks-helixqa-suites">§9.
+[ATM-009] Test matrix, Challenges banks, HelixQA suites</h2>
+<p><strong>Status:</strong> In progress (STREAM-9 dispatched 2026-07-11;
+API lifecycle evidence being captured under qa/results/stream9/)
+<strong>Type:</strong> Task <strong>Priority:</strong> TOP (gates every
+closure)</p>
+<p>Extend <code>tests/pre_build_verification.sh</code> (constitution,
+gitignore, env-safety, docs-sync, layout, asset-manifest gates);
+integration suite (API↔︎DB↔︎users.conf↔︎live container — real, §11.4.27 no
+fakes beyond unit); e2e operator journey;
+stress/chaos/performance/security suites (§11.4.85); Challenges banks +
+HelixQA registration under <code>qa/</code>; risk-ordered execution
+(§11.4.132). <strong>Acceptance:</strong> per-suite captured logs in
+<code>qa-results/</code> (git-ignored) + curated summaries in
+<code>docs/qa/</code>; gates GREEN on a clean tree.
+<strong>Scope:</strong> <code>tests/</code>, <code>qa/</code>,
+<code>qa-results/</code> (ignored).</p>
+<h2
+id="atm-010-documentation-manuals-guides-faq-tutorials-diagrams-docs-chain">§10.
+[ATM-010] Documentation — manuals, guides, FAQ, tutorials, diagrams,
+Docs Chain</h2>
+<p><strong>Status:</strong> In progress (core set done in c5e68b9;
+continues per stream) <strong>Type:</strong> Task
+<strong>Priority:</strong> MIDDLE</p>
+<p>Docs Chain contexts (<code>.docs_chain/</code>) for
+README/Status/Issues/Fixed/CONTINUATION + HTML+PDF exports (§11.4.65);
+user manual, admin guide, API reference (from OpenAPI), FAQ, tutorials,
+architecture diagrams (SVG); revision headers (§11.4.44); standing
+resumption file discipline (§11.4.131). <strong>Acceptance:</strong>
+<code>docs_chain verify</code> GREEN; exports in sync (mtime check);
+every doc has revision header. <strong>Scope:</strong>
+<code>docs/</code> (shared with conductor; disjoint from
+<code>docs/qa/&lt;ATM-*&gt;</code> per stream),
+<code>.docs_chain/</code>.</p>
+<h2
+id="atm-011-gates-code-review-release-plumbing-governance-amendment">§11.
+[ATM-011] Gates, code review, release plumbing, governance
+amendment</h2>
+<p><strong>Status:</strong> In progress (commit wrapper hardened +
+self-validated; per-task/final code review + release plumbing continue)
+<strong>Type:</strong> Task <strong>Priority:</strong> TOP
+(continuous)</p>
+<p>Commit/push wrappers with quiescence check (§11.4.84) + detached push
+to all upstreams (§11.4.88); code-review subagent before every build
+(§11.4.125/§11.4.142); paired mutations for behavioral gates (§1.1);
+CLAUDE.md/AGENTS.md amendment (Go/TS/Kotlin now in-repo —
+project-specific classification per §11.4.17); release tag naming
+<code>sftp-&lt;version&gt;</code> (§11.4.151) gated on full retest
+(§11.4.40) + manual QA (§11.4.185). <strong>Acceptance:</strong> wrapper
+used for every commit; review GO recorded per batch; amendment commit
+lands in Phase 1. <strong>Scope:</strong>
+<code>scripts/commit_all.sh</code>, <code>scripts/push_all.sh</code>,
+<code>CLAUDE.md</code>, <code>AGENTS.md</code>,
+<code>.claude/</code>.</p>
+</body>
+</html>

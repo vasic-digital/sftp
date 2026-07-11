@@ -1,0 +1,4 @@
+flood_start_epoch=1783799977
+health_during_flood_code=200
+flood_end_epoch=1783799982
+flood_duration_seconds=5

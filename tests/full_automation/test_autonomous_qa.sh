@@ -105,7 +105,7 @@ echo; echo "======== UNIT TESTS ========"
 # Go unit tests
 if command -v go >/dev/null 2>&1; then
     run_one "unit-go" "true"  # placeholder — real unit tests need go test
-    local go_log="$RUN/unit-go.log"
+    go_log="$RUN/unit-go.log"
     (cd "$ROOT/api" && go test ./... -count=1) > "$go_log" 2>&1 || true
     if grep -q '^ok' "$go_log" && ! grep -q '^FAIL' "$go_log"; then
         TEST_RESULTS["unit-go"]="PASS"
@@ -122,7 +122,7 @@ fi
 
 # Web unit tests (vitest)
 if [[ -d "$ROOT/web/node_modules" ]]; then
-    local web_log="$RUN/unit-web.log"
+    web_log="$RUN/unit-web.log"
     (cd "$ROOT/web" && npx vitest run --reporter verbose) > "$web_log" 2>&1 || true
     if grep -q 'Tests.*passed' "$web_log" 2>/dev/null && ! grep -q 'failed' "$web_log" 2>/dev/null; then
         TEST_RESULTS["unit-web"]="PASS"

@@ -96,15 +96,15 @@ for suite_name in "${RUN_SUITES[@]}"; do
     fi
 
     echo; echo "=== SUITE: $suite_name ==="
-    local log="$RUN/${suite_name}.log"
-    local t0
+    log="$RUN/${suite_name}.log"
+    t0=
     t0="$(date +%s)"
-    local rc=0
+    rc=0
 
     # Execute in project root
     (cd "$ROOT" && eval "$cmd") > "$log" 2>&1 || rc=$?
 
-    local t1
+    t1=
     t1="$(date +%s)"
     SUITE_DURATION["$suite_name"]=$((t1 - t0))
     SUITE_EVIDENCE["$suite_name"]="$log"

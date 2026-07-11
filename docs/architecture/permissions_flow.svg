@@ -1,0 +1,277 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1050" width="1100" height="1050">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f1724"/>
+      <stop offset="100%" stop-color="#1a1f2e"/>
+    </linearGradient>
+    <linearGradient id="startGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4cc9f0"/>
+      <stop offset="100%" stop-color="#2d8fcf"/>
+    </linearGradient>
+    <linearGradient id="decisionGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffd166"/>
+      <stop offset="100%" stop-color="#e6a817"/>
+    </linearGradient>
+    <linearGradient id="processGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#e84855"/>
+    </linearGradient>
+    <linearGradient id="successGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06d6a0"/>
+      <stop offset="100%" stop-color="#05a67b"/>
+    </linearGradient>
+    <linearGradient id="errorGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e84855"/>
+      <stop offset="100%" stop-color="#c0392b"/>
+    </linearGradient>
+    <linearGradient id="syncGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c77dff"/>
+      <stop offset="100%" stop-color="#9b4dff"/>
+    </linearGradient>
+    <linearGradient id="endGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06d6a0"/>
+      <stop offset="100%" stop-color="#14b885"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.25"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#4cc9f0"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff6b6b"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#06d6a0"/>
+    </marker>
+    <marker id="arrowYellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ffd166"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c77dff"/>
+    </marker>
+    <!-- Decision diamond path -->
+    <polygon id="diamond" points="0,-28 40,0 0,28 -40,0"/>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="1050" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="550" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="1">SFTP Enterprise Management — Permission &amp; Account Flow</text>
+  <line x1="250" y1="52" x2="850" y2="52" stroke="#c77dff" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- ======================================================= -->
+  <!-- MAIN FLOW: Left column — Account Creation / Update -->
+  <!-- ======================================================= -->
+
+  <!-- START: Admin Login -->
+  <rect x="80" y="80" width="280" height="56" rx="28" fill="url(#startGrad)" filter="url(#shadow)"/>
+  <text x="220" y="114" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#0f1724">Super-admin logs in</text>
+
+  <!-- Arrow -->
+  <line x1="220" y1="136" x2="220" y2="180" stroke="#4cc9f0" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <!-- POST /accounts or PUT /accounts/:user -->
+  <rect x="110" y="185" width="220" height="48" rx="8" fill="url(#processGrad)" filter="url(#shadow)"/>
+  <text x="220" y="206" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">POST / PUT /accounts</text>
+  <text x="220" y="224" text-anchor="middle" font-family="monospace" font-size="10" fill="#ffffff" opacity="0.8">username, password, permission</text>
+
+  <!-- Arrow -->
+  <line x1="220" y1="233" x2="220" y2="275" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <!-- Validation: fields present? -->
+  <g transform="translate(220,310)">
+    <polygon points="0,-28 45,0 0,28 -45,0" fill="url(#decisionGrad)" filter="url(#shadow)"/>
+    <text x="0" y="-12" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#0f1724">Validate</text>
+    <text x="0" y="0" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#0f1724">fields?</text>
+  </g>
+  <!-- Arrow into diamond -->
+  <!-- NO arrow: jitter right to 400 -->
+  <line x1="220" y1="310" x2="265" y2="310" stroke="#ffd166" stroke-width="1.5"/>
+  <line x1="265" y1="310" x2="360" y2="310" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="270" y="303" font-family="system-ui, sans-serif" font-size="9" fill="#e84855" font-weight="700">NO</text>
+
+  <!-- Error: 400 Bad Request -->
+  <rect x="365" y="288" width="200" height="44" rx="6" fill="url(#errorGrad)" filter="url(#shadow)"/>
+  <text x="465" y="309" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">400 Bad Request</text>
+  <text x="465" y="325" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">Username + password required</text>
+
+  <!-- YES arrow: straight down -->
+  <line x1="220" y1="338" x2="220" y2="380" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="230" y="362" font-family="system-ui, sans-serif" font-size="9" fill="#06d6a0" font-weight="700">YES</text>
+
+  <!-- Decision: is permission = public ? -->
+  <g transform="translate(220,415)">
+    <polygon points="0,-28 45,0 0,28 -45,0" fill="url(#decisionGrad)" filter="url(#shadow)"/>
+    <text x="0" y="-8" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#0f1724">Permission</text>
+    <text x="0" y="4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#0f1724">= "public"?</text>
+  </g>
+  <!-- Arrow into -->
+  <line x1="220" y1="380" x2="220" y2="387" stroke="#ffd166" stroke-width="1.5"/>
+
+  <!-- YES path: right -->
+  <line x1="265" y1="415" x2="380" y2="415" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="275" y="408" font-family="system-ui, sans-serif" font-size="9" fill="#06d6a0" font-weight="700">YES</text>
+
+  <!-- Decision: public_acknowledged == true ? -->
+  <g transform="translate(440,415)">
+    <polygon points="0,-28 45,0 0,28 -45,0" fill="url(#decisionGrad)" filter="url(#shadow)"/>
+    <text x="0" y="-8" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#0f1724">public_</text>
+    <text x="0" y="4" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#0f1724">acknowledged?</text>
+  </g>
+
+  <!-- NO → 422 -->
+  <line x1="440" y1="443" x2="440" y2="505" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="452" y="485" font-family="system-ui, sans-serif" font-size="9" fill="#e84855" font-weight="700">NO</text>
+
+  <rect x="360" y="510" width="250" height="44" rx="6" fill="url(#errorGrad)" filter="url(#shadow)"/>
+  <text x="485" y="531" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">422 Unprocessable Entity</text>
+  <text x="485" y="547" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">public_access_not_acknowledged</text>
+
+  <!-- YES → continue (from ack check, right and then down to main flow) -->
+  <line x1="485" y1="415" x2="620" y2="415" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="500" y="408" font-family="system-ui, sans-serif" font-size="9" fill="#06d6a0" font-weight="700">YES</text>
+
+  <!-- Rejoin path from YES ack below the diamond, going down then left -->
+  <line x1="620" y1="415" x2="620" y2="580" stroke="#ffd166" stroke-width="1.5"/>
+
+  <!-- ======================================================= -->
+  <!-- After validation: Apply defaults + hash password -->
+  <!-- ======================================================= -->
+  <line x1="220" y1="443" x2="220" y2="505" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="195" y="485" font-family="system-ui, sans-serif" font-size="9" fill="#06d6a0" font-weight="700">NO (not public)</text>
+
+  <!-- Meeting point for both paths -->
+  <rect x="100" y="580" width="280" height="56" rx="8" fill="url(#processGrad)" filter="url(#shadow)"/>
+  <text x="240" y="601" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">Apply defaults + hash password</text>
+  <text x="240" y="619" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">defaults: read_only, /&amp;#60;user&amp;#62;, enabled=true</text>
+  <text x="240" y="632" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.7">Password: bcrypt (cost=12) + sha512-crypt</text>
+
+  <!-- Arrow from rejoin to here -->
+  <line x1="620" y1="580" x2="380" y2="610" stroke="#ffd166" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Arrow down -->
+  <line x1="240" y1="636" x2="240" y2="680" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <!-- Write to DB -->
+  <rect x="100" y="685" width="280" height="56" rx="8" fill="url(#successGrad)" filter="url(#shadow)"/>
+  <text x="240" y="706" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Write to DB + Vault</text>
+  <text x="240" y="724" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.8">accounts table + vault encrypted blob</text>
+  <text x="240" y="737" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">sha512-crypt hash stored in vault</text>
+
+  <!-- Arrow to response -->
+  <line x1="240" y1="741" x2="240" y2="790" stroke="#06d6a0" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- Response -->
+  <rect x="100" y="795" width="280" height="48" rx="24" fill="url(#endGrad)" filter="url(#shadow)"/>
+  <text x="240" y="816" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffffff">201 Created / 200 OK</text>
+  <text x="240" y="833" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">account response (no password material)</text>
+
+  <!-- ======================================================= -->
+  <!-- RIGHT SIDE: Sync Flow -->
+  <!-- ======================================================= -->
+
+  <!-- Divider -->
+  <text x="520" y="115" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#c77dff" letter-spacing="1">SYNC &amp; RUNTIME FLOW</text>
+  <line x1="560" y1="130" x2="900" y2="130" stroke="#c77dff" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Admin triggers sync -->
+  <rect x="600" y="170" width="240" height="48" rx="8" fill="url(#syncGrad)" filter="url(#shadow)"/>
+  <text x="720" y="191" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffffff">POST /api/v1/sync</text>
+  <text x="720" y="209" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">Triggers users.conf regeneration</text>
+
+  <!-- Arrow -->
+  <line x1="720" y1="218" x2="720" y2="270" stroke="#c77dff" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+  <!-- List accounts from DB -->
+  <rect x="590" y="275" width="260" height="48" rx="8" fill="url(#processGrad)" filter="url(#shadow)"/>
+  <text x="720" y="296" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">List active accounts from DB</text>
+  <text x="720" y="314" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">sftpsync.Write() iterates accounts</text>
+
+  <!-- Arrow -->
+  <line x1="720" y1="323" x2="720" y2="375" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <!-- For each: lookup vault hash -->
+  <rect x="590" y="380" width="260" height="48" rx="8" fill="url(#processGrad)" filter="url(#shadow)"/>
+  <text x="720" y="401" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">For each account: lookup vault</text>
+  <text x="720" y="419" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">sha512-crypt hash ∀ enable + not deleted</text>
+
+  <!-- Arrow -->
+  <line x1="720" y1="428" x2="720" y2="475" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <!-- Render -->
+  <rect x="590" y="480" width="260" height="48" rx="8" fill="url(#successGrad)" filter="url(#shadow)"/>
+  <text x="720" y="501" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#0f1724">Render users.conf</text>
+  <text x="720" y="519" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.8">Write-temp-then-rename (atomic)</text>
+
+  <!-- Arrow -->
+  <line x1="720" y1="528" x2="720" y2="580" stroke="#06d6a0" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- Container picks up -->
+  <rect x="590" y="585" width="260" height="48" rx="8" fill="url(#syncGrad)" filter="url(#shadow)"/>
+  <text x="720" y="606" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ffffff">atmoz/sftp picks up users.conf</text>
+  <text x="720" y="624" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">Bind mount: data/users.conf → container</text>
+
+  <!-- Arrow -->
+  <line x1="720" y1="633" x2="720" y2="685" stroke="#c77dff" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+  <!-- SFTP clients connect -->
+  <rect x="590" y="690" width="260" height="48" rx="24" fill="url(#endGrad)" filter="url(#shadow)"/>
+  <text x="720" y="711" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffffff">SFTP Clients Connect</text>
+  <text x="720" y="729" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.8">sftp -P 7721 user@host → chroot home</text>
+
+  <!-- ======================================================= -->
+  <!-- PERMISSION BEHAVIOUR TABLE — bottom right -->
+  <!-- ======================================================= -->
+  <text x="520" y="790" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#c77dff" letter-spacing="1">PERMISSION BEHAVIOUR AT RUNTIME</text>
+  <line x1="560" y="805" x2="950" y2="805" stroke="#c77dff" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- read_only row -->
+  <rect x="580" y="820" width="360" height="36" rx="6" fill="#1a2a1a" stroke="#06d6a0" stroke-width="1"/>
+  <rect x="580" y="820" width="100" height="36" rx="6" fill="url(#successGrad)" opacity="0.3"/>
+  <text x="630" y="843" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#06d6a0">read_only</text>
+  <text x="710" y="843" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">Download only — upload denied at SSH layer</text>
+
+  <!-- read_write row -->
+  <rect x="580" y="865" width="360" height="36" rx="6" fill="#1a1a1a" stroke="#4cc9f0" stroke-width="1"/>
+  <rect x="580" y="865" width="100" height="36" rx="6" fill="url(#startGrad)" opacity="0.3"/>
+  <text x="630" y="888" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#4cc9f0">read_write</text>
+  <text x="710" y="888" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">Full upload + download access</text>
+
+  <!-- public row -->
+  <rect x="580" y="910" width="360" height="36" rx="6" fill="#2a1a1a" stroke="#e84855" stroke-width="1"/>
+  <rect x="580" y="910" width="100" height="36" rx="6" fill="url(#errorGrad)" opacity="0.3"/>
+  <text x="630" y="933" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#e84855">public</text>
+  <text x="710" y="933" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">Password-less access — requires explicit ack</text>
+
+  <!-- ======================================================= -->
+  <!-- PUBLIC ACK GUARD BOX — bottom left -->
+  <!-- ======================================================= -->
+  <text x="40" y="880" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#e84855" letter-spacing="1">PUBLIC ACK GUARD</text>
+  <line x1="40" y1="895" x2="480" y2="895" stroke="#e84855" stroke-width="1.5" opacity="0.5"/>
+
+  <rect x="40" y="910" width="440" height="70" rx="6" fill="#2a1a1f" stroke="#e84855" stroke-width="1"/>
+  <text x="55" y="932" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">Request: {"permission":"public"} ← no public_acknowledged</text>
+  <text x="55" y="950" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">Response: 422 {"code":"public_access_not_acknowledged",</text>
+  <text x="55" y="968" font-family="system-ui, sans-serif" font-size="11" fill="#c0c0c0">  "error":"public access is never a default"}</text>
+
+  <text x="40" y="1010" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Public access = files exposed to anyone on port 7721. Admin must explicitly opt in.</text>
+
+  <!-- ======================================================= -->
+  <!-- LEGEND -->
+  <!-- ======================================================= -->
+  <rect x="620" y="1010" width="450" height="0" rx="0" fill="none"/>
+  <rect x="620" y="1002" width="12" height="12" rx="2" fill="url(#decisionGrad)"/>
+  <text x="638" y="1013" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Decision</text>
+  <rect x="710" y="1002" width="12" height="12" rx="2" fill="url(#processGrad)"/>
+  <text x="728" y="1013" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Process</text>
+  <rect x="790" y="1002" width="12" height="12" rx="2" fill="url(#successGrad)"/>
+  <text x="808" y="1013" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Success</text>
+  <rect x="870" y="1002" width="12" height="12" rx="2" fill="url(#errorGrad)"/>
+  <text x="888" y="1013" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Error</text>
+  <rect x="930" y="1002" width="12" height="12" rx="2" fill="url(#syncGrad)"/>
+  <text x="948" y="1013" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Sync</text>
+
+  <text x="1050" y="1025" text-anchor="end" font-family="system-ui, sans-serif" font-size="8" fill="#6c757d" opacity="0.4">docs/architecture/permissions_flow.svg</text>
+</svg>

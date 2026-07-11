@@ -1,0 +1,86 @@
+{
+  "session": "autonomous_qa_20260711T195759Z",
+  "results": {
+    "autonomous-qa": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "benchmarking": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "challenges": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "chaos": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "ddos": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "e2e": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "integration": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "performance": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "scaling": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "security": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "stress": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "ui": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "unit-go": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "unit-web": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    },
+    "ux": {
+      "result": "UNKNOWN",
+      "duration_s": 0,
+      "evidence": ""
+    }
+  },
+  "totals": {
+    "PASS": 0,
+    "FAIL": 0,
+    "SKIP": 0,
+    "UNKNOWN": 15
+  }
+}

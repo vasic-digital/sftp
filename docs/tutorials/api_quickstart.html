@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP API Quickstart</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP API Quickstart</h1>
+</header>
+<h1 id="api-quickstart-account-management-with-curl">API Quickstart —
+Account Management with curl</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T15:23:48Z</p>
+<p><strong>PLANNED — lands with STREAM-2 (ATM-002).</strong> This
+tutorial is the committed API contract walkthrough; it becomes
+executable when the Go/Gin API ships. Every response shown is the
+designed shape, validated at closure by a real curl round-trip
+transcript in <code>docs/qa/ATM-002/</code> (§11.4.83).</p>
+<p>Goal: obtain a super-admin token, CRUD one account end-to-end, and
+confirm the effect on the SFTP side — all from the shell.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-prerequisites">Prerequisites</a></li>
+<li><a href="#2-health-check">Health check</a></li>
+<li><a href="#3-bootstrap-first-run-only">Bootstrap (first run
+only)</a></li>
+<li><a href="#4-login--token">Login → token</a></li>
+<li><a href="#5-create-an-account">Create an account</a></li>
+<li><a href="#6-list--inspect">List + inspect</a></li>
+<li><a href="#7-update-permission--password">Update (permission +
+password)</a></li>
+<li><a href="#8-verify-on-the-sftp-side">Verify on the SFTP
+side</a></li>
+<li><a href="#9-delete">Delete</a></li>
+<li><a href="#10-errors-you-will-meet">Errors you will meet</a></li>
+</ol>
+<h2 id="prerequisites">1. Prerequisites</h2>
+<p>Stack running (<a href="quickstart.md">quickstart.md</a> §1–§3),
+<code>curl</code>, <code>jq</code>, and <code>API_PORT</code> (default
+<code>7722</code>). Export a base URL:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">API</span><span class="op">=</span>http://127.0.0.1:7722</span></code></pre></div>
+<h2 id="health-check">2. Health check</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="va">$API</span>/healthz <span class="kw">&amp;&amp;</span> <span class="bu">echo</span>        <span class="co"># {&quot;status&quot;:&quot;ok&quot;}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="va">$API</span>/readyz <span class="kw">&amp;&amp;</span> <span class="bu">echo</span>         <span class="co"># 200 once DB + renderer are ready</span></span></code></pre></div>
+<h2 id="bootstrap-first-run-only">3. Bootstrap (first run only)</h2>
+<p>Single-shot — creates the super-admin. Prefer
+<code>scripts/setup.sh</code>, which prompts without echoing; raw
+form:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> POST <span class="va">$API</span>/api/v1/bootstrap <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;&lt;strong-password&gt;&quot;}&#39;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># → 201 {&quot;username&quot;:&quot;admin&quot;,&quot;role&quot;:&quot;super_admin&quot;}</span></span></code></pre></div>
+<p>A second call returns <code>409 Conflict</code> — that is the correct
+behavior, not a bug.</p>
+<h2 id="login-token">4. Login → token</h2>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">TOKEN</span><span class="op">=</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> POST <span class="va">$API</span>/api/v1/auth/login <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;&lt;strong-password&gt;&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> .token<span class="va">)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">test</span> <span class="at">-n</span> <span class="st">&quot;</span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> <span class="st">&quot;token acquired&quot;</span></span></code></pre></div>
+<p>Tokens are short-lived JWTs; re-run this step on <code>401</code>.
+Never log or commit the token (§11.4.10).</p>
+<h2 id="create-an-account">5. Create an account</h2>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> POST <span class="va">$API</span>/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;username&quot;: &quot;alice&quot;,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;password&quot;: &quot;&lt;strong-password&gt;&quot;,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;permission&quot;: &quot;read_write&quot;,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;public&quot;: false</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">  }&#39;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># → 201 {&quot;username&quot;:&quot;alice&quot;,&quot;permission&quot;:&quot;read_write&quot;,&quot;public&quot;:false,&quot;status&quot;:&quot;active&quot;,&quot;created_at&quot;:&quot;…&quot;}</span></span></code></pre></div>
+<p>Note what the response does <strong>not</strong> contain: any
+password material. Validation rejects unknown fields, bad permission
+values, and <code>public:true</code> without
+<code>public_acknowledged:true</code>.</p>
+<h2 id="list-inspect">6. List + inspect</h2>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="va">$API</span>/api/v1/accounts <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="va">$API</span>/api/v1/accounts/alice <span class="kw">|</span> <span class="ex">jq</span></span></code></pre></div>
+<h2 id="update-permission-password">7. Update (permission +
+password)</h2>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Demote to read_only</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> PATCH <span class="va">$API</span>/api/v1/accounts/alice <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;permission&quot;:&quot;read_only&quot;}&#39;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Rotate password</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> PATCH <span class="va">$API</span>/api/v1/accounts/alice <span class="dt">\</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;password&quot;:&quot;&lt;new-strong-password&gt;&quot;}&#39;</span></span></code></pre></div>
+<p>Each change re-renders <code>users.conf</code> atomically and reloads
+the container; new logins see it immediately, in-flight sessions are not
+killed.</p>
+<h2 id="verify-on-the-sftp-side">8. Verify on the SFTP side</h2>
+<p>The API result is necessary but not sufficient — prove the SFTP
+behavior changed (§11.4 anti-bluff):</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /tmp <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> probe <span class="op">&gt;</span> probe.txt</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># read_write phase: upload must succeed</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 alice@127.0.0.1 <span class="op">&lt;&lt;&#39;EOF&#39;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="st">cd upload</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="st">put probe.txt</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="st">bye</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># after demotion to read_only: upload must be DENIED</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 alice@127.0.0.1 <span class="op">&lt;&lt;&#39;EOF&#39;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="st">cd upload</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="st">put probe.txt probe2.txt</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="st">bye</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span></code></pre></div>
+<p>Expected: first <code>put</code> reaches <code>100%</code>; second
+returns <code>Permission denied</code>. The ATM-003 acceptance suite
+captures exactly this round-trip as its evidence.</p>
+<h2 id="delete">9. Delete</h2>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-X</span> DELETE <span class="va">$API</span>/api/v1/accounts/alice <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span>          <span class="co"># → 204; data/ retained</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="va">$API</span>/api/v1/accounts/alice</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># → 404 — gone from DB and users.conf</span></span></code></pre></div>
+<p>Add <code>?purge_data=true</code> to also remove the home directory
+(audit-logged; see <a
+href="../guides/user_management_guide.md">user_management_guide.md
+§10</a>).</p>
+<h2 id="errors-you-will-meet">10. Errors you will meet</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>400</code></td>
+<td>schema/validation failure (unknown field, bad enum, weak
+password)</td>
+<td>fix the body; message names the field</td>
+</tr>
+<tr>
+<td><code>401</code></td>
+<td>missing/expired/invalid token</td>
+<td>re-login (§4)</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td>authenticated but not permitted</td>
+<td>super-admin required</td>
+</tr>
+<tr>
+<td><code>404</code></td>
+<td>unknown account</td>
+<td>check username casing</td>
+</tr>
+<tr>
+<td><code>409</code></td>
+<td>bootstrap already consumed / duplicate username</td>
+<td>use login / pick another name</td>
+</tr>
+<tr>
+<td><code>422</code></td>
+<td>public-guard or policy rejection
+(<code>public</code>+<code>read_write</code>, missing
+acknowledgement)</td>
+<td>see <a
+href="../architecture/permissions_model.md">permissions_model.md</a></td>
+</tr>
+<tr>
+<td><code>429</code></td>
+<td>rate limited</td>
+<td>back off; see <a href="../guides/security_guide.md">security guide
+§6</a></td>
+</tr>
+</tbody>
+</table>
+<p>Full field-level contract: the OpenAPI spec served by the API
+(<code>/api/v1/openapi.json</code>, ATM-002) — and its generated
+reference in the docs set.</p>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/Issues.md</code> ATM-002/003 (endpoint
+contract, permission enum, public-guard, renderer + provisioner
+behavior) · <code>docs/plans/master_implementation_plan.md</code> ·
+<code>docs/guides/user_management_guide.md</code>.</li>
+<li>External: none fetched for this file specifically — SFTP-side facts
+verified via the guides’ fetches on 2026-07-11 (<code>atmoz/sftp</code>
+users.conf + chroot semantics).</li>
+</ul>
+</body>
+</html>

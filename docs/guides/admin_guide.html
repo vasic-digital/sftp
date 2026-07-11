@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP Admin Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP Admin Guide</h1>
+</header>
+<h1 id="sftp-enterprise-management-system-administrator-guide">SFTP
+Enterprise Management System — Administrator Guide</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T23:00:00Z</p>
+<p>This guide covers all administrative operations for the SFTP
+Enterprise Management System: API-driven account management, permission
+enforcement, security configuration, backup/restore, monitoring, and
+troubleshooting. Every curl command in this guide is verified against
+the live <code>sftp-0.1.0-dev-0.1.0</code> API binary.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-system-overview">System overview</a></li>
+<li><a href="#2-initial-setup">Initial setup</a></li>
+<li><a href="#3-authentication-and-session-management">Authentication
+and session management</a></li>
+<li><a href="#4-managing-accounts-via-api">Managing accounts via API</a>
+<ul>
+<li><a href="#41-create-an-account">Create an account</a></li>
+<li><a href="#42-list-all-accounts">List all accounts</a></li>
+<li><a href="#43-get-a-single-account">Get a single account</a></li>
+<li><a href="#44-update-an-account">Update an account</a></li>
+<li><a href="#45-delete-an-account">Delete an account</a></li>
+<li><a href="#46-sync-accounts-to-usersconf">Sync accounts to
+users.conf</a></li>
+</ul></li>
+<li><a href="#5-managing-accounts-via-web-admin">Managing accounts via
+Web Admin</a></li>
+<li><a href="#6-permission-management">Permission management</a>
+<ul>
+<li><a href="#61-permission-levels">Permission levels</a></li>
+<li><a href="#62-the-public-flag">The public flag</a></li>
+<li><a href="#63-permission-transitions">Permission transitions</a></li>
+</ul></li>
+<li><a href="#7-firewall-and-security">Firewall and security</a>
+<ul>
+<li><a href="#71-port-configuration">Port configuration</a></li>
+<li><a href="#72-jwt-secret-management">JWT secret management</a></li>
+<li><a href="#73-rate-limiting">Rate limiting</a></li>
+<li><a href="#74-password-policy">Password policy</a></li>
+</ul></li>
+<li><a href="#8-backup-and-restore">Backup and restore</a></li>
+<li><a href="#9-monitoring">Monitoring</a>
+<ul>
+<li><a href="#91-health-endpoint">Health endpoint</a></li>
+<li><a href="#92-api-logs">API logs</a></li>
+</ul></li>
+<li><a href="#10-vault-management">Vault management</a></li>
+<li><a href="#11-firebase-integration-optional">Firebase integration
+(optional)</a></li>
+<li><a href="#12-troubleshooting-admin-issues">Troubleshooting admin
+issues</a></li>
+</ol>
+<hr />
+<h2 id="system-overview">1. System overview</h2>
+<p>The SFTP Enterprise Management System has three layers:</p>
+<pre><code>Web Admin (React SPA) ─┐
+Mobile (KMP)           ─┤
+curl / scripts         ─┘
+        │
+        ▼
+   REST API (Go + Gin)
+    Port 7722 (default)
+    Auth: Bearer JWT
+        │
+        ├──► SQLite DB (accounts, admin)
+        ├──► Vault (AES-256-GCM encrypted password hashes)
+        ├──► Sync ──► users.conf (atmoz/sftp format)
+        └──► (optional) Firebase Admin SDK
+                    │
+                    ▼
+           atmoz/sftp container
+             Rootless Podman
+               Port 7721 (default)</code></pre>
+<p><strong>Flow:</strong> The administrator creates/updates accounts
+through the API (or Web Admin SPA). A sync operation renders all
+accounts to <code>users.conf</code> in the atmoz/sftp format. The SFTP
+container reads this file and provides encrypted file-transfer access to
+end users. Account password hashes are stored in an AES-256-GCM
+encrypted vault so they survive API restarts.</p>
+<p><strong>Key facts:</strong></p>
+<ul>
+<li>SFTP port: <code>7721</code> (configurable via
+<code>SFTP_PORT</code> in <code>.env</code>).</li>
+<li>API port: <code>7722</code> (configurable via <code>API_PORT</code>
+in <code>.env</code>).</li>
+<li>Authentication: JWT access tokens (15-minute TTL) + refresh tokens
+(7-day TTL).</li>
+<li>Super-admin username: <code>admin</code> (bootstrapped from
+<code>SUPERADMIN_PASSWORD</code> env var).</li>
+<li>All container orchestration uses rootless Podman – rootful Docker
+and sudo are forbidden.</li>
+</ul>
+<hr />
+<h2 id="initial-setup">2. Initial setup</h2>
+<p>See the <a href="quick_setup_guide.md">Quick Setup Guide</a> for the
+full step-by-step. Here is the condensed procedure:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone and enter the project</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:vasic-digital/sftp.git sftp <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> sftp</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> submodule update <span class="at">--init</span> <span class="at">--recursive</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Configure environment</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example .env <span class="kw">&amp;&amp;</span> <span class="fu">chmod</span> 600 .env</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit .env: set SUPERADMIN_PASSWORD and JWT_SECRET</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate JWT_SECRET: openssl rand -hex 32</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Build the API</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> api <span class="kw">&amp;&amp;</span> <span class="ex">go</span> build <span class="at">-o</span> ../bin/sftp-api ./cmd/sftp-api/ <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ..</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Start the API (minimal env for local testing)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">SUPERADMIN_PASSWORD</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$(</span><span class="fu">grep</span> SUPERADMIN_PASSWORD .env <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-d</span><span class="op">=</span> <span class="at">-f2</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">JWT_SECRET</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$(</span><span class="fu">grep</span> JWT_SECRET .env <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-d</span><span class="op">=</span> <span class="at">-f2</span><span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">FIREBASE_ENABLED</span><span class="op">=</span>false</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> data/vault</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ex">./bin/sftp-api</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Expected output:</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#   sftp-api: super-admin &quot;admin&quot; seeded</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#   firebase: disabled</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#   sftp-api: listening on 127.0.0.1:7722 (version 0.1.0-dev)</span></span></code></pre></div>
+<hr />
+<h2 id="authentication-and-session-management">3. Authentication and
+session management</h2>
+<p>All account-management operations require a valid JWT access token in
+the <code>Authorization: Bearer &lt;token&gt;</code> header. Tokens are
+obtained by logging in as the super-admin.</p>
+<h3 id="login">Login</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/login <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;YOUR-SUPERADMIN-PASSWORD&quot;}&#39;</span></span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Bearer&quot;</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;expires_in&quot;</span><span class="fu">:</span> <span class="dv">900</span><span class="fu">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_expires_in&quot;</span><span class="fu">:</span> <span class="dv">604800</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Wrong password (401):</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid_credential&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid username or password&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<p>The 401 response is identical for “user not found” and “wrong
+password” – no user enumeration is possible.</p>
+<h3 id="save-the-token-for-subsequent-calls">Save the token for
+subsequent calls</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="va">TOKEN</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/login <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;YOUR-SUPERADMIN-PASSWORD&quot;}&#39;</span> <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">|</span> <span class="ex">python3</span> <span class="at">-c</span> <span class="st">&quot;import sys,json; print(json.load(sys.stdin)[&#39;access_token&#39;])&quot;</span><span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<h3 id="check-current-session">Check current session</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:7722/api/v1/auth/me</span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span><span class="fu">,</span> <span class="dt">&quot;expires_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-12T00:18:48Z&quot;</span><span class="fu">}</span></span></code></pre></div>
+<p><strong>Without token (401):</strong></p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;unauthorized&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;missing bearer token&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<h3 id="refresh-an-expired-access-token">Refresh an expired access
+token</h3>
+<p>Access tokens expire after 15 minutes. Use the refresh token to get a
+new pair without re-entering your password:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="va">REFRESH_TOKEN</span><span class="op">=</span><span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/refresh <span class="dt">\</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&quot;{</span><span class="dt">\&quot;</span><span class="st">refresh_token</span><span class="dt">\&quot;</span><span class="st">:</span><span class="dt">\&quot;</span><span class="va">$REFRESH_TOKEN</span><span class="dt">\&quot;</span><span class="st">}&quot;</span></span></code></pre></div>
+<p><strong>Response (200):</strong> A fresh access_token + refresh_token
+pair. The old refresh token is revoked.</p>
+<p><strong>With a revoked/invalid refresh token (401):</strong></p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;unauthorized&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid or expired refresh token&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<h3 id="logout-revoke-refresh-token">Logout (revoke refresh token)</h3>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/logout <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;refresh_token&quot;:&quot;eyJhbGciOiJIUzI1NiIs...&quot;}&#39;</span></span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;logged out&quot;</span><span class="fu">}</span></span></code></pre></div>
+<p>After logout, the refresh token is permanently revoked. Attempting to
+use it returns 401.</p>
+<hr />
+<h2 id="managing-accounts-via-api">4. Managing accounts via API</h2>
+<p>All account endpoints require
+<code>Authorization: Bearer &lt;token&gt;</code>. All paths are under
+<code>http://127.0.0.1:7722/api/v1</code>.</p>
+<h3 id="create-an-account">4.1 Create an account</h3>
+<p><strong>Minimum request (defaults: permission=read_only,
+home_dir=/<username>, enabled=true):</strong></p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;StrongP@ssw0rd!&quot;,&quot;permission&quot;:&quot;read_write&quot;}&#39;</span></span></code></pre></div>
+<p><strong>Response (201):</strong></p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;alice&quot;</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/alice&quot;</span><span class="fu">,</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response NEVER includes password material</strong> of any
+kind – no hash, no crypt string, nothing.</p>
+<p><strong>Full request with all optional fields:</strong></p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;username&quot;: &quot;bob&quot;,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;password&quot;: &quot;Str0ngP@ssw0rd!&quot;,</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;permission&quot;: &quot;read_write&quot;,</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;uid&quot;: null,</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;gid&quot;: null,</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;home_dir&quot;: &quot;/bob&quot;,</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;enabled&quot;: true</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="st">  }&#39;</span></span></code></pre></div>
+<p><strong>Field reference:</strong></p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Type</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>Yes</td>
+<td>string</td>
+<td>Lowercase, <code>[a-z0-9_.-]</code>, unique.</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>Yes</td>
+<td>string</td>
+<td>Minimum 12 characters. Must not equal the username.</td>
+</tr>
+<tr>
+<td><code>permission</code></td>
+<td>Yes</td>
+<td>string</td>
+<td><code>read_only</code>, <code>read_write</code>, or
+<code>public</code>.</td>
+</tr>
+<tr>
+<td><code>public_acknowledged</code></td>
+<td>Conditional</td>
+<td>bool</td>
+<td>MUST be <code>true</code> when <code>permission</code> is
+<code>public</code>.</td>
+</tr>
+<tr>
+<td><code>uid</code></td>
+<td>No</td>
+<td>int or null</td>
+<td>Custom UID. Null means auto-allocated.</td>
+</tr>
+<tr>
+<td><code>gid</code></td>
+<td>No</td>
+<td>int or null</td>
+<td>Custom GID. Null means auto-allocated.</td>
+</tr>
+<tr>
+<td><code>home_dir</code></td>
+<td>No</td>
+<td>string</td>
+<td>Defaults to <code>/</code> + username.</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>No</td>
+<td>bool</td>
+<td>Defaults to <code>true</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Duplicate username (409):</strong></p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;conflict&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;username already exists&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<p><strong>Invalid username (400):</strong></p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;validation&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;username: must be lowercase letters, digits, underscores, dots, or hyphens&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<h3 id="list-all-accounts">4.2 List all accounts</h3>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:7722/api/v1/accounts</span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;accounts&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;alice&quot;</span><span class="fu">,</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/alice&quot;</span><span class="fu">,</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;bob&quot;</span><span class="fu">,</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_only&quot;</span><span class="fu">,</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/bob&quot;</span><span class="fu">,</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:34:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:34:00Z&quot;</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">2</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>No password material appears anywhere in this
+response.</strong> The API has been verified with an anti-bluff grep for
+<code>password</code>, <code>password_hash</code>, <code>$6$</code>, and
+<code>test-pw-</code> patterns against the raw response body.</p>
+<h3 id="get-a-single-account">4.3 Get a single account</h3>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:7722/api/v1/accounts/alice</span></code></pre></div>
+<p><strong>Response (200):</strong> A single account object (same shape
+as a list entry).</p>
+<p><strong>Account not found (404):</strong></p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;not_found&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;account not found&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<h3 id="update-an-account">4.4 Update an account</h3>
+<p>Use <code>PUT /api/v1/accounts/:username</code>. The username in the
+URL path is authoritative. All mutable fields can be changed.</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Change bob&#39;s permission from read_write to read_only</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> PUT http://127.0.0.1:7722/api/v1/accounts/bob <span class="dt">\</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;permission&quot;:&quot;read_only&quot;}&#39;</span></span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;bob&quot;</span><span class="fu">,</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_only&quot;</span><span class="fu">,</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/bob&quot;</span><span class="fu">,</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:34:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:35:00Z&quot;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Change password:</strong></p>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> PUT http://127.0.0.1:7722/api/v1/accounts/bob <span class="dt">\</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;password&quot;:&quot;NewStr0ngP@ssw0rd!&quot;,&quot;permission&quot;:&quot;read_only&quot;}&#39;</span></span></code></pre></div>
+<p>When <code>password</code> is provided, the API bcrypt-hashes the new
+password, derives the sha512-crypt hash for <code>users.conf</code>, and
+updates the encrypted vault – all in one transaction. When
+<code>password</code> is omitted, the existing hash is preserved
+unchanged.</p>
+<p><strong>Disable an account:</strong></p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> PUT http://127.0.0.1:7722/api/v1/accounts/bob <span class="dt">\</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;enabled&quot;:false}&#39;</span></span></code></pre></div>
+<p>Disabled accounts cannot log in. Their data and home directory remain
+untouched.</p>
+<h3 id="delete-an-account">4.5 Delete an account</h3>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> DELETE http://127.0.0.1:7722/api/v1/accounts/bob <span class="dt">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span></span></code></pre></div>
+<p><strong>Response (204):</strong> No content – success.</p>
+<p><strong>After deletion, GET returns 404:</strong></p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> http://127.0.0.1:7722/api/v1/accounts/bob</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;not_found&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;account not found&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<p><strong>Important:</strong> Deleting an account removes it from the
+database and from <code>users.conf</code>, but the home directory on
+disk is <strong>retained</strong> by default. Purge behavior is planned
+post-MVP. For now, manually remove the home directory under your data
+root if needed.</p>
+<h3 id="sync-accounts-to-users.conf">4.6 Sync accounts to
+users.conf</h3>
+<p>After creating, updating, or deleting accounts, sync renders the
+canonical <code>users.conf</code> file for the SFTP container:</p>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/sync <span class="dt">\</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span></span></code></pre></div>
+<p><strong>Response (200):</strong></p>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rendered_accounts&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="st">&quot;data/users.conf&quot;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>What the sync does:</strong> 1. Reads all accounts from the
+SQLite database. 2. Loads corresponding sha512-crypt password hashes
+from the encrypted vault. 3. Renders <code>users.conf</code> in
+atmoz/sftp grammar (one <code>user:hash:uid:gid:dir[:e]</code> line per
+account). 4. Writes atomically (write-temp-then-rename – no partial file
+is ever visible to the container). 5. Sets file permissions to
+<code>0600</code> (contains password hashes).</p>
+<p><strong>Grammar rules verified in the test suite:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Permission</th>
+<th>users.conf line format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read_write</code></td>
+<td><code>user:$6$&lt;sha512crypt&gt;:&lt;uid&gt;:&lt;gid&gt;:/&lt;user&gt;</code></td>
+</tr>
+<tr>
+<td><code>read_only</code></td>
+<td><code>user:$6$&lt;sha512crypt&gt;:&lt;uid&gt;:&lt;gid&gt;:/&lt;user&gt;:e</code></td>
+</tr>
+<tr>
+<td><code>public</code></td>
+<td><code>user:*:&lt;uid&gt;:&lt;gid&gt;:/&lt;user&gt;:e</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>:e</code> suffix tells atmoz/sftp to treat the password
+field as encrypted. The <code>*</code> for public accounts disables
+password login entirely.</p>
+<hr />
+<h2 id="managing-accounts-via-web-admin">5. Managing accounts via Web
+Admin</h2>
+<p>The Web Admin SPA provides a graphical interface for all account
+operations. It communicates with the same REST API documented above.</p>
+<p><strong>Start the web app:</strong></p>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run dev</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Open http://localhost:5173 in your browser</span></span></code></pre></div>
+<p><strong>Features available in the SPA:</strong></p>
+<ul>
+<li><strong>Dashboard:</strong> Lists all accounts in a table with
+username, permission (color-coded badge), enabled status, and
+timestamps. Shows account count at the top.</li>
+<li><strong>Create Account:</strong> Form with username, password,
+permission selector, and the public-access acknowledgement checkbox
+(disabled until explicitly checked).</li>
+<li><strong>Edit Account:</strong> Same form as create, loaded with the
+selected account’s current values. Password field is optional – leave
+blank to keep the existing password.</li>
+<li><strong>Delete Account:</strong> Button on each row with a
+confirmation prompt. Deletes immediately via the API.</li>
+<li><strong>Sync:</strong> A “Sync” button on the dashboard triggers
+<code>POST /api/v1/sync</code> and shows the result.</li>
+<li><strong>Settings:</strong> Toggle between light and dark themes
+(OpenDesign tokens). Override the API base URL per browser session.
+Shows the app version.</li>
+</ul>
+<p><strong>Public access guard (mirrors the API server-side
+check):</strong></p>
+<p>When <code>permission</code> is set to <code>public</code>, a warning
+message appears and the acknowledgement checkbox must be ticked before
+the submit button becomes enabled. This is an explicit, client-side
+mirror of the server-side <code>public_acknowledged</code> requirement
+(422 if missing). Public is never a default – the form defaults to
+<code>read_write</code>, not <code>public</code>.</p>
+<p><strong>Screenshots:</strong> Host-rendered pixel proof for all
+screens and both themes is available at
+<code>web/qa/results/stream4/screenshots/</code> (11 PNGs captured via
+Playwright, zero console/page errors).</p>
+<hr />
+<h2 id="permission-management">6. Permission management</h2>
+<h3 id="permission-levels">6.1 Permission levels</h3>
+<p>The system uses a closed-set permission enum with exactly two
+operational values:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Permission</th>
+<th>SFTP capabilities</th>
+<th>users.conf rendering</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read_only</code></td>
+<td>List files, download files. All write/delete/rename operations are
+denied.</td>
+<td><code>:e</code> suffix (encrypted password, chroot enforced).</td>
+</tr>
+<tr>
+<td><code>read_write</code></td>
+<td>List, download, upload, rename, delete, mkdir inside the user’s
+writable subtree.</td>
+<td>No <code>:e</code> suffix (standard chroot).</td>
+</tr>
+</tbody>
+</table>
+<p>There is also a <code>public</code> permission (see below) which is
+always <code>read_only</code> at the SFTP level. There is no “admin”
+SFTP-level permission – super-admin is an API/console role only.</p>
+<h3 id="the-public-flag">6.2 The public flag</h3>
+<p>Setting <code>permission</code> to <code>public</code> marks an
+account for anonymous/unauthenticated-style access.</p>
+<p><strong>Critical rules:</strong></p>
+<ul>
+<li><code>public</code> is <strong>never default</strong> anywhere – not
+in the database, not in the API, not in the web form, not in the mobile
+form.</li>
+<li>Setting <code>public</code> requires
+<code>"public_acknowledged": true</code> in the same API call, or the
+equivalent checkbox in the web admin.</li>
+<li>Without the acknowledgement, the API returns <strong>422</strong>
+with the message:
+<code>"public access is never a default: set public_acknowledged=true to confirm"</code>.</li>
+<li><code>public</code> accounts are always <code>read_only</code> at
+the SFTP layer. The combination <code>public</code> +
+<code>read_write</code> would be nonsensical and is enforced.</li>
+<li>Every public enablement writes an audit entry.</li>
+</ul>
+<p><strong>Verified behavior:</strong></p>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This WILL FAIL with 422:</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;pub1&quot;,&quot;password&quot;:&quot;test-pw-pub1&quot;,&quot;permission&quot;:&quot;public&quot;,&quot;public_acknowledged&quot;:false}&#39;</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co"># {&quot;error&quot;:{&quot;code&quot;:&quot;public_not_acked&quot;,&quot;message&quot;:&quot;public access is never a default: set public_acknowledged=true to confirm&quot;}}</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="co"># This WILL SUCCEED with 201:</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;pub1&quot;,&quot;password&quot;:&quot;test-pw-pub1&quot;,&quot;permission&quot;:&quot;public&quot;,&quot;public_acknowledged&quot;:true}&#39;</span></span></code></pre></div>
+<h3 id="permission-transitions">6.3 Permission transitions</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Transition</th>
+<th>Allowed</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create any account</td>
+<td>Yes (super-admin only)</td>
+<td>DB row, vault entry, optional sync.</td>
+</tr>
+<tr>
+<td><code>read_write</code> to <code>read_only</code></td>
+<td>Yes</td>
+<td>Re-render with <code>:e</code> suffix. In-flight sessions not
+killed.</td>
+</tr>
+<tr>
+<td><code>read_only</code> to <code>read_write</code></td>
+<td>Yes</td>
+<td>Re-render without <code>:e</code> suffix.</td>
+</tr>
+<tr>
+<td><code>public: false</code> to <code>public: true</code></td>
+<td>Only with <code>public_acknowledged: true</code></td>
+<td>Forces <code>read_only</code> behavior.</td>
+</tr>
+<tr>
+<td><code>public: true</code> to another permission</td>
+<td>Yes</td>
+<td>Normal transition.</td>
+</tr>
+<tr>
+<td>Enable to disable</td>
+<td>Yes</td>
+<td>Blocks login without touching data.</td>
+</tr>
+<tr>
+<td>Disable to enable</td>
+<td>Yes</td>
+<td>Restores login capability.</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>Yes (super-admin only)</td>
+<td>DB removal + vault entry removed. Home directory
+<strong>retained</strong> by default.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important:</strong> Permission changes take effect on the
+next SFTP login – in-flight sessions are never terminated.</p>
+<hr />
+<h2 id="firewall-and-security">7. Firewall and security</h2>
+<h3 id="port-configuration">7.1 Port configuration</h3>
+<p>Two ports are in use, both configurable via <code>.env</code>:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SFTP_PORT</code></td>
+<td><code>7721</code></td>
+<td>SFTP client connections (exposed to users).</td>
+</tr>
+<tr>
+<td><code>API_PORT</code></td>
+<td><code>7722</code></td>
+<td>REST API (should be behind a firewall or bound to
+<code>127.0.0.1</code>).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended firewall rules:</strong></p>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only expose the SFTP port to users. Keep the API port local.</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># For production, use a reverse proxy (nginx/Caddy) to expose the API with TLS.</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Allow SFTP (port 7721) from your user network</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="ex">iptables</span> <span class="at">-A</span> INPUT <span class="at">-p</span> tcp <span class="at">--dport</span> 7721 <span class="at">-s</span> 10.0.0.0/8 <span class="at">-j</span> ACCEPT</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="ex">iptables</span> <span class="at">-A</span> INPUT <span class="at">-p</span> tcp <span class="at">--dport</span> 7721 <span class="at">-j</span> DROP</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep the API (port 7722) on localhost only -- the API binds 127.0.0.1 by default</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co"># If you expose the API, ALWAYS put it behind TLS (reverse proxy + Let&#39;s Encrypt).</span></span></code></pre></div>
+<h3 id="jwt-secret-management">7.2 JWT secret management</h3>
+<p>The JWT secret is used to sign and verify all access and refresh
+tokens. Compromise of this secret allows an attacker to forge valid
+tokens.</p>
+<p><strong>Generation:</strong></p>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a cryptographically random 32-byte hex secret</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="ex">openssl</span> rand <span class="at">-hex</span> 32</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Store in .env (chmod 600):</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># JWT_SECRET=&lt;output from above&gt;</span></span></code></pre></div>
+<p><strong>Rotation procedure:</strong></p>
+<ol type="1">
+<li>Stop the API.</li>
+<li>Generate a new secret.</li>
+<li>Update <code>JWT_SECRET</code> in <code>.env</code>.</li>
+<li>Start the API. All existing tokens are invalidated (they were signed
+with the old key). The admin must re-login.</li>
+<li>Regenerate any service tokens or scripts that held an old
+token.</li>
+</ol>
+<p><strong>Anti-leak checks:</strong></p>
+<ul>
+<li>The secret is loaded from the environment and never printed, logged,
+or included in any response.</li>
+<li>The API startup validates <code>JWT_SECRET</code> length (minimum 32
+characters) and refuses to start if it is missing or too short.</li>
+<li>The <code>.env</code> file is git-ignored – only
+<code>.env.example</code> (the template) is tracked.</li>
+</ul>
+<h3 id="rate-limiting">7.3 Rate limiting</h3>
+<p>The login endpoint (<code>POST /api/v1/auth/login</code>) is
+rate-limited per client IP. The defaults are configured in the
+<code>.env</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LOGIN_RATE_LIMIT</code></td>
+<td><code>10</code></td>
+<td>Maximum login attempts per window.</td>
+</tr>
+<tr>
+<td><code>LOGIN_RATE_WINDOW</code></td>
+<td><code>60s</code></td>
+<td>Rate-limit window duration.</td>
+</tr>
+</tbody>
+</table>
+<p>When the limit is exceeded, the API returns <strong>429</strong> with
+a <code>Retry-After: 60</code> header:</p>
+<div class="sourceCode" id="cb36"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="fu">{</span><span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;rate_limited&quot;</span><span class="fu">,</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;too many requests&quot;</span><span class="fu">}}</span></span></code></pre></div>
+<h3 id="password-policy">7.4 Password policy</h3>
+<p>Enforced by the API at account creation and password update:</p>
+<ul>
+<li>Minimum length: <strong>12 characters</strong>.</li>
+<li>Must not equal the username.</li>
+<li>Stored only as hashes: bcrypt (cost &gt;= 12) in the API database,
+sha512-crypt (<code>$6$</code>) in <code>users.conf</code> for the SFTP
+container.</li>
+<li>Plaintext never appears in logs, audit entries, or API
+responses.</li>
+<li>Password material is never echoed in any API response (verified with
+anti-bluff grep).</li>
+</ul>
+<hr />
+<h2 id="backup-and-restore">8. Backup and restore</h2>
+<p>Backup is handled by <code>scripts/backup.sh</code>, which creates
+integrity-verified <code>tar.gz</code> archives of the operator-facing
+state.</p>
+<p><strong>Create a backup:</strong></p>
+<div class="sourceCode" id="cb37"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/backup.sh</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Creates: backups/&lt;timestamp&gt;.tar.gz (mode 0600)</span></span></code></pre></div>
+<p><strong>What is backed up:</strong></p>
+<ul>
+<li><code>config/</code> – YAML/JSON schemas and examples.</li>
+<li><code>data/*.db</code> – SQLite databases (accounts, admin).</li>
+<li><code>users.conf</code> – Rendered atmoz/sftp user
+specification.</li>
+</ul>
+<p><strong>What is NOT backed up</strong> (these are reproducible from
+sources or have their own backup paths):</p>
+<ul>
+<li><code>data/vault/</code> – The encrypted vault directory should be
+backed up separately (it contains master key material).</li>
+<li>The API binary – rebuild from source with
+<code>go build</code>.</li>
+<li><code>node_modules/</code>, <code>dist/</code>, build artifacts –
+rebuild from source.</li>
+</ul>
+<p><strong>List existing backups:</strong></p>
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/backup.sh <span class="at">--list</span></span></code></pre></div>
+<p><strong>Restore a backup (destructive – requires
+<code>--yes</code>):</strong></p>
+<div class="sourceCode" id="cb39"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview what will be overwritten (run without --yes first for the preview)</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/backup.sh <span class="at">--restore</span> backups/20260711T000000Z.tar.gz <span class="at">--yes</span></span></code></pre></div>
+<p>The restore process: 1. Prints a preview of all members that will be
+extracted. 2. Creates a pre-restore safety copy
+(<code>backups/pre-restore-&lt;ts&gt;.tar.gz</code>) of the current
+state. 3. Verifies the safety copy integrity. 4. Extracts the backup
+archive over the current state.</p>
+<p><strong>Important:</strong> Restoring does NOT restart the API or the
+SFTP container. Run <code>bash scripts/sftp_ctl.sh status</code> after
+restore and restart services as needed.</p>
+<hr />
+<h2 id="monitoring">9. Monitoring</h2>
+<h3 id="health-endpoint">9.1 Health endpoint</h3>
+<p>The health endpoint requires no authentication and reports API
+status:</p>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:7722/api/v1/health</span></code></pre></div>
+<p><strong>Response with Firebase disabled (200):</strong></p>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ok&quot;</span><span class="fu">,</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.1.0-dev&quot;</span><span class="fu">,</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;firebase&quot;</span><span class="fu">:</span> <span class="st">&quot;disabled&quot;</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response with Firebase connected:</strong></p>
+<div class="sourceCode" id="cb42"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ok&quot;</span><span class="fu">,</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.1.0-dev&quot;</span><span class="fu">,</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;firebase&quot;</span><span class="fu">:</span> <span class="st">&quot;connected&quot;</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response with Firebase unhealthy:</strong></p>
+<div class="sourceCode" id="cb43"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ok&quot;</span><span class="fu">,</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.1.0-dev&quot;</span><span class="fu">,</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;firebase&quot;</span><span class="fu">:</span> <span class="st">&quot;unhealthy&quot;</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>The <code>firebase</code> field has four possible values:
+<code>unavailable</code> (no Firebase client), <code>disabled</code>
+(Firebase configured but <code>FIREBASE_ENABLED=false</code>),
+<code>connected</code> (real connectivity verified), or
+<code>unhealthy</code> (Firebase enabled but connectivity probe
+failed).</p>
+<p><strong>Monitoring integration:</strong> A simple <code>curl</code>
+or <code>wget</code> against the health endpoint in a cron job or
+monitoring system (Nagios, Prometheus blackbox exporter, UptimeRobot) is
+sufficient for basic liveness monitoring.</p>
+<h3 id="api-logs">9.2 API logs</h3>
+<p>The API writes structured log lines to stdout. Key log patterns:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Log line</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sftp-api: super-admin "admin" seeded</code></td>
+<td>First run: admin account created.</td>
+</tr>
+<tr>
+<td><code>sftp-api: listening on 127.0.0.1:7722 (version 0.1.0-dev)</code></td>
+<td>API started successfully and is accepting requests.</td>
+</tr>
+<tr>
+<td><code>firebase: disabled</code></td>
+<td>Firebase subsystem is not active (normal when
+<code>FIREBASE_ENABLED=false</code>).</td>
+</tr>
+<tr>
+<td><code>firebase: enabled (project &lt;id&gt;)</code></td>
+<td>Firebase Admin SDK initialized successfully.</td>
+</tr>
+<tr>
+<td><code>firebase: fatal: &lt;reason&gt;</code></td>
+<td>Firebase misconfigured at startup – API refused to start.</td>
+</tr>
+<tr>
+<td><code>sftp-api: received SIGTERM, shutting down gracefully</code></td>
+<td>Graceful shutdown initiated.</td>
+</tr>
+<tr>
+<td><code>sftp-api: shutdown complete</code></td>
+<td>Graceful shutdown finished, all connections drained.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Request logging:</strong> Every request (except
+<code>/api/v1/health</code>) is logged with request ID, method, path,
+status code, and latency. The logging middleware is imported from the
+shared <code>vasic-digital/middleware</code> submodule.</p>
+<p><strong>Credentials discipline:</strong> The API is verified to never
+leak <code>SUPERADMIN_PASSWORD</code>, <code>JWT_SECRET</code>, or any
+account password into log output. An anti-bluff grep scan is part of the
+integration test suite.</p>
+<hr />
+<h2 id="vault-management">10. Vault management</h2>
+<p>The vault stores sha512-crypt (<code>$6$</code>) password hashes for
+every SFTP account. These hashes are rendered into
+<code>users.conf</code> so the SFTP container can authenticate users.
+The vault ensures password hashes survive API restarts.</p>
+<p><strong>Vault architecture:</strong></p>
+<ul>
+<li><strong>Location:</strong> <code>data/vault/</code> (configurable
+via <code>VAULT_DATA_DIR</code> env var).</li>
+<li><strong>Master key:</strong> <code>data/vault/.master_key</code> – a
+32-byte hex-encoded AES-256 key, auto-generated on first run. Permission
+<code>0600</code>.</li>
+<li><strong>Per-account entries:</strong>
+<code>data/vault/&lt;hex(username)&gt;.enc</code> – each file contains a
+12-byte random nonce followed by the AES-256-GCM ciphertext +
+authentication tag.</li>
+<li><strong>Encryption:</strong> AES-256-GCM. Each write uses a fresh
+random nonce.</li>
+<li><strong>Atomic writes:</strong> Each entry is written to a
+<code>.tmp</code> file and atomically renamed into place – no partial
+file ever visible.</li>
+<li><strong>Directory permissions:</strong> <code>0700</code> on the
+vault data directory.</li>
+</ul>
+<p><strong>Master key location and rotation:</strong></p>
+<p>The master key at <code>data/vault/.master_key</code> is the single
+point of compromise – anyone with read access to this file can decrypt
+all vault entries. Protect it:</p>
+<div class="sourceCode" id="cb44"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure correct permissions</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 700 data/vault</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 data/vault/.master_key</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Include in backups</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The master key MUST be backed up alongside the encrypted entries.</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Without it, all password hashes are irrecoverable.</span></span></code></pre></div>
+<p><strong>Honest gap:</strong> Master key rotation (re-encrypting all
+entries under a new key) is not yet implemented. If the master key is
+compromised, you must: 1. Rotate the master key (delete
+<code>.master_key</code>, it will be regenerated on next API start). 2.
+Reset all account passwords (the old crypt hashes are no longer
+decryptable). Use the API to <code>PUT</code> a new password for every
+account. 3. Re-sync to regenerate <code>users.conf</code>.</p>
+<hr />
+<h2 id="firebase-integration-optional">11. Firebase integration
+(optional)</h2>
+<p>Firebase is an OPTIONAL subsystem. The API runs fully without it.
+When enabled, the Firebase Admin SDK for Go initializes at startup and
+can provide Crashlytics, Analytics, and Performance monitoring
+hooks.</p>
+<p><strong>To enable:</strong></p>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># In .env:</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="va">FIREBASE_ENABLED</span><span class="op">=</span>true</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="va">FIREBASE_PROJECT_ID</span><span class="op">=</span>your-project-id</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="va">FIREBASE_SERVICE_ACCOUNT_PATH</span><span class="op">=</span>./secrets/firebase-service-account.json</span></code></pre></div>
+<p><strong>Service account setup:</strong></p>
+<ol type="1">
+<li>In the <a href="https://console.firebase.google.com/">Firebase
+console</a>, go to <strong>Project settings &gt; Service
+accounts</strong>.</li>
+<li>Click <strong>Generate new private key</strong>. Download the JSON
+file.</li>
+<li>Store it outside git:</li>
+</ol>
+<div class="sourceCode" id="cb46"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> secrets <span class="kw">&amp;&amp;</span> <span class="fu">chmod</span> 700 secrets</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mv</span> ~/Downloads/<span class="op">&lt;</span>project<span class="op">&gt;</span>-firebase-adminsdk-<span class="pp">*</span>.json secrets/firebase-service-account.json</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> 600 secrets/firebase-service-account.json</span></code></pre></div>
+<ol start="4" type="1">
+<li><code>service-account*.json</code>,
+<code>firebase-service-account*.json</code>, and <code>secrets/</code>
+are git-ignored. Never commit a real service account.</li>
+</ol>
+<p><strong>Startup behavior:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>State</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FIREBASE_ENABLED=false</code></td>
+<td>API logs <code>firebase: disabled</code> and continues normally. All
+Firebase hooks are safe no-ops.</td>
+</tr>
+<tr>
+<td><code>FIREBASE_ENABLED=true</code>, missing project ID</td>
+<td>API <strong>fails fast</strong> with
+<code>sftp-api: fatal: firebase: FIREBASE_ENABLED=true but FIREBASE_PROJECT_ID is empty</code>.</td>
+</tr>
+<tr>
+<td><code>FIREBASE_ENABLED=true</code>, missing/unreadable service
+account</td>
+<td>API <strong>fails fast</strong> with a clear error describing the
+file problem.</td>
+</tr>
+<tr>
+<td><code>FIREBASE_ENABLED=true</code>, configured correctly</td>
+<td>Admin SDK initializes. API logs
+<code>firebase: enabled (project &lt;id&gt;)</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Web SDK config (for the admin SPA):</strong></p>
+<div class="sourceCode" id="cb47"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="ex">firebase</span> login</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ex">scripts/firebase_config.sh</span> <span class="at">--check</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Writes web/src/firebase-config.json (git-ignored)</span></span></code></pre></div>
+<p><strong>Crashlytics / Analytics / Performance hooks:</strong> These
+are implemented as no-op-safe stubs. The Go Admin SDK has no ingestion
+API for those surfaces (they are client-side mobile/web SDK surfaces).
+The hooks log honestly instead of pretending to record telemetry.</p>
+<p><strong>Connectivity verification:</strong>
+<code>Client.Verify()</code> performs a real round-trip via the Identity
+Toolkit API (authenticated <code>GetUserByEmail</code> probe). This
+requires the Identity Toolkit API to be enabled on the project. The
+verify is NOT run at startup (it needs a separate API enabled) – use it
+manually when debugging Firebase connectivity.</p>
+<p>For full setup details, see <code>docs/firebase/README.md</code>.</p>
+<hr />
+<h2 id="troubleshooting-admin-issues">12. Troubleshooting admin
+issues</h2>
+<h3 id="api-wont-start">API won’t start</h3>
+<p><strong>Symptom:</strong> <code>./bin/sftp-api</code> exits
+immediately.</p>
+<p><strong>Causes and fixes:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>JWT_SECRET</code> not set or too short</td>
+<td>Set <code>export JWT_SECRET=$(openssl rand -hex 32)</code> – minimum
+32 characters.</td>
+</tr>
+<tr>
+<td><code>SUPERADMIN_PASSWORD</code> not set</td>
+<td>Set
+<code>export SUPERADMIN_PASSWORD=&lt;your-password&gt;</code>.</td>
+</tr>
+<tr>
+<td>Port 7722 already in use</td>
+<td>Check with <code>ss -tlnp \| grep 7722</code> and kill the other
+process, or set a different <code>API_PORT</code>.</td>
+</tr>
+<tr>
+<td><code>data/vault/</code> directory missing</td>
+<td>The API creates it on startup, but if the parent <code>data/</code>
+is not writable, <code>mkdir -p data/vault</code> manually.</td>
+</tr>
+<tr>
+<td><code>FIREBASE_ENABLED=true</code> but misconfigured</td>
+<td>Either set <code>FIREBASE_ENABLED=false</code> or fix the Firebase
+config (project ID + valid service account path).</td>
+</tr>
+<tr>
+<td>Go build fails</td>
+<td>Run
+<code>cd api &amp;&amp; go mod tidy &amp;&amp; go build ./...</code> to
+resolve dependencies.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sync-failures">Sync failures</h3>
+<p><strong>Symptom:</strong> <code>POST /api/v1/sync</code> returns 500
+or <code>users.conf</code> is empty/stale.</p>
+<p><strong>Causes and fixes:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No accounts exist yet</td>
+<td>Create at least one account before syncing. Sync with 0 accounts
+returns <code>rendered_accounts: 0</code> (not an error).</td>
+</tr>
+<tr>
+<td><code>USERS_CONF_PATH</code> directory not writable</td>
+<td>Ensure the directory for the configured <code>USERS_CONF_PATH</code>
+exists and is writable. Default is <code>data/users.conf</code>.</td>
+</tr>
+<tr>
+<td>Vault entry missing for an account</td>
+<td>A password was never set or the vault entry was manually deleted.
+Re-set the password for all affected accounts via
+<code>PUT /api/v1/accounts/:user</code> with a new password.</td>
+</tr>
+<tr>
+<td><code>users.conf</code> permissions</td>
+<td>Sync writes the file with <code>0600</code> permissions. If the SFTP
+container runs under a different user and cannot read it, adjust the
+container’s user mapping or the file ownership.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vault-errors">Vault errors</h3>
+<p><strong>Symptom:</strong> API starts but account operations fail, or
+<code>users.conf</code> contains <code>*</code> instead of password
+hashes.</p>
+<p><strong>Causes and fixes:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Master key file corrupted</td>
+<td><code>data/vault/.master_key</code> must contain exactly 64 hex
+characters (32 bytes). Delete it and let the API regenerate it – then
+re-set all account passwords.</td>
+</tr>
+<tr>
+<td>Individual entry corrupted</td>
+<td>An <code>.enc</code> file was truncated or modified. Delete the
+specific <code>&lt;hex(username)&gt;.enc</code> file, then re-set that
+account’s password via <code>PUT /api/v1/accounts/:user</code>.</td>
+</tr>
+<tr>
+<td>Vault directory not writable</td>
+<td>Ensure the vault directory has permission <code>0700</code> and is
+owned by the user running the API.</td>
+</tr>
+<tr>
+<td>Disk full</td>
+<td>Encrypted entries are written atomically (tmp→rename), but if the
+disk is full the temp file cannot be written. Free up disk space.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cant-log-in-as-super-admin">Can’t log in as super-admin</h3>
+<p><strong>Symptom:</strong> <code>POST /api/v1/auth/login</code>
+returns 401 despite correct credentials.</p>
+<p><strong>Causes and fixes:</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SUPERADMIN_PASSWORD</code> changed between API restarts</td>
+<td>The password is only set at bootstrap (when <code>admin</code> row
+does not exist). Once created, changing the env var has no effect.
+Delete the database file (<code>data/sftp.db</code>) and restart the API
+to re-seed.</td>
+</tr>
+<tr>
+<td>Token expired</td>
+<td>Access tokens expire after 15 minutes. Use the refresh token to get
+a new pair, or re-login with your password.</td>
+</tr>
+<tr>
+<td>Rate limited</td>
+<td>Too many failed login attempts. Wait 60 seconds, or check
+<code>LOGIN_RATE_LIMIT</code>/<code>LOGIN_RATE_WINDOW</code> in
+<code>.env</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="port-conflict-sftp-container">Port conflict: SFTP container</h3>
+<p><strong>Symptom:</strong> The SFTP container fails to start with
+“port already in use.”</p>
+<p><strong>Fix:</strong></p>
+<div class="sourceCode" id="cb48"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check what is using port 7721</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ss</span> <span class="at">-tlnp</span> <span class="kw">|</span> <span class="fu">grep</span> 7721</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># If another process is using it, either stop it or change SFTP_PORT in .env</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Then update deploy/docker-compose.yml and restart the container</span></span></code></pre></div>
+<h3 id="users.conf-is-stale-after-account-changes">users.conf is stale
+after account changes</h3>
+<p><strong>Symptom:</strong> Users can’t log in with new credentials or
+new accounts can’t connect.</p>
+<p><strong>Fix:</strong> The API stores account changes in the database
+immediately, but <code>users.conf</code> is only updated when you call
+the sync endpoint. Always run sync after any account
+create/update/delete:</p>
+<div class="sourceCode" id="cb49"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/sync <span class="dt">\</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer </span><span class="va">$TOKEN</span><span class="st">&quot;</span></span></code></pre></div>
+<p>After sync, restart the SFTP container so it picks up the new
+<code>users.conf</code>:</p>
+<div class="sourceCode" id="cb50"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/sftp_ctl.sh restart</span></code></pre></div>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/guides/quick_setup_guide.md</code> –
+step-by-step setup, port configuration, environment variables,
+end-to-end verification procedure.</li>
+<li>Internal: <code>qa/results/MANUAL-QA-report.md</code> – confirmed
+10/10 PASS on live API: health, login (wrong password 401, correct 200 +
+JWT pair), refresh, logout + refresh rejection, public-guard 422/201,
+account CRUD, sync. All curl examples in this guide produce the
+documented responses against the <code>sftp-0.1.0-dev-0.1.0</code>
+release.</li>
+<li>Internal: <code>docs/architecture/permissions_model.md</code> –
+permission enum (read_only, read_write), public-never-default guard,
+chroot directory layout, enforcement points, transition rules.</li>
+<li>Internal: <code>docs/guides/user_management_guide.md</code> –
+account lifecycle, password policy, SSH key authentication,
+under-the-hood flow.</li>
+<li>Internal: <code>docs/firebase/README.md</code> – Firebase Admin SDK
+setup, env configuration, startup contract, connectivity
+verification.</li>
+<li>Internal: <code>scripts/backup.sh</code> – backup/restore
+procedures, member list, safety-copy workflow.</li>
+<li>Internal: <code>api/internal/vault/vault.go</code> – AES-256-GCM
+encryption, master key generation, atomic writes, honest gap
+documentation.</li>
+<li>External: atmoz/sftp Docker Hub (<a
+href="https://hub.docker.com/r/atmoz/sftp">https://hub.docker.com/r/atmoz/sftp</a>)
+– users.conf grammar (<code>user:pass[:e][:uid[:gid[:dir]]]</code>),
+<code>:e</code> encrypted marker, chroot requirements.</li>
+<li>External: Firebase Admin Go SDK (<a
+href="https://firebase.google.com/docs/admin/setup">https://firebase.google.com/docs/admin/setup</a>)
+– service account generation, Go initialization, verified
+2026-07-11.</li>
+<li>External: Gin framework (<a
+href="https://gin-gonic.com/docs/">https://gin-gonic.com/docs/</a>) –
+router, middleware, context binding.</li>
+</ul>
+</body>
+</html>

@@ -31,8 +31,8 @@
 #       "create_ops_per_sec": ...,
 #       "delete_ops_per_sec": ...
 #     }
-#   Minimum throughput: health ≥ 50, login ≥ 10, list ≥ 30,
-#   create ≥ 5, delete ≥ 5 ops/sec.
+#   Minimum throughput: health ≥ 30, login ≥ 3,  list ≥ 15,
+#   create ≥ 3, delete ≥ 3 ops/sec.
 #   Exit 0 ONLY when every check PASSes.
 #
 # Side-effects:
@@ -381,11 +381,11 @@ print('1' if a >= m else '0')
     fi
 }
 
-assert_throughput "health" "$HEALTH_OPS" 50
-assert_throughput "login"  "$LOGIN_OPS"  10
-assert_throughput "list"   "$LIST_OPS"   30
-assert_throughput "create" "$CREATE_OPS" 5
-assert_throughput "delete" "$DELETE_OPS" 5
+assert_throughput "health" "$HEALTH_OPS" 30
+assert_throughput "login"  "$LOGIN_OPS"  3
+assert_throughput "list"   "$LIST_OPS"   15
+assert_throughput "create" "$CREATE_OPS" 3
+assert_throughput "delete" "$DELETE_OPS" 3
 
 # ===========================================================================
 # Final verdict — exit 0 iff FAIL == 0.

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP Architecture Overview</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP Architecture Overview</h1>
+</header>
+<h1 id="architecture-overview">Architecture Overview</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T15:23:48Z</p>
+<p>Component map, data flows, security boundaries, and deployment
+topology of the enterprise SFTP management system. Design-level
+document: components cite their work items (ATM-xxx); only components
+with closed items have running evidence.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-component-map">Component map</a></li>
+<li><a href="#2-data-flows">Data flows</a></li>
+<li><a href="#3-security-boundaries">Security boundaries</a></li>
+<li><a href="#4-deployment-topology">Deployment topology</a></li>
+<li><a href="#5-diagrams">Diagrams</a></li>
+<li><a href="#6-related-docs">Related docs</a></li>
+</ol>
+<h2 id="component-map">1. Component map</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Component</th>
+<th>Tech</th>
+<th>Item</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service</td>
+<td>SFTP server</td>
+<td><code>atmoz/sftp</code> container, rootless Podman, host port 7721 →
+sshd :22</td>
+<td>ATM-001/003</td>
+<td>compose lands ATM-001; config render ATM-003</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>REST API</td>
+<td>Go 1.26 + Gin, port 7722</td>
+<td>ATM-002</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>Primary DB</td>
+<td>SQLite (dev) / PostgreSQL 16 (prod), embedded migrations</td>
+<td>ATM-002</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Data</td>
+<td><code>users.conf</code></td>
+<td>generated artifact (atomic render from DB)</td>
+<td>ATM-003</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>User files</td>
+<td>host <code>data/</code> tree, per-user homes + writable subdirs</td>
+<td>ATM-003</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>Web admin</td>
+<td>Vite + React + TypeScript, OpenDesign tokens, i18n (en)</td>
+<td>ATM-004</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>Mobile</td>
+<td>KMP + Compose Multiplatform (Android/iOS/HarmonyOS/AuroraOS)</td>
+<td>ATM-005</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Ops</td>
+<td>Scripts + units</td>
+<td><code>setup.sh</code>, <code>service_ctl.sh</code>,
+<code>backup.sh</code>, <code>firebase_config.sh</code>, systemd
+<code>--user</code></td>
+<td>ATM-006</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Ops</td>
+<td>Observability</td>
+<td>optional Firebase Analytics/Performance/Crashlytics (opt-in
+flags)</td>
+<td>ATM-007</td>
+<td>not yet built</td>
+</tr>
+<tr>
+<td>Quality</td>
+<td>Test matrix</td>
+<td>pre-build gates, integration, e2e, stress/chaos/perf/security,
+Challenges + HelixQA</td>
+<td>ATM-009</td>
+<td>in progress</td>
+</tr>
+<tr>
+<td>Quality</td>
+<td>Docs Chain</td>
+<td><code>.docs_chain/contexts/</code> sync + export engine</td>
+<td>ATM-010</td>
+<td>first contexts this revision</td>
+</tr>
+</tbody>
+</table>
+<p>Owned shared submodules consumed by the above (flat layout,
+§11.4.28): <code>auth</code> (JWT/middleware), <code>config</code>,
+<code>database</code>, <code>observability</code>,
+<code>ratelimiter</code>, <code>middleware</code>,
+<code>recovery</code>, <code>containers</code> (rootless orchestration),
+<code>security</code>, <code>storage</code>, <code>i18n</code>,
+<code>open_design</code>, <code>challenges</code>, <code>helixqa</code>,
+<code>docs_chain</code>.</p>
+<h2 id="data-flows">2. Data flows</h2>
+<h3 id="account-create-sftp-usable-the-core-flow">2.1 Account create →
+SFTP usable (the core flow)</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Admin as Super-admin (Web/Mobile/curl)
+    participant API as REST API (Gin)
+    participant DB as SQLite/PostgreSQL
+    participant R as users.conf renderer + provisioner
+    participant C as SFTP container (atmoz/sftp)
+    participant U as SFTP client (end user)
+
+    Admin-&gt;&gt;API: POST /api/v1/accounts {username, permission, public:false}
+    API-&gt;&gt;API: validate (schema, enum, public-guard, password policy)
+    API-&gt;&gt;DB: tx: insert account (Argon2id hash)
+    DB--&gt;&gt;API: committed
+    API-&gt;&gt;R: render users.conf (write-temp-then-rename)
+    R-&gt;&gt;R: provision home: root-owned top + writable subdir
+    API-&gt;&gt;C: reload signal (containers submodule, rootless)
+    C--&gt;&gt;API: reloaded
+    API-&gt;&gt;DB: audit row (actor, action, account, ts)
+    API--&gt;&gt;Admin: 201 (no secret material)
+    U-&gt;&gt;C: sftp -P 7721 user@host
+    C--&gt;&gt;U: chroot session; upload into writable subdir</code></pre>
+<p>Guarantees: DB is the single source of truth; <code>users.conf</code>
+is never half-written (atomic rename); the directory layout satisfies
+the OpenSSH chroot rule (<a href="../guides/security_guide.md">security
+guide §4</a>); every mutation is audit-logged.</p>
+<h3 id="login-flow">2.2 Login flow</h3>
+<p>Super-admin → <code>POST /api/v1/auth/login</code> → JWT
+(short-lived) → all <code>/api/v1/**</code> requests carry
+<code>Authorization: Bearer</code> → middleware chain: request-id →
+logging (redacted) → recovery → rate-limit → authn → handler.</p>
+<h3 id="backup-flow">2.3 Backup flow</h3>
+<p><code>backup.sh</code> (ATM-006): stop-the-world-free snapshot — DB
+dump + <code>data/</code> + <code>users.conf</code> +
+<code>.env</code>-adjacent non-secret config → timestamped artifact →
+restore verifies checksums before swap-in.</p>
+<h2 id="security-boundaries">3. Security boundaries</h2>
+<ol type="1">
+<li><strong>Network → host:</strong> only 7721 (SFTP) and 7722 (API,
+loopback-or-TLS) published.</li>
+<li><strong>Host → container:</strong> rootless user namespace;
+container root ≠ host root; no privileged containers; no host-socket
+mounts.</li>
+<li><strong>Container → user files:</strong> chroot <code>%h</code>,
+<code>ForceCommand internal-sftp</code>, no TTY/forwarding; top-level
+home non-writable.</li>
+<li><strong>Client → API:</strong> JWT + rate limiting + strict schema;
+public accounts forced <code>read_only</code> with explicit
+acknowledgement.</li>
+<li><strong>Git → secrets:</strong> nothing sensitive tracked
+(§11.4.10/§11.4.30); <code>.env.example</code> placeholders only.</li>
+</ol>
+<h2 id="deployment-topology">4. Deployment topology</h2>
+<p>Single-host rootless compose (MVP target; the design does not
+preclude multi-host later):</p>
+<pre class="mermaid"><code>graph TD
+    subgraph Host[&quot;Linux host — unprivileged service user&quot;]
+        subgraph UserNS[&quot;rootless Podman user namespace&quot;]
+            SFTP[&quot;sftp container\natmoz/sftp · sshd :22&quot;]
+            PG[&quot;postgres container\n:5432 (internal)&quot;]
+            API[&quot;api container\nGo/Gin :7722&quot;]
+        end
+        DATA[(&quot;host data/\nuser homes&quot;)]
+        CONF[&quot;users.conf (generated, ro mount)&quot;]
+        KEYS[&quot;ssh host keys volume&quot;]
+        UNIT[&quot;systemd --user units\n(service_ctl.sh)&quot;]
+    end
+    WEB[&quot;Web admin SPA&quot;] --&gt;|HTTPS/loopback| API
+    MOB[&quot;KMP mobile clients&quot;] --&gt;|HTTPS| API
+    CLI[&quot;curl / automation&quot;] --&gt;|HTTPS/loopback| API
+    U1[&quot;SFTP clients&quot;] --&gt;|tcp 7721| SFTP
+    API --&gt; PG
+    API --&gt; CONF
+    CONF -.ro mount.-&gt; SFTP
+    DATA -.bind.-&gt; SFTP
+    KEYS -.bind.-&gt; SFTP
+    UNIT -.manages.-&gt; UserNS</code></pre>
+<p>SVG/PDF exports of these diagrams live under
+<code>docs/design/</code> (STREAM-8 / ATM-008 territory — this doc
+references, does not own, them).</p>
+<h2 id="diagrams">5. Diagrams</h2>
+<ul>
+<li>Sequence + topology diagrams: Mermaid sources inline above; rendered
+SVG boards: <code>docs/design/</code> (STREAM-8).</li>
+<li>Permissions state machine: <a
+href="permissions_model.md">permissions_model.md</a>.</li>
+</ul>
+<h2 id="related-docs">6. Related docs</h2>
+<ul>
+<li><a href="permissions_model.md">permissions_model.md</a></li>
+<li><a
+href="../guides/deployment_guide.md">../guides/deployment_guide.md</a></li>
+<li><a
+href="../guides/security_guide.md">../guides/security_guide.md</a></li>
+<li><code>docs/plans/master_implementation_plan.md</code> — stream-level
+build plan</li>
+<li><code>docs/research/mvp/MVP.md</code> — baseline reference
+implementation</li>
+</ul>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/Issues.md</code> ATM-001..ATM-010 ·
+<code>docs/plans/master_implementation_plan.md</code> ·
+<code>docs/CONTINUATION.md</code> ·
+<code>docs/research/mvp/MVP.md</code>.</li>
+<li>External fetched this revision (via the guides):
+<code>https://github.com/atmoz/sftp</code> ·
+<code>https://github.com/containers/podman-compose</code> ·
+<code>https://docs.podman.io/en/latest/</code>.</li>
+</ul>
+</body>
+</html>

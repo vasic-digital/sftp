@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP API Reference</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP API Reference</h1>
+</header>
+<h1 id="sftp-enterprise-management-system-api-reference">SFTP Enterprise
+Management System – API Reference</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T23:00:00Z <strong>Audience:</strong> Developers integrating
+with the SFTP management REST API. <strong>API version:</strong>
+0.1.0-dev <strong>Live verification:</strong> 10/10 MANUAL-QA PASS
+(commit cd16d77, 2026-07-11).</p>
+<hr />
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-base-url">Base URL</a></li>
+<li><a href="#2-authentication">Authentication</a></li>
+<li><a href="#3-rate-limiting">Rate limiting</a></li>
+<li><a href="#4-error-envelope">Error envelope</a></li>
+<li><a href="#5-endpoint-reference">Endpoint reference</a>
+<ul>
+<li><a href="#51-get-health">GET /health</a></li>
+<li><a href="#52-post-authlogin">POST /auth/login</a></li>
+<li><a href="#53-post-authrefresh">POST /auth/refresh</a></li>
+<li><a href="#54-get-authme">GET /auth/me</a></li>
+<li><a href="#55-post-authlogout">POST /auth/logout</a></li>
+<li><a href="#56-get-accounts">GET /accounts</a></li>
+<li><a href="#57-post-accounts">POST /accounts</a></li>
+<li><a href="#58-get-accountsusername">GET /accounts/:username</a></li>
+<li><a href="#59-put-accountsusername">PUT /accounts/:username</a></li>
+<li><a href="#510-delete-accountsusername">DELETE
+/accounts/:username</a></li>
+<li><a href="#511-post-sync">POST /sync</a></li>
+</ul></li>
+<li><a href="#6-account-model-reference">Account model
+reference</a></li>
+<li><a href="#7-permission-enum-reference">Permission enum
+reference</a></li>
+<li><a href="#8-error-codes">Error codes</a></li>
+</ol>
+<hr />
+<h2 id="base-url">1. Base URL</h2>
+<p>All endpoints are served under:</p>
+<pre><code>http://127.0.0.1:7722/api/v1</code></pre>
+<p>The API binds <strong>127.0.0.1</strong> by default. In production,
+place a TLS-terminating reverse proxy (nginx, Caddy, HAProxy) in front
+of the API, or set <code>API_BIND</code> to the appropriate
+interface.</p>
+<hr />
+<h2 id="authentication">2. Authentication</h2>
+<p>The API uses <strong>JWT Bearer tokens</strong> (HS256) signed with a
+server-side secret.</p>
+<h3 id="obtaining-a-token-pair">2.1 Obtaining a token pair</h3>
+<p>Send a <code>POST /auth/login</code> with the super-admin username
+and password. On success the response carries:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>access_token</code></td>
+<td>string</td>
+<td>Short-lived JWT (default 15 minutes).</td>
+</tr>
+<tr>
+<td><code>refresh_token</code></td>
+<td>string</td>
+<td>Long-lived JWT (default 7 days).</td>
+</tr>
+<tr>
+<td><code>token_type</code></td>
+<td>string</td>
+<td>Always <code>"Bearer"</code>.</td>
+</tr>
+<tr>
+<td><code>expires_in</code></td>
+<td>integer</td>
+<td>Access token TTL in seconds.</td>
+</tr>
+<tr>
+<td><code>refresh_expires_in</code></td>
+<td>integer</td>
+<td>Refresh token TTL in seconds.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="using-the-access-token">2.2 Using the access token</h3>
+<p>Every secured endpoint requires:</p>
+<pre><code>Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p>Missing, malformed, or expired tokens produce a
+<code>401 Unauthorized</code> response.</p>
+<h3 id="refreshing-tokens">2.3 Refreshing tokens</h3>
+<p>When the access token expires, call <code>POST /auth/refresh</code>
+with the refresh token to obtain a <strong>brand-new pair</strong>. The
+old refresh token is NOT revoked during refresh – a single admin session
+may hold multiple valid refresh tokens.</p>
+<h3 id="token-lifecycle">2.4 Token lifecycle</h3>
+<pre><code>Login  ──&gt;  access (15m)  +  refresh (7d)
+               │
+               ▼ (access expires)
+          POST /auth/refresh  ──&gt;  new access (15m)  +  new refresh (7d)
+               │
+               ▼ (admin logs out)
+          POST /auth/logout   ──&gt;  that refresh token revoked
+                                   (cannot be used for refresh again)</code></pre>
+<p>Token TTLs are configurable via <code>ACCESS_TOKEN_TTL</code> and
+<code>REFRESH_TOKEN_TTL</code> environment variables (defaults: 15m /
+168h).</p>
+<h3 id="token-kinds-are-enforced">2.5 Token kinds are enforced</h3>
+<p>Access tokens carry <code>"kind":"access"</code>; refresh tokens
+carry <code>"kind":"refresh"</code>. An access token cannot be used on
+<code>/auth/refresh</code>, and a refresh token cannot be used on
+secured endpoints – the server rejects each with <code>401</code>.</p>
+<hr />
+<h2 id="rate-limiting">3. Rate limiting</h2>
+<p>Login and refresh endpoints (<code>POST /auth/login</code>,
+<code>POST /auth/refresh</code>) are rate-limited per client IP using a
+fixed-window counter (10 requests per minute by default). On exhaustion
+the server returns <code>429 Too Many Requests</code> with a
+<code>Retry-After: 60</code> header.</p>
+<p>Configurable via <code>LOGIN_RATE_LIMIT</code> and
+<code>LOGIN_RATE_WINDOW</code> env vars. Set
+<code>LOGIN_RATE_LIMIT=0</code> to disable (test mode only – never in
+production).</p>
+<hr />
+<h2 id="error-envelope">4. Error envelope</h2>
+<p>Every error response uses the same JSON shape:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;unauthorized&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid username or password&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>code</code></td>
+<td>string</td>
+<td>Machine-readable error code (see <a href="#8-error-codes">Section
+8</a>).</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>string</td>
+<td>Human-readable message – safe to display.</td>
+</tr>
+</tbody>
+</table>
+<p>Passwords and secrets <strong>never</strong> appear in error
+responses.</p>
+<hr />
+<h2 id="endpoint-reference">5. Endpoint reference</h2>
+<h3 id="get-health">5.1 GET /health</h3>
+<p>Public liveness probe. No authentication required.</p>
+<p><strong>Request</strong></p>
+<pre><code>GET /api/v1/health</code></pre>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ok&quot;</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.1.0-dev&quot;</span><span class="fu">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;firebase&quot;</span><span class="fu">:</span> <span class="st">&quot;disabled&quot;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>string</td>
+<td>Always <code>"ok"</code>.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>string</td>
+<td>API version from <code>API_VERSION</code> env (default
+<code>0.1.0-dev</code>).</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>string</td>
+<td>Current UTC time in RFC 3339.</td>
+</tr>
+<tr>
+<td><code>firebase</code></td>
+<td>string</td>
+<td><code>"disabled"</code>, <code>"unavailable"</code>,
+<code>"connected"</code>, or <code>"unhealthy"</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> http://127.0.0.1:7722/api/v1/health <span class="kw">|</span> <span class="ex">jq</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ok&quot;</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;version&quot;</span><span class="fu">:</span> <span class="st">&quot;0.1.0-dev&quot;</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;time&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;firebase&quot;</span><span class="fu">:</span> <span class="st">&quot;disabled&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="post-authlogin">5.2 POST /auth/login</h3>
+<p>Authenticate as super-admin. Returns a JWT access + refresh token
+pair.</p>
+<p><strong>Request</strong></p>
+<pre><code>POST /api/v1/auth/login
+Content-Type: application/json</code></pre>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;&lt;superadmin-password&gt;&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td>yes</td>
+<td>Super-admin username (default <code>admin</code>).</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td>yes</td>
+<td>Super-admin password from <code>SUPERADMIN_PASSWORD</code> env.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Bearer&quot;</span><span class="fu">,</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;expires_in&quot;</span><span class="fu">:</span> <span class="dv">900</span><span class="fu">,</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_expires_in&quot;</span><span class="fu">:</span> <span class="dv">604800</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Invalid JSON body.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td>Username or password missing.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>invalid_credentials</code></td>
+<td>Wrong username or password (identical message for both – no user
+enumeration).</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>rate_limited</code></td>
+<td>Too many login attempts.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Store error, JWT signing failure.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/login <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;&lt;REDACTED&gt;&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span></code></pre></div>
+<p><strong>Wrong password yields:</strong></p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid_credentials&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;invalid username or password&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="post-authrefresh">5.3 POST /auth/refresh</h3>
+<p>Exchange a valid refresh token for a new JWT pair. Also
+rate-limited.</p>
+<p><strong>Request</strong></p>
+<pre><code>POST /api/v1/auth/refresh
+Content-Type: application/json</code></pre>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>refresh_token</code></td>
+<td>string</td>
+<td>yes</td>
+<td>A valid (unrevoked, unexpired) refresh token.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;access_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="fu">,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Bearer&quot;</span><span class="fu">,</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;expires_in&quot;</span><span class="fu">:</span> <span class="dv">900</span><span class="fu">,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_expires_in&quot;</span><span class="fu">:</span> <span class="dv">604800</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Invalid JSON body.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td><code>refresh_token</code> missing.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Token expired, wrong kind, or revoked.</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>rate_limited</code></td>
+<td>Too many refresh attempts.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>JWT signing failure.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed – logout then rejected
+refresh)</strong></p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Refresh succeeds with a valid token</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/refresh <span class="dt">\</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;refresh_token&quot;:&quot;eyJ...&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.expires_in&#39;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 900</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># After logout, the same refresh token is rejected</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/logout <span class="dt">\</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;refresh_token&quot;:&quot;eyJ...&quot;}&#39;</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/refresh <span class="dt">\</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;refresh_token&quot;:&quot;eyJ...&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="co"># { &quot;code&quot;: &quot;unauthorized&quot;, &quot;error&quot;: &quot;invalid or expired refresh token&quot; }</span></span></code></pre></div>
+<hr />
+<h3 id="get-authme">5.4 GET /auth/me</h3>
+<p>Return the identity of the caller from the bearer token.</p>
+<p><strong>Request</strong></p>
+<pre><code>GET /api/v1/auth/me
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;admin&quot;</span><span class="fu">,</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;expires_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:48:48Z&quot;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td>JWT subject – the super-admin username.</td>
+</tr>
+<tr>
+<td><code>expires_at</code></td>
+<td>string</td>
+<td>ISO 8601 UTC expiry of the current access token.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> http://127.0.0.1:7722/api/v1/auth/me <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co"># { &quot;username&quot;: &quot;admin&quot;, &quot;expires_at&quot;: &quot;2026-07-11T22:48:48Z&quot; }</span></span></code></pre></div>
+<hr />
+<h3 id="post-authlogout">5.5 POST /auth/logout</h3>
+<p>Revoke one refresh token so it can no longer be used.</p>
+<p><strong>Request</strong></p>
+<pre><code>POST /api/v1/auth/logout
+Authorization: Bearer &lt;access_token&gt;
+Content-Type: application/json</code></pre>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;refresh_token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJhbGciOiJIUzI1NiIs...&quot;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>refresh_token</code></td>
+<td>string</td>
+<td>yes</td>
+<td>The refresh token to revoke.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;logged out&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Invalid JSON body.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td><code>refresh_token</code> missing.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Invalid/expired token, or missing access token.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/auth/logout <span class="dt">\</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;refresh_token&quot;:&quot;&lt;refresh&gt;&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># { &quot;message&quot;: &quot;logged out&quot; }</span></span></code></pre></div>
+<hr />
+<h3 id="get-accounts">5.6 GET /accounts</h3>
+<p>List all SFTP accounts. Password material is NEVER returned.</p>
+<p><strong>Request</strong></p>
+<pre><code>GET /api/v1/accounts
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;accounts&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;testuser&quot;</span><span class="fu">,</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/testuser&quot;</span><span class="fu">,</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.count&#39;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1</span></span></code></pre></div>
+<hr />
+<h3 id="post-accounts">5.7 POST /accounts</h3>
+<p>Create a new SFTP account.</p>
+<p><strong>Request</strong></p>
+<pre><code>POST /api/v1/accounts
+Authorization: Bearer &lt;access_token&gt;
+Content-Type: application/json</code></pre>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;secure-password&quot;</span><span class="fu">,</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;public_acknowledged&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td><strong>yes</strong></td>
+<td>–</td>
+<td>Must match <code>^[a-z_][a-z0-9_-]{0,31}$</code> (Linux-safe, max
+32).</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td><strong>yes</strong></td>
+<td>–</td>
+<td>Plaintext – bcrypt-hashed in memory, never echoed.</td>
+</tr>
+<tr>
+<td><code>permission</code></td>
+<td>string</td>
+<td>no</td>
+<td><code>read_only</code></td>
+<td>One of <code>read_only</code>, <code>read_write</code>,
+<code>public</code>.</td>
+</tr>
+<tr>
+<td><code>public_acknowledged</code></td>
+<td>bool</td>
+<td>no</td>
+<td><code>false</code></td>
+<td><strong>Must be <code>true</code></strong> when
+<code>permission</code> is <code>public</code>.</td>
+</tr>
+<tr>
+<td><code>uid</code></td>
+<td>integer</td>
+<td>no</td>
+<td><code>null</code></td>
+<td>Optional POSIX UID for the chroot.</td>
+</tr>
+<tr>
+<td><code>gid</code></td>
+<td>integer</td>
+<td>no</td>
+<td><code>null</code></td>
+<td>Optional POSIX GID for the chroot.</td>
+</tr>
+<tr>
+<td><code>home_dir</code></td>
+<td>string</td>
+<td>no</td>
+<td><code>"/&lt;username&gt;"</code></td>
+<td>Must start with <code>/</code> if provided.</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>bool</td>
+<td>no</td>
+<td><code>true</code></td>
+<td>Disabled accounts cannot connect.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response</strong> <code>201 Created</code></p>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Invalid JSON body.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td>Username/password missing, invalid username pattern, invalid
+permission, invalid home_dir.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>conflict</code></td>
+<td>Username already exists.</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>public_access_not_acknowledged</code></td>
+<td><code>permission</code> is <code>public</code> but
+<code>public_acknowledged</code> is not <code>true</code>.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database error, hashing failure, vault error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example – create a public account WITH acknowledgment
+(MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;pubuser&quot;,&quot;password&quot;:&quot;pw&quot;,&quot;permission&quot;:&quot;public&quot;,&quot;public_acknowledged&quot;:true}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.permission&#39;</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="co"># &quot;public&quot;</span></span></code></pre></div>
+<p><strong>Example – create a public account WITHOUT acknowledgment
+(MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/accounts <span class="dt">\</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;username&quot;:&quot;pubuser2&quot;,&quot;password&quot;:&quot;pw&quot;,&quot;permission&quot;:&quot;public&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;public_access_not_acknowledged&quot;</span><span class="fu">,</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;public access is never a default: set public_acknowledged=true to confirm&quot;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h3 id="get-accountsusername">5.8 GET /accounts/:username</h3>
+<p>Retrieve a single account.</p>
+<p><strong>Request</strong></p>
+<pre><code>GET /api/v1/accounts/:username
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>not_found</code></td>
+<td>No account with that username.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database error.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb36"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> http://127.0.0.1:7722/api/v1/accounts/newuser <span class="dt">\</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.permission&#39;</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># &quot;read_write&quot;</span></span></code></pre></div>
+<hr />
+<h3 id="put-accountsusername">5.9 PUT /accounts/:username</h3>
+<p>Update an existing account. The username in the URL path is
+authoritative; any <code>username</code> field in the body is replaced
+with the path value.</p>
+<p><strong>Partial update semantics:</strong> every field in the body is
+applied. Omit a field to preserve its current value. The
+<code>password</code> field is special: when omitted the existing hash
+is kept; when provided it is re-hashed.</p>
+<p><strong>Request</strong></p>
+<pre><code>PUT /api/v1/accounts/:username
+Authorization: Bearer &lt;access_token&gt;
+Content-Type: application/json</code></pre>
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_only&quot;</span><span class="fu">,</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Default</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td>no</td>
+<td>Path value</td>
+<td>Ignored if provided – path username wins.</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td>no</td>
+<td>(unchanged)</td>
+<td>Providing a non-empty value re-hashes.</td>
+</tr>
+<tr>
+<td><code>permission</code></td>
+<td>string</td>
+<td>no</td>
+<td><code>read_only</code></td>
+<td>One of <code>read_only</code>, <code>read_write</code>,
+<code>public</code>.</td>
+</tr>
+<tr>
+<td><code>public_acknowledged</code></td>
+<td>bool</td>
+<td>no</td>
+<td><code>false</code></td>
+<td>Same guard as create.</td>
+</tr>
+<tr>
+<td><code>uid</code></td>
+<td>integer</td>
+<td>no</td>
+<td>(unchanged)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>gid</code></td>
+<td>integer</td>
+<td>no</td>
+<td>(unchanged)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>home_dir</code></td>
+<td>string</td>
+<td>no</td>
+<td>(unchanged)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>bool</td>
+<td>no</td>
+<td>(unchanged)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb39"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_only&quot;</span><span class="fu">,</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/newuser&quot;</span><span class="fu">,</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:33:48Z&quot;</span><span class="fu">,</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:34:00Z&quot;</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Errors</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Invalid JSON body.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td>Invalid field value.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>not_found</code></td>
+<td>Account does not exist.</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>public_access_not_acknowledged</code></td>
+<td>Permission changed to <code>public</code> without ack.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database error, hashing failure, vault error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example – change permission (MANUAL-QA
+confirmed)</strong></p>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> PUT http://127.0.0.1:7722/api/v1/accounts/testuser <span class="dt">\</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Content-Type: application/json&#39;</span> <span class="dt">\</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;permission&quot;:&quot;read_only&quot;}&#39;</span> <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;.permission&#39;</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co"># &quot;read_only&quot;</span></span></code></pre></div>
+<hr />
+<h3 id="delete-accountsusername">5.10 DELETE /accounts/:username</h3>
+<p>Permanently remove an SFTP account and its vault entry.</p>
+<p><strong>Request</strong></p>
+<pre><code>DELETE /api/v1/accounts/:username
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p><strong>Response</strong> <code>204 No Content</code></p>
+<p>Empty body. The <code>username</code> can no longer be looked up.</p>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>not_found</code></td>
+<td>Account does not exist.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb42"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-o</span> /dev/null <span class="at">-w</span> <span class="st">&#39;%{http_code}&#39;</span> <span class="dt">\</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-X</span> DELETE http://127.0.0.1:7722/api/v1/accounts/testuser <span class="dt">\</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 204</span></span></code></pre></div>
+<hr />
+<h3 id="post-sync">5.11 POST /sync</h3>
+<p>Render the <code>users.conf</code> file from the current account set
+in the database.</p>
+<p><strong>Request</strong></p>
+<pre><code>POST /api/v1/sync
+Authorization: Bearer &lt;access_token&gt;</code></pre>
+<p><strong>Response</strong> <code>200 OK</code></p>
+<div class="sourceCode" id="cb44"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;rendered_accounts&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;path&quot;</span><span class="fu">:</span> <span class="st">&quot;data/users.conf&quot;</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rendered_accounts</code></td>
+<td>integer</td>
+<td>Number of enabled accounts rendered.</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>string</td>
+<td>Filesystem path of the generated <code>users.conf</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errors</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Code</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing or invalid bearer token.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Database or file-write error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example (MANUAL-QA confirmed)</strong></p>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="at">-X</span> POST http://127.0.0.1:7722/api/v1/sync <span class="dt">\</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&#39;Authorization: Bearer &lt;access_token&gt;&#39;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># { &quot;rendered_accounts&quot;: 1, &quot;path&quot;: &quot;data/users.conf&quot; }</span></span></code></pre></div>
+<p>The rendered <code>users.conf</code> follows the
+<code>atmoz/sftp</code> format. After sync, the SFTP container picks up
+the new configuration.</p>
+<hr />
+<h2 id="account-model-reference">6. Account model reference</h2>
+<div class="sourceCode" id="cb46"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;username&quot;</span><span class="fu">:</span> <span class="st">&quot;jdoe&quot;</span><span class="fu">,</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;permission&quot;</span><span class="fu">:</span> <span class="st">&quot;read_write&quot;</span><span class="fu">,</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;uid&quot;</span><span class="fu">:</span> <span class="dv">1001</span><span class="fu">,</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gid&quot;</span><span class="fu">:</span> <span class="dv">1001</span><span class="fu">,</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;home_dir&quot;</span><span class="fu">:</span> <span class="st">&quot;/jdoe&quot;</span><span class="fu">,</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:00:00Z&quot;</span><span class="fu">,</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2026-07-11T22:00:00Z&quot;</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Constraints</th>
+<th>Default</th>
+<th>Writable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td><code>^[a-z_][a-z0-9_-]{0,31}$</code>, unique, max 32 chars</td>
+<td>(required)</td>
+<td>Create only</td>
+</tr>
+<tr>
+<td><code>permission</code></td>
+<td>string</td>
+<td>Closed enum: <code>read_only</code>, <code>read_write</code>,
+<code>public</code></td>
+<td><code>read_only</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>uid</code></td>
+<td>integer</td>
+<td><code>&gt;=0</code>, nullable</td>
+<td><code>null</code> (auto-assigned)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>gid</code></td>
+<td>integer</td>
+<td><code>&gt;=0</code>, nullable</td>
+<td><code>null</code> (auto-assigned)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>home_dir</code></td>
+<td>string</td>
+<td>Absolute path, must start with <code>/</code></td>
+<td><code>"/&lt;username&gt;"</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>bool</td>
+<td>true/false</td>
+<td><code>true</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>string</td>
+<td>ISO 8601 UTC, read-only</td>
+<td>Server-set</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>string</td>
+<td>ISO 8601 UTC, read-only</td>
+<td>Server-set</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="username-rules">6.1 Username rules</h3>
+<ul>
+<li>Lowercase letters, digits, underscores, hyphens.</li>
+<li>Must start with a letter or underscore.</li>
+<li>Max 32 characters.</li>
+<li>Valid examples: <code>jdoe</code>, <code>ftp_bot</code>,
+<code>backup-01</code>, <code>_service</code>.</li>
+<li>Invalid: <code>JohnDoe</code> (uppercase), <code>-ftp</code> (starts
+with hyphen), <code>a@b</code> (special char).</li>
+</ul>
+<h3 id="password-handling">6.2 Password handling</h3>
+<ul>
+<li>The password is write-only. It never appears in any response.</li>
+<li>The API stores a bcrypt hash (cost 12) for admin
+authentication.</li>
+<li>The SFTP container receives a separate <code>sha512-crypt</code>
+(<code>$6$</code>) hash via the vault and <code>users.conf</code>.</li>
+<li>On create/update, both hashes are computed from the single plaintext
+in the request and the plaintext is immediately discarded.</li>
+</ul>
+<h3 id="home-directory-layout">6.3 Home directory layout</h3>
+<p>The sync layer provisions the pattern required by
+<code>atmoz/sftp</code> (chroot-safe):</p>
+<pre><code>/&lt;username&gt;/           (root-owned, non-writable -- chroot anchor)
+/&lt;username&gt;/uploads/   (account-owned, writable -- where the user drops files)</code></pre>
+<hr />
+<h2 id="permission-enum-reference">7. Permission enum reference</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Value</th>
+<th>SFTP behaviour</th>
+<th>API guard</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read_only</code></td>
+<td>Download only; upload denied.</td>
+<td>None. Default permission.</td>
+<td>Read-only mirrors, anonymous distribution.</td>
+</tr>
+<tr>
+<td><code>read_write</code></td>
+<td>Full upload + download.</td>
+<td>None.</td>
+<td>Interactive users, backup targets.</td>
+</tr>
+<tr>
+<td><code>public</code></td>
+<td>Like <code>read_only</code> but over SSH without a password.</td>
+<td><strong><code>public_acknowledged=true</code> required.</strong>
+Never a default.</td>
+<td>Public file distribution – explicit admin opt-in.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>public</code> permission is <strong>never a
+default</strong>. When a create or update request sets
+<code>permission</code> to <code>public</code> without
+<code>"public_acknowledged": true</code>, the API rejects the request
+with:</p>
+<pre><code>422 Unprocessable Entity
+{
+  &quot;code&quot;: &quot;public_access_not_acknowledged&quot;,
+  &quot;error&quot;: &quot;public access is never a default: set public_acknowledged=true to confirm&quot;
+}</code></pre>
+<p>This guard exists because a public account exposes files to anyone
+who can reach port 7721 – a high-impact security decision that must be
+deliberate.</p>
+<hr />
+<h2 id="error-codes">8. Error codes</h2>
+<p>Stable wire values. Integrations may match on <code>code</code>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>HTTP</th>
+<th><code>code</code></th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td><code>bad_request</code></td>
+<td>Request body is not valid JSON.</td>
+</tr>
+<tr>
+<td>400</td>
+<td><code>validation_error</code></td>
+<td>A field failed server-side validation (missing required, invalid
+pattern, bad enum value).</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>invalid_credentials</code></td>
+<td>Login: wrong username or password.</td>
+</tr>
+<tr>
+<td>401</td>
+<td><code>unauthorized</code></td>
+<td>Missing/invalid/expired bearer token, or refresh token
+rejected.</td>
+</tr>
+<tr>
+<td>404</td>
+<td><code>not_found</code></td>
+<td>Resource (account) does not exist.</td>
+</tr>
+<tr>
+<td>409</td>
+<td><code>conflict</code></td>
+<td>Username already exists on create.</td>
+</tr>
+<tr>
+<td>422</td>
+<td><code>public_access_not_acknowledged</code></td>
+<td>Permission <code>public</code> set without
+<code>public_acknowledged=true</code>.</td>
+</tr>
+<tr>
+<td>429</td>
+<td><code>rate_limited</code></td>
+<td>Too many login/refresh requests from this IP.</td>
+</tr>
+<tr>
+<td>500</td>
+<td><code>internal_error</code></td>
+<td>Server-side failure (database, hashing, token signing, file
+I/O).</td>
+</tr>
+</tbody>
+</table>
+<p>All <code>5xx</code> errors indicate a server problem – retry with
+backoff. All <code>4xx</code> errors indicate a client problem – fix the
+request before retrying.</p>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>api/cmd/sftp-api/main.go</code>,
+<code>api/internal/api/router.go</code>,
+<code>api/internal/api/handlers_auth.go</code>,
+<code>api/internal/api/handlers_accounts.go</code>,
+<code>api/internal/api/handlers_sync.go</code>,
+<code>api/internal/api/errors.go</code>,
+<code>api/internal/store/store.go</code>,
+<code>api/internal/authn/authn.go</code>,
+<code>api/internal/config/config.go</code>.</li>
+<li>Live test evidence: <code>qa/results/MANUAL-QA-report.md</code>
+(10/10 PASS, commit cd16d77, 2026-07-11).</li>
+</ul>
+</body>
+</html>

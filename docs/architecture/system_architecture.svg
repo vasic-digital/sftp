@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+  <defs>
+    <!-- Layer colour palette -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f1724"/>
+      <stop offset="100%" stop-color="#1a1f2e"/>
+    </linearGradient>
+    <linearGradient id="clientGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4cc9f0"/>
+      <stop offset="100%" stop-color="#2d8fcf"/>
+    </linearGradient>
+    <linearGradient id="apiGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#e84855"/>
+    </linearGradient>
+    <linearGradient id="svcGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffd166"/>
+      <stop offset="100%" stop-color="#e6a817"/>
+    </linearGradient>
+    <linearGradient id="dataGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06d6a0"/>
+      <stop offset="100%" stop-color="#05a67b"/>
+    </linearGradient>
+    <linearGradient id="infraGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c77dff"/>
+      <stop offset="100%" stop-color="#9b4dff"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+    <filter id="glow" x="-10%" y="-10%" width="130%" height="130%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#4cc9f0"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff6b6b"/>
+    </marker>
+    <marker id="arrowYellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ffd166"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#06d6a0"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c77dff"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="1">SFTP Enterprise Management System — Architecture</text>
+  <line x1="300" y1="52" x2="900" y2="52" stroke="#c77dff" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- ======================================================= -->
+  <!-- EXTERNAL CLIENTS LAYER — top -->
+  <!-- ======================================================= -->
+  <rect x="30" y="75" width="1140" height="130" rx="8" fill="#0d1822" stroke="#4cc9f0" stroke-width="1" opacity="0.85"/>
+  <text x="50" y="97" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#4cc9f0" letter-spacing="1">EXTERNAL CLIENTS</text>
+
+  <!-- SFTP Clients -->
+  <rect x="60" y="110" width="220" height="80" rx="6" fill="url(#clientGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="170" y="144" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#0f1724">SFTP Clients</text>
+  <text x="170" y="164" text-anchor="middle" font-family="monospace" font-size="11" fill="#0f1724" opacity="0.8">sftp / winscp / filezilla</text>
+  <text x="170" y="180" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.7">─→ port 7721</text>
+
+  <!-- Web Browser -->
+  <rect x="340" y="110" width="220" height="80" rx="6" fill="url(#clientGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="450" y="144" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#0f1724">Web Admin SPA</text>
+  <text x="450" y="164" text-anchor="middle" font-family="monospace" font-size="11" fill="#0f1724" opacity="0.8">Vite + React + TypeScript</text>
+  <text x="450" y="180" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.7">─→ port 7722</text>
+
+  <!-- Mobile Apps -->
+  <rect x="620" y="110" width="520" height="80" rx="6" fill="url(#clientGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="880" y="136" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#0f1724">Mobile Clients (KMP)</text>
+  <text x="880" y="156" text-anchor="middle" font-family="monospace" font-size="11" fill="#0f1724" opacity="0.8">Android &amp;#x2022; iOS &amp;#x2022; HarmonyOS &amp;#x2022; AuroraOS</text>
+  <text x="880" y="174" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.7">Compose Multiplatform &amp;#x2022; OpenDesign tokens &amp;#x2022; i18n</text>
+
+  <!-- Client-to-API arrows -->
+  <line x1="450" y1="190" x2="450" y2="245" stroke="#4cc9f0" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <line x1="880" y1="190" x2="880" y2="245" stroke="#4cc9f0" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <!-- ======================================================= -->
+  <!-- API LAYER -->
+  <!-- ======================================================= -->
+  <rect x="30" y="255" width="1140" height="120" rx="8" fill="#1a0a0d" stroke="#ff6b6b" stroke-width="1" opacity="0.85"/>
+  <text x="50" y="277" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ff6b6b" letter-spacing="1">API LAYER</text>
+
+  <rect x="60" y="290" width="340" height="70" rx="6" fill="url(#apiGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="230" y="318" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Go REST API (Gin Gonic)</text>
+  <text x="230" y="338" text-anchor="middle" font-family="monospace" font-size="11" fill="#ffffff" opacity="0.85">127.0.0.1:7722 &amp;#x2022; JWT HS256 &amp;#x2022; bcrypt cost=12</text>
+  <text x="230" y="352" text-anchor="middle" font-family="monospace" font-size="10" fill="#ffffff" opacity="0.7">rate limit &amp;#x2022; graceful shutdown &amp;#x2022; request-id</text>
+
+  <!-- Middleware tags -->
+  <rect x="440" y="295" width="130" height="30" rx="4" fill="#3a1a1f" stroke="#ff6b6b" stroke-width="1" opacity="0.8"/>
+  <text x="505" y="315" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#ff6b6b">Request ID</text>
+  <rect x="440" y="330" width="130" height="30" rx="4" fill="#3a1a1f" stroke="#ff6b6b" stroke-width="1" opacity="0.8"/>
+  <text x="505" y="350" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#ff6b6b">Recovery</text>
+
+  <rect x="610" y="295" width="130" height="30" rx="4" fill="#3a1a1f" stroke="#ff6b6b" stroke-width="1" opacity="0.8"/>
+  <text x="675" y="315" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#ff6b6b">Logging</text>
+  <rect x="610" y="330" width="130" height="30" rx="4" fill="#3a1a1f" stroke="#ff6b6b" stroke-width="1" opacity="0.8"/>
+  <text x="675" y="350" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#ff6b6b">Rate Limit</text>
+
+  <rect x="780" y="295" width="160" height="65" rx="4" fill="#3a1a1f" stroke="#ff6b6b" stroke-width="1" opacity="0.8"/>
+  <text x="860" y="318" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#ff6b6b">JWT Auth</text>
+  <text x="860" y="338" text-anchor="middle" font-family="monospace" font-size="9" fill="#ff6b6b" opacity="0.7">Bearer token validation</text>
+  <text x="860" y="352" text-anchor="middle" font-family="monospace" font-size="9" fill="#ff6b6b" opacity="0.7">claims stored in ctx</text>
+
+  <!-- API-to-Services arrows -->
+  <line x1="230" y1="360" x2="230" y2="425" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <line x1="230" y1="360" x2="460" y2="425" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <line x1="230" y1="360" x2="680" y2="425" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <line x1="230" y1="360" x2="860" y2="425" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <!-- ======================================================= -->
+  <!-- SERVICES LAYER -->
+  <!-- ======================================================= -->
+  <rect x="30" y="435" width="1140" height="130" rx="8" fill="#1a180d" stroke="#ffd166" stroke-width="1" opacity="0.85"/>
+  <text x="50" y="457" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffd166" letter-spacing="1">SERVICES</text>
+
+  <!-- Auth Service -->
+  <rect x="60" y="470" width="210" height="80" rx="6" fill="url(#svcGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="165" y="498" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Auth / JWT</text>
+  <text x="165" y="516" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">IssuePair + ValidateAccess</text>
+  <text x="165" y="532" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">ValidateRefresh + Revoke</text>
+  <text x="165" y="546" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">revoked JTIs in-memory</text>
+
+  <!-- Account Store -->
+  <rect x="300" y="470" width="210" height="80" rx="6" fill="url(#svcGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="405" y="498" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Account Store</text>
+  <text x="405" y="516" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Create / List / Get / Update</text>
+  <text x="405" y="532" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Delete + Validate + SeedAdmin</text>
+  <text x="405" y="546" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">SQLite via modernc pure Go</text>
+
+  <!-- Vault -->
+  <rect x="540" y="470" width="190" height="80" rx="6" fill="url(#svcGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="635" y="498" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Vault</text>
+  <text x="635" y="516" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Encrypted at rest</text>
+  <text x="635" y="532" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">sha512-crypt hashes</text>
+  <text x="635" y="546" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">disk: data/vault/</text>
+
+  <!-- Firebase (optional) -->
+  <rect x="760" y="470" width="190" height="80" rx="6" fill="url(#svcGrad)" filter="url(#shadow)" opacity="0.7" stroke-dasharray="6,3"/>
+  <text x="855" y="498" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Firebase (opt)</text>
+  <text x="855" y="516" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Analytics / Crashlytics</text>
+  <text x="855" y="532" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Performance traces</text>
+  <text x="855" y="546" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">FIREBASE_ENABLED flag</text>
+
+  <!-- Sync Service -->
+  <rect x="980" y="470" width="160" height="80" rx="6" fill="url(#svcGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="1060" y="498" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Sync</text>
+  <text x="1060" y="516" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Render users.conf</text>
+  <text x="1060" y="532" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Write-temp-then-rename</text>
+  <text x="1060" y="546" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.7">Get crypt hash from vault</text>
+
+  <!-- Service-to-Data arrows -->
+  <line x1="165" y1="545" x2="165" y2="610" stroke="#ffd166" stroke-width="1.5" marker-end="url(#arrowYellow)"/>
+  <line x1="405" y1="545" x2="405" y2="610" stroke="#ffd166" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <line x1="635" y1="545" x2="635" y2="610" stroke="#ffd166" stroke-width="1.5" marker-end="url(#arrowYellow)"/>
+  <line x1="1060" y1="545" x2="1060" y2="610" stroke="#ffd166" stroke-width="2" marker-end="url(#arrowYellow)"/>
+
+  <!-- ======================================================= -->
+  <!-- DATA LAYER -->
+  <!-- ======================================================= -->
+  <rect x="30" y="620" width="1140" height="100" rx="8" fill="#0d1a18" stroke="#06d6a0" stroke-width="1" opacity="0.85"/>
+  <text x="50" y="642" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#06d6a0" letter-spacing="1">DATA</text>
+
+  <!-- SQLite DB -->
+  <rect x="60" y="655" width="250" height="55" rx="6" fill="url(#dataGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="185" y="678" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">SQLite / PostgreSQL</text>
+  <text x="185" y="696" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">accounts + admins tables &amp;#x2022; schema_migrations</text>
+  <text x="185" y="708" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.6">data/sftp.db</text>
+
+  <!-- users.conf -->
+  <rect x="350" y="655" width="250" height="55" rx="6" fill="url(#dataGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="475" y="678" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">users.conf</text>
+  <text x="475" y="696" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">Generated artifact &amp;#x2022; atomic rename</text>
+  <text x="475" y="708" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.6">data/users.conf</text>
+
+  <!-- Vault db -->
+  <rect x="640" y="655" width="220" height="55" rx="6" fill="url(#dataGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="750" y="678" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#0f1724">Vault (encrypted)</text>
+  <text x="750" y="696" text-anchor="middle" font-family="monospace" font-size="10" fill="#0f1724" opacity="0.8">sha512-crypt password hashes</text>
+  <text x="750" y="708" text-anchor="middle" font-family="monospace" font-size="9" fill="#0f1724" opacity="0.6">data/vault/</text>
+
+  <!-- Data-to-Container arrows -->
+  <line x1="475" y1="710" x2="475" y2="780" stroke="#06d6a0" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- ======================================================= -->
+  <!-- INFRASTRUCTURE / CONTAINER LAYER — bottom -->
+  <!-- ======================================================= -->
+  <rect x="30" y="790" width="1140" height="90" rx="8" fill="#150d1f" stroke="#c77dff" stroke-width="1" opacity="0.85"/>
+  <text x="50" y="812" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#c77dff" letter-spacing="1">CONTAINER</text>
+
+  <!-- SFTP Container -->
+  <rect x="60" y="820" width="300" height="52" rx="6" fill="url(#infraGrad)" filter="url(#shadow)" opacity="0.92"/>
+  <text x="210" y="843" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ffffff">atmoz/sftp Container</text>
+  <text x="210" y="860" text-anchor="middle" font-family="monospace" font-size="10" fill="#ffffff" opacity="0.85">rootless Podman &amp;#x2022; sshd :22</text>
+  <text x="210" y="872" text-anchor="middle" font-family="monospace" font-size="9" fill="#ffffff" opacity="0.6">host port 7721 → container :22</text>
+
+  <!-- File mounts -->
+  <rect x="390" y="820" width="180" height="52" rx="6" fill="#1a1530" stroke="#c77dff" stroke-width="1"/>
+  <text x="480" y="843" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#c77dff">users.conf (ro mount)</text>
+  <text x="480" y="860" text-anchor="middle" font-family="monospace" font-size="10" fill="#c77dff" opacity="0.7">bind mount into container</text>
+
+  <rect x="600" y="820" width="180" height="52" rx="6" fill="#1a1530" stroke="#c77dff" stroke-width="1"/>
+  <text x="690" y="843" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#c77dff">data/ (bind mount)</text>
+  <text x="690" y="860" text-anchor="middle" font-family="monospace" font-size="10" fill="#c77dff" opacity="0.7">per-user chroot homes</text>
+
+  <!-- Orcherstration -->
+  <rect x="810" y="820" width="160" height="52" rx="6" fill="#1a1530" stroke="#c77dff" stroke-width="1"/>
+  <text x="890" y="843" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#c77dff">systemd --user</text>
+  <text x="890" y="860" text-anchor="middle" font-family="monospace" font-size="10" fill="#c77dff" opacity="0.7">service_ctl.sh</text>
+
+  <!-- SFTP client arrow to container -->
+  <line x1="170" y1="190" x2="170" y2="820" stroke="#4cc9f0" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrowBlue)" opacity="0.6"/>
+
+  <!-- Host boundary box -->
+  <rect x="975" y="810" width="170" height="65" rx="6" fill="none" stroke="#c77dff" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.6"/>
+  <text x="1060" y="838" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#c77dff" opacity="0.7">Linux Host</text>
+  <text x="1060" y="855" text-anchor="middle" font-family="monospace" font-size="9" fill="#c77dff" opacity="0.5">unprivileged user</text>
+  <text x="1060" y="868" text-anchor="middle" font-family="monospace" font-size="9" fill="#c77dff" opacity="0.5">rootless namespace</text>
+
+  <!-- ======================================================= -->
+  <!-- LEGEND -->
+  <!-- ======================================================= -->
+  <rect x="30" y="890" width="1140" height="0" rx="0" fill="none"/>
+  <text x="50" y="892" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Legend:</text>
+  <rect x="110" y="882" width="12" height="12" rx="2" fill="#4cc9f0"/>
+  <text x="128" y="893" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Clients</text>
+  <rect x="180" y="882" width="12" height="12" rx="2" fill="#ff6b6b"/>
+  <text x="198" y="893" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">API</text>
+  <rect x="230" y="882" width="12" height="12" rx="2" fill="#ffd166"/>
+  <text x="248" y="893" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Services</text>
+  <rect x="310" y="882" width="12" height="12" rx="2" fill="#06d6a0"/>
+  <text x="328" y="893" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Data</text>
+  <rect x="370" y="882" width="12" height="12" rx="2" fill="#c77dff"/>
+  <text x="388" y="893" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">Container</text>
+  <text x="600" y="893" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#6c757d">SFTP Enterprise Management System &amp;#x2022; v0.1.0-dev &amp;#x2022; No root, no sudo &amp;#x2022; §11.4.161 rootless mandate</text>
+  <text x="1050" y="893" text-anchor="end" font-family="system-ui, sans-serif" font-size="9" fill="#c77dff" opacity="0.5">docs/architecture/system_architecture.svg</text>
+</svg>

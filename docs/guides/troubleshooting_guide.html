@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP Troubleshooting Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP Troubleshooting Guide</h1>
+</header>
+<h1 id="troubleshooting-guide">Troubleshooting Guide</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T15:23:48Z</p>
+<p>Failure-mode playbooks for the enterprise SFTP stack. Each entry:
+<strong>Symptom → Diagnosis → Fix → Verify</strong>. Verification
+requires positive output, not absence of errors (§11.4 anti-bluff).
+Items referencing not-yet-built components cite their ATM item.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-container-wont-start">Container won’t start</a></li>
+<li><a href="#2-port-conflicts-7721--7722">Port conflicts (7721 /
+7722)</a></li>
+<li><a href="#3-permission-denied-on-upload">Permission denied on
+upload</a></li>
+<li><a href="#4-login-fails-immediately--the-chroot-write-problem">Login
+fails immediately — the chroot write problem</a></li>
+<li><a href="#5-api-authentication-failures">API authentication
+failures</a></li>
+<li><a href="#6-database-migration-issues">Database migration
+issues</a></li>
+<li><a href="#7-systemd---user--linger-issues">systemd –user / linger
+issues</a></li>
+<li><a href="#8-sftp-works-locally-but-not-from-the-network">SFTP works
+locally but not from the network</a></li>
+<li><a href="#9-mitm--host-key-warnings-after-container-recreate">MITM /
+host-key warnings after container recreate</a></li>
+<li><a href="#10-related-docs">Related docs</a></li>
+</ol>
+<h2 id="container-wont-start">1. Container won’t start</h2>
+<p><strong>Symptom:</strong> <code>podman ps</code> shows the sftp
+container exited; <code>podman-compose up -d</code> reported
+failure.</p>
+<p><strong>Diagnosis:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> logs <span class="op">&lt;</span>sftp-container-name<span class="op">&gt;</span>        <span class="co"># last 50 lines tell the story</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">podman-compose</span> <span class="at">-f</span> deploy/docker-compose.yml config   <span class="co"># validate compose syntax</span></span></code></pre></div>
+<p><strong>Common causes + fixes:</strong> - <strong>Malformed
+<code>users.conf</code></strong> — every line must match
+<code>user:pass[:e][:uid[:gid[:dir…]]]</code>; a stray space or missing
+field aborts entrypoint. Fix the line, re-render via the API (ATM-003
+renderer validates before writing), restart. - <strong>Volume path
+missing</strong> — create <code>data/</code> on the host:
+<code>mkdir -p data</code>. - <strong>Port already bound</strong> — see
+§2. - <strong>Image pull failure</strong> —
+<code>podman pull atmoz/sftp:&lt;tag&gt;</code> separately to see the
+real error.</p>
+<p><strong>Verify:</strong>
+<code>podman ps --format '{{.Names}} {{.Status}}'</code> shows
+<code>Up</code>, and <code>podman logs</code> ends with the sshd
+listening line (no <code>error</code> entries).</p>
+<h2 id="port-conflicts-7721-7722">2. Port conflicts (7721 / 7722)</h2>
+<p><strong>Symptom:</strong> compose fails with “address already in
+use”, or connections land on the wrong service.</p>
+<p><strong>Diagnosis:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ss</span> <span class="at">-tlnp</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">&#39;:(7721|7722) &#39;</span>     <span class="co"># who owns the port</span></span></code></pre></div>
+<p><strong>Fix:</strong> stop the conflicting process, or change
+<code>SFTP_PORT</code> / <code>API_PORT</code> in <code>.env</code> and
+re-run <code>service_ctl.sh restart</code> (ATM-006). Rootless Podman
+binds as the user — ports &lt;1024 are out of scope by design; stay in
+the 77xx range.</p>
+<p><strong>Verify:</strong> <code>ss -tlnp</code> shows exactly one
+listener per port, owned by the expected process;
+<code>sftp -P $SFTP_PORT user@127.0.0.1</code> reaches the SFTP
+banner.</p>
+<h2 id="permission-denied-on-upload">3. Permission denied on upload</h2>
+<p><strong>Symptom:</strong> login succeeds, <code>put file.txt</code>
+fails with <code>Permission denied</code>.</p>
+<p><strong>Diagnosis:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-ln</span> data/            <span class="co"># numeric UID/GID of the user&#39;s home + subdirs</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">podman</span> exec <span class="op">&lt;</span>container<span class="op">&gt;</span> id <span class="op">&lt;</span>user<span class="op">&gt;</span> 2<span class="op">&gt;</span>/dev/null <span class="kw">||</span> <span class="fu">true</span></span></code></pre></div>
+<p><strong>Causes + fixes:</strong> 1. <strong>Writing into the chroot
+top-level</strong> — by design impossible; the chroot home is root-owned
+and non-user-writable (see §4). Upload into the writable subdirectory
+instead (e.g. <code>cd upload &amp;&amp; put file.txt</code>). The
+provisioner (ATM-003) creates it automatically. 2. <strong>UID/GID
+mismatch</strong> — host directory must be owned by the numeric UID/GID
+from <code>users.conf</code>. Rootless note: in rootless Podman the
+container UID maps through the user namespace; the project standardizes
+UID/GID allocation in the renderer so host and container agree. Fix
+ownership with the matching numeric IDs (as the service user; no sudo in
+rootless layout — the data root lives under the service user’s home). 3.
+<strong>Account is <code>read_only</code></strong> — check
+<code>GET /api/v1/accounts/&lt;user&gt;</code>; <code>read_only</code>
+rejects uploads by design (ATM-002/003). Change permission if intended
+(audit-logged).</p>
+<p><strong>Verify:</strong> <code>put</code> into the writable
+subdirectory returns <code>100%</code> progress and <code>ls</code>
+shows the file with non-zero size; for <code>read_only</code>, the
+denial itself is the correct verified behavior.</p>
+<h2 id="login-fails-immediately-the-chroot-write-problem">4. Login fails
+immediately — the chroot write problem</h2>
+<p><strong>Symptom:</strong> client connects, authenticates, then the
+session closes instantly (<code>Connection closed</code> right after
+password); server log shows
+<code>fatal: bad ownership or modes for chroot directory</code>.</p>
+<p><strong>Root cause (the classic atmoz/internal-sftp trap):</strong>
+OpenSSH requires the <code>ChrootDirectory</code> (the user’s home,
+<code>%h</code>) to be <strong>owned by root and NOT writable by the
+user</strong>. If the user’s home is user-writable, sshd refuses the
+session. atmoz/sftp documents the same constraint from the other side:
+users “can’t create new files directly under their own home
+directory”.</p>
+<p><strong>Fix:</strong> 1. Ensure the home top-level is root-owned,
+mode <code>755</code>, <strong>not</strong> writable by the account’s
+UID. 2. Provide a writable subdirectory inside it
+(e.g. <code>upload/</code>) owned by the user’s UID/GID — this is where
+clients upload. The ATM-003 directory provisioner does both
+automatically; manual provisioning must replicate it. 3.
+Re-render/reload (API reload signal, or
+<code>service_ctl.sh restart sftp</code>).</p>
+<p><strong>Verify:</strong> login succeeds; <code>pwd</code> shows
+<code>/</code>; <code>put</code> into <code>/upload</code> completes;
+attempted <code>put</code> into <code>/</code> is denied (expected).</p>
+<h2 id="api-authentication-failures">5. API authentication failures</h2>
+<p><strong>PLANNED — STREAM-2 (ATM-002).</strong></p>
+<p><strong>Symptom:</strong> <code>401</code> from
+<code>/api/v1/**</code>, or login returns <code>403</code>.</p>
+<p><strong>Diagnosis + fixes:</strong> - <strong>Wrong/expired
+token</strong> — tokens are short-lived; re-login via
+<code>POST /api/v1/auth/login</code> (see <a
+href="../tutorials/api_quickstart.md">api_quickstart.md</a>). -
+<strong>Rate-limited</strong> — <code>429</code> after repeated
+failures; back off, check the audit log for the lockout entry; limits
+are configurable (§6 of security guide). - <strong>Bootstrap already
+consumed</strong> — a second <code>POST /api/v1/bootstrap</code> returns
+<code>409</code>; the super-admin already exists. Use login, not
+bootstrap. - <strong>Clock skew</strong> — JWT validation fails if host
+clock drifts; verify <code>timedatectl</code>.</p>
+<p><strong>Verify:</strong> login returns a token JSON; an authenticated
+<code>GET /api/v1/accounts</code> returns <code>200</code> with a JSON
+array.</p>
+<h2 id="database-migration-issues">6. Database migration issues</h2>
+<p><strong>PLANNED — ATM-002 (embedded migrations).</strong></p>
+<p><strong>Symptom:</strong> API container restarts in a loop; logs show
+migration failure; <code>/readyz</code> returns non-200.</p>
+<p><strong>Diagnosis + fixes:</strong> - <strong>Partial migration after
+crash</strong> — restore the pre-upgrade snapshot
+(<code>backup.sh restore &lt;id&gt;</code>, ATM-006), then re-run the
+upgrade; migrations are transactional per step by design. -
+<strong>SQLite file locked</strong> — only one API instance may own the
+SQLite file; ensure a single replica and that the volume isn’t shared
+with a stray dev instance. - <strong>Postgres unreachable</strong> —
+check <code>podman logs &lt;postgres&gt;</code> and the API’s
+<code>DB_*</code> env; <code>readyz</code> distinguishes DB-down from
+migration-failed.</p>
+<p><strong>Verify:</strong> <code>/readyz</code> returns
+<code>200</code>; the audit log records
+<code>migration applied: &lt;version&gt;</code> lines.</p>
+<h2 id="systemd-user-linger-issues">7. systemd –user / linger
+issues</h2>
+<p><strong>PLANNED — ATM-006 units.</strong></p>
+<p><strong>Symptom:</strong>
+<code>systemctl --user status sftp-stack</code> errors with “Failed to
+connect to bus”, or the stack dies at logout.</p>
+<p><strong>Diagnosis + fixes:</strong> - <strong>No user bus</strong> —
+you are in a bare SSH session without <code>XDG_RUNTIME_DIR</code>; log
+in via a proper session (<code>machinectl shell</code> or a real login),
+or run units with <code>systemctl --user</code> only after
+<code>loginctl</code> shows your session. - <strong>Stack stops at
+logout</strong> — user services stop with the last session unless linger
+is enabled: <code>bash   loginctl enable-linger "$USER"</code> On
+managed hosts this may require an administrator — it is the only step
+outside pure user scope. If linger is denied, document the operational
+constraint and use a supervised foreground run for that host. -
+<strong>Unit not found</strong> — re-run
+<code>bash scripts/service_ctl.sh install</code> and
+<code>systemctl --user daemon-reload</code>.</p>
+<p><strong>Verify:</strong>
+<code>systemctl --user is-enabled sftp-stack</code> →
+<code>enabled</code>; after logout/login, <code>podman ps</code> still
+shows the containers <code>Up</code> (linger case).</p>
+<h2 id="sftp-works-locally-but-not-from-the-network">8. SFTP works
+locally but not from the network</h2>
+<p><strong>Diagnosis + fixes (from MVP.md, carried forward):</strong> -
+<strong>Firewall:</strong> UFW <code>sudo ufw allow 7721/tcp</code> —
+NOTE: this is a host-admin firewall step, distinct from the no-sudo
+container runtime; on hosts where the operator holds no admin rights,
+request the port opening from the administrator. firewalld:
+<code>sudo firewall-cmd --permanent --add-port=7721/tcp &amp;&amp; sudo firewall-cmd --reload</code>.
+- <strong>Cloud security group:</strong> allow inbound TCP 7721 (or
+restrict to known client CIDRs). - <strong>Binding:</strong> confirm the
+port mapping publishes on the right interface
+(<code>ss -tlnp</code>).</p>
+<p><strong>Verify:</strong> from a second host,
+<code>sftp -P 7721 user@&lt;server-ip&gt;</code> reaches authentication;
+local test alone is not sufficient proof.</p>
+<h2 id="mitm-host-key-warnings-after-container-recreate">9. MITM /
+host-key warnings after container recreate</h2>
+<p><strong>Symptom:</strong> clients warn “REMOTE HOST IDENTIFICATION
+HAS CHANGED” after every container rebuild.</p>
+<p><strong>Cause:</strong> atmoz/sftp generates fresh host keys on first
+start; ephemeral container storage means new keys every recreate.</p>
+<p><strong>Fix:</strong> persist <code>/etc/ssh/host_keys</code> as a
+volume (see deployment guide §3 — already in the compose design).
+Migrate once: recreate with the volume, have clients accept the new key
+once, done.</p>
+<p><strong>Verify:</strong> two consecutive container recreates keep the
+same <code>ssh-keygen -lf</code> fingerprint; clients connect without
+warnings.</p>
+<h2 id="related-docs">10. Related docs</h2>
+<ul>
+<li><a href="deployment_guide.md">deployment_guide.md</a> — install,
+verify, rollback</li>
+<li><a href="user_management_guide.md">user_management_guide.md</a> —
+permissions, keys</li>
+<li><a href="security_guide.md">security_guide.md</a> — chroot rule
+context, hardening</li>
+<li><a href="../faq/faq.md">../faq/faq.md</a> — quick answers</li>
+<li><code>docs/research/mvp/MVP.md</code> — baseline troubleshooting
+(container fails, permission denied, remote connect)</li>
+</ul>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/research/mvp/MVP.md</code> (permission-denied,
+container-start, remote-connect entries) · <code>docs/Issues.md</code>
+ATM-002/003/006 (migrations, provisioner, units).</li>
+<li>External fetched this revision:
+<code>https://github.com/atmoz/sftp</code> (chroot home-not-writable
+symptom, host-key persistence recommendation).</li>
+<li>OpenSSH <code>ChrootDirectory</code> ownership/mode rule per
+<code>sshd_config(5)</code> — to re-verify before each release
+(§11.4.99): man page + atmoz README.</li>
+</ul>
+</body>
+</html>

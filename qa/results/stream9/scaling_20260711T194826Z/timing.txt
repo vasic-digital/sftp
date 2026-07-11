@@ -1,0 +1,12 @@
+accounts_created=100
+accounts_deleted=100
+create_ok=100
+create_fail=0
+create_elapsed_seconds=25
+delete_ok=100
+delete_fail=0
+delete_elapsed_seconds=0
+total_elapsed_seconds=25
+create_per_account_ms=250.0
+delete_per_account_ms=0.0
+timestamp_utc=2026-07-11T19:48:53Z

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP User Manual</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP User Manual</h1>
+</header>
+<h1 id="sftp-enterprise-management-system-user-manual">SFTP Enterprise
+Management System — User Manual</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T23:00:00Z</p>
+<p>This guide is for SFTP end users – people who connect to upload,
+download, and manage files on the enterprise SFTP server. If you are a
+system administrator looking for account management, see the <a
+href="admin_guide.md">Administrator Guide</a> instead.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-what-is-this-sftp-service">What is this SFTP
+service?</a></li>
+<li><a href="#2-how-to-get-access">How to get access</a></li>
+<li><a href="#3-connecting-via-sftp-client">Connecting via SFTP
+client</a>
+<ul>
+<li><a href="#command-line-sftp-linux-macos">Command-line sftp (Linux /
+macOS)</a></li>
+<li><a href="#filezilla-windows-macos-linux">FileZilla (Windows / macOS
+/ Linux)</a></li>
+<li><a href="#winscp-windows">WinSCP (Windows)</a></li>
+<li><a href="#using-ssh-keys-instead-of-passwords">Using SSH keys
+instead of passwords</a></li>
+</ul></li>
+<li><a href="#4-uploading-files">Uploading files</a></li>
+<li><a href="#5-downloading-files">Downloading files</a></li>
+<li><a href="#6-permission-levels-explained">Permission levels
+explained</a>
+<ul>
+<li><a href="#read-only-read_only">Read-only (read_only)</a></li>
+<li><a href="#read-write-read_write">Read-write (read_write)</a></li>
+</ul></li>
+<li><a href="#7-public-shares">Public shares</a></li>
+<li><a href="#8-understanding-your-directory-layout">Understanding your
+directory layout</a></li>
+<li><a href="#9-troubleshooting-common-issues">Troubleshooting common
+issues</a></li>
+<li><a href="#10-screenshots-to-be-added">Screenshots (to be
+added)</a></li>
+</ol>
+<hr />
+<h2 id="what-is-this-sftp-service">1. What is this SFTP service?</h2>
+<p>The SFTP Enterprise Management System provides you with a secure,
+private space on a remote server where you can upload, download, and
+manage files. SFTP (SSH File Transfer Protocol) encrypts all data in
+transit – your files, your password, and every command you send are
+protected from eavesdropping.</p>
+<p>Your administrator creates an account for you with a username,
+password, and permission level. Once your account is active, you connect
+from any standard SFTP client and work with your files inside your own
+home directory. The service is powered by the well-established
+atmoz/sftp container, backed by encryption at rest for all login
+credentials.</p>
+<hr />
+<h2 id="how-to-get-access">2. How to get access</h2>
+<p>Access is granted by your system administrator. The process is
+simple:</p>
+<ol type="1">
+<li><strong>Ask your admin</strong> to create an SFTP account for you.
+They will need to choose:
+<ul>
+<li>A <strong>username</strong> for you (lowercase,
+letters/digits/underscores/dots/hyphens only).</li>
+<li>A <strong>password</strong> (12 characters minimum, strong).</li>
+<li>A <strong>permission level</strong> (read-write for full access, or
+read-only if you only need to download).</li>
+</ul></li>
+<li>Your admin will provide you with:
+<ul>
+<li>The <strong>server address</strong> (hostname or IP).</li>
+<li>The <strong>port number</strong> (default: <code>7721</code>).</li>
+<li>Your <strong>username</strong> and <strong>password</strong>.</li>
+</ul></li>
+<li>Your home directory is automatically created under your username
+(e.g., <code>/alice/</code>). The only writable location is the
+<code>upload/</code> subdirectory inside your home – this is by design
+for security.</li>
+</ol>
+<hr />
+<h2 id="connecting-via-sftp-client">3. Connecting via SFTP client</h2>
+<p>You can use any standard SFTP client. Here are the three most common
+options.</p>
+<h3 id="command-line-sftp-linux-macos">Command-line sftp (Linux /
+macOS)</h3>
+<p>The <code>sftp</code> command is built into every Linux and macOS
+system – no installation needed.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Connect (replace with your actual username and server address)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 your_username@server_address</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: alice connecting to sftp.example.com</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 alice@sftp.example.com</span></code></pre></div>
+<p>When prompted, enter your password. Once connected you will see the
+<code>sftp&gt;</code> prompt. Type <code>help</code> for a list of
+available commands, <code>exit</code> to disconnect.</p>
+<h3 id="filezilla-windows-macos-linux">FileZilla (Windows / macOS /
+Linux)</h3>
+<p>FileZilla is a free, graphical SFTP client available at <a
+href="https://filezilla-project.org/">https://filezilla-project.org/</a>.</p>
+<p><strong>Setup steps:</strong></p>
+<ol type="1">
+<li>Download and install FileZilla from the official website.</li>
+<li>Open FileZilla. Click <strong>File &gt; Site Manager</strong>.</li>
+<li>Click <strong>New Site</strong> and configure:
+<ul>
+<li><strong>Protocol:</strong> SFTP - SSH File Transfer Protocol</li>
+<li><strong>Host:</strong> Your server address (e.g.,
+<code>sftp.example.com</code>)</li>
+<li><strong>Port:</strong> <code>7721</code></li>
+<li><strong>Logon Type:</strong> Normal</li>
+<li><strong>User:</strong> Your username</li>
+<li><strong>Password:</strong> Your password</li>
+</ul></li>
+<li>Click <strong>Connect</strong>.</li>
+</ol>
+<p>Once connected, your local files appear on the left panel and remote
+files on the right. Drag and drop files between them.</p>
+<h3 id="winscp-windows">WinSCP (Windows)</h3>
+<p>WinSCP is another free, popular SFTP client for Windows at <a
+href="https://winscp.net/">https://winscp.net/</a>.</p>
+<p><strong>Setup steps:</strong></p>
+<ol type="1">
+<li>Download and install WinSCP.</li>
+<li>On the login screen:
+<ul>
+<li><strong>File protocol:</strong> SFTP</li>
+<li><strong>Host name:</strong> Your server address</li>
+<li><strong>Port number:</strong> <code>7721</code></li>
+<li><strong>User name:</strong> Your username</li>
+<li><strong>Password:</strong> Your password</li>
+</ul></li>
+<li>Click <strong>Login</strong>.</li>
+</ol>
+<h3 id="using-ssh-keys-instead-of-passwords">Using SSH keys instead of
+passwords</h3>
+<p>If your administrator has configured your account with an SSH public
+key, you can connect without typing a password:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Command-line: use the -i flag to point to your private key</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 <span class="at">-i</span> ~/.ssh/id_ed25519 alice@sftp.example.com</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># FileZilla: in Site Manager, set Logon Type to &quot;Key file&quot; and browse to your private key file.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># WinSCP: click &quot;Advanced&quot; &gt; &quot;SSH&quot; &gt; &quot;Authentication&quot; and browse to your private key file.</span></span></code></pre></div>
+<p>SSH keys are more secure than passwords and recommended for automated
+scripts and frequent access.</p>
+<hr />
+<h2 id="uploading-files">4. Uploading files</h2>
+<p>Files are uploaded to the <code>upload/</code> subdirectory inside
+your home. The top level of your home directory is read-only (by design,
+for security).</p>
+<p><strong>Command-line sftp:</strong></p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 alice@sftp.example.com</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Once connected:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> cd upload</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> put /path/to/your/local/file.txt</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># To upload an entire directory:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> put <span class="at">-r</span> /path/to/your/local/folder/</span></code></pre></div>
+<p><strong>FileZilla:</strong> Browse to the <code>upload/</code> folder
+in the right panel (remote site), then drag files from the left panel
+(local site) into it. You can also right-click a local file and select
+<strong>Upload</strong>.</p>
+<p><strong>WinSCP:</strong> Navigate to the <code>upload/</code> folder
+on the remote side, then drag files from your local panel, or press
+<strong>F5</strong> to copy selected files to the remote side.</p>
+<p><strong>Important notes:</strong></p>
+<ul>
+<li>You can only upload to the <code>upload/</code> subdirectory. The
+top level of your home is intentionally read-only.</li>
+<li>Uploaded files are visible to other users with access to your home
+directory only if your admin set up a shared/public arrangement.</li>
+<li>Large files may take time – SFTP shows a progress bar in graphical
+clients.</li>
+</ul>
+<hr />
+<h2 id="downloading-files">5. Downloading files</h2>
+<p>Downloading works the same way in reverse. You can download any file
+you can see.</p>
+<p><strong>Command-line sftp:</strong></p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span> <span class="at">-P</span> 7721 alice@sftp.example.com</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Once connected:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> cd upload</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> get remote_file.txt</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># To download to a specific local path:</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> get remote_file.txt /home/alice/Downloads/</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># To download an entire directory:</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">sftp</span><span class="op">&gt;</span> get <span class="at">-r</span> some_folder/</span></code></pre></div>
+<p><strong>FileZilla:</strong> Browse to the file in the right panel
+(remote site), right-click it and select <strong>Download</strong>, or
+drag it to the left panel.</p>
+<p><strong>WinSCP:</strong> Select the file on the remote side and press
+<strong>F5</strong>, or drag it to your local panel.</p>
+<hr />
+<h2 id="permission-levels-explained">6. Permission levels explained</h2>
+<p>Your administrator assigns one of two permission levels to your
+account. This determines what you can do.</p>
+<h3 id="read-only-read_only">Read-only (read_only)</h3>
+<p>With <code>read_only</code> permission you can:</p>
+<ul>
+<li><strong>List</strong> files and directories (see what is
+there).</li>
+<li><strong>Download</strong> files (copy them to your local
+machine).</li>
+</ul>
+<p>You <strong>cannot</strong>:</p>
+<ul>
+<li>Upload new files.</li>
+<li>Delete or rename existing files.</li>
+<li>Create new directories.</li>
+</ul>
+<p>Attempting any write operation will result in a <strong>“Permission
+denied”</strong> error. This is expected behavior when your account is
+configured for download-only access.</p>
+<h3 id="read-write-read_write">Read-write (read_write)</h3>
+<p>With <code>read_write</code> permission you can:</p>
+<ul>
+<li><strong>List</strong> files and directories.</li>
+<li><strong>Download</strong> files.</li>
+<li><strong>Upload</strong> new files (to the <code>upload/</code>
+subdirectory).</li>
+<li><strong>Delete</strong> files (inside your writable subtree).</li>
+<li><strong>Rename</strong> files.</li>
+<li><strong>Create</strong> subdirectories.</li>
+</ul>
+<p>This is the full-access permission. Your admin will assign this if
+you need to both send and receive files.</p>
+<hr />
+<h2 id="public-shares">7. Public shares</h2>
+<p>Your administrator may create a <strong>public</strong> account – one
+that anyone can access without a password (or with a shared, well-known
+credential). Public accounts are always <strong>read-only</strong>: they
+can download files but never upload, delete, or modify anything.</p>
+<p>Public access is <strong>never enabled by default</strong> – your
+administrator must explicitly acknowledge and confirm this setting. If
+there is a public share available to you, your admin will provide the
+connection details.</p>
+<p><strong>Typical use cases for public shares:</strong></p>
+<ul>
+<li>A company-wide download portal for shared resources, documentation,
+or software installers.</li>
+<li>A read-only drop for contractors or partners who only need to
+receive files.</li>
+</ul>
+<hr />
+<h2 id="understanding-your-directory-layout">8. Understanding your
+directory layout</h2>
+<p>When your account is created, your home directory follows this
+structure:</p>
+<pre><code>data/
+  your_username/          # Your home (chroot target -- you cannot navigate above this)
+    upload/               # The writable area (for read_write users)</code></pre>
+<p><strong>Key points:</strong></p>
+<ul>
+<li>You are <strong>confined to your home directory</strong>. You cannot
+browse to other users’ directories or system files.</li>
+<li>The <strong>top level</strong> of your home
+(<code>/your_username/</code>) is read-only. You cannot create files
+here. This is an OpenSSH security requirement – the chroot target must
+not be writable by the user.</li>
+<li>The <strong><code>upload/</code> subdirectory</strong> is where you
+place and retrieve files. This is the working directory you should
+use.</li>
+</ul>
+<hr />
+<h2 id="troubleshooting-common-issues">9. Troubleshooting common
+issues</h2>
+<h3 id="connection-refused">“Connection refused”</h3>
+<p><strong>What it means:</strong> The SFTP server is not reachable at
+the address and port you specified.</p>
+<p><strong>Check:</strong> - Is the server address correct? Ask your
+admin for the exact hostname or IP. - Is the port correct? The default
+SFTP port is <code>7721</code> – not the standard SSH port
+<code>22</code>. - Is the server running? The server may be down for
+maintenance. Contact your admin.</p>
+<h3 id="permission-denied-when-uploading">“Permission denied” when
+uploading</h3>
+<p><strong>What it means:</strong> Your account does not have write
+permission, or you are trying to upload to a read-only location.</p>
+<p><strong>Check:</strong> - Are you in the <code>upload/</code>
+subdirectory? You cannot upload to the top level of your home. - Is your
+account <code>read_only</code>? If so, you cannot upload at all. Ask
+your admin to upgrade your permission to <code>read_write</code> if you
+need write access. - Are you uploading to a public share? Public
+accounts are always read-only.</p>
+<h3 id="permission-denied-when-connecting">“Permission denied” when
+connecting</h3>
+<p><strong>What it means:</strong> Your credentials (username or
+password) are incorrect, or your account is disabled.</p>
+<p><strong>Check:</strong> - Verify your username and password with your
+admin. Passwords are case-sensitive. - Ask your admin whether your
+account is enabled. Disabled accounts cannot log in. - If using SSH
+keys: verify the key file path is correct and that your public key was
+correctly registered by your admin.</p>
+<h3 id="no-such-file-or-directory">“No such file or directory”</h3>
+<p><strong>What it means:</strong> The remote path you specified does
+not exist.</p>
+<p><strong>Check:</strong> - Did you <code>cd upload</code> before
+trying to access your files? Remember, your working directory on first
+connect is your home. - Use <code>ls</code> or <code>dir</code> to list
+what files and directories exist.</p>
+<h3 id="connection-timed-out">“Connection timed out”</h3>
+<p><strong>What it means:</strong> The server did not respond within the
+expected time.</p>
+<p><strong>Check:</strong> - Is a firewall blocking port
+<code>7721</code>? You may need to be on a VPN or specific network.
+Contact your admin. - Is the server address reachable? Try
+<code>ping &lt;server_address&gt;</code> to verify basic network
+connectivity.</p>
+<h3 id="files-appear-empty-or-corrupted-after-upload">Files appear empty
+or corrupted after upload</h3>
+<p><strong>What it means:</strong> The upload may have been
+interrupted.</p>
+<p><strong>Check:</strong> - Re-upload the file. SFTP does not
+automatically resume interrupted transfers. - For large files, ensure
+your connection is stable throughout the upload. - Verify the file size
+matches after upload: compare local <code>ls -l</code> output with
+remote <code>ls -l</code>.</p>
+<hr />
+<h2 id="screenshots-to-be-added">10. Screenshots (to be added)</h2>
+<p>Screenshots of the connection and file-transfer process will be added
+in a subsequent release. This section will include:</p>
+<ul>
+<li>FileZilla Site Manager configuration screen showing the SFTP
+settings.</li>
+<li>FileZilla main interface with local and remote file panels.</li>
+<li>WinSCP login screen with the SFTP protocol selected.</li>
+<li>Command-line sftp session showing a successful login, upload, and
+download.</li>
+<li>Common error messages and their resolutions in graphical
+clients.</li>
+</ul>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/guides/quick_setup_guide.md</code> – port
+configuration (7721 for SFTP, 7722 for API), account creation workflow,
+permission levels, end-to-end verification procedure.</li>
+<li>Internal: <code>qa/results/MANUAL-QA-report.md</code> – confirmed
+all API endpoints work correctly against the live
+<code>sftp-0.1.0-dev-0.1.0</code> binary: health, login, refresh,
+logout, account CRUD, sync, public-guard.</li>
+<li>Internal: <code>docs/architecture/permissions_model.md</code> –
+confirmed permission enum (read_only, read_write), public-never-default
+guard, chroot directory layout, enforcement points.</li>
+<li>External: atmoz/sftp Docker Hub (<a
+href="https://hub.docker.com/r/atmoz/sftp">https://hub.docker.com/r/atmoz/sftp</a>)
+– users.conf grammar, <code>:e</code> encrypted password marker, chroot
+home-not-writable requirement.</li>
+<li>External: FileZilla (<a
+href="https://filezilla-project.org/">https://filezilla-project.org/</a>)
+and WinSCP (<a href="https://winscp.net/">https://winscp.net/</a>)
+official documentation for client setup instructions.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SFTP Security Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">SFTP Security Guide</h1>
+</header>
+<h1 id="security-guide-threat-model-hardening-secrets">Security Guide —
+Threat Model, Hardening, Secrets</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-07-11T15:23:48Z</p>
+<p>Security posture of the enterprise SFTP management system: what we
+defend against, how the stack is hardened, and how secrets are handled.
+Operator mandates: enterprise-grade, secure, easy to use — in that
+priority order when they conflict.</p>
+<p>Planned mechanisms cite their work item (ATM-xxx); they are the
+committed design, validated only when the item closes with captured
+evidence.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-threat-model-summary">Threat model (summary)</a></li>
+<li><a href="#2-secret-handling-11410">Secret handling
+(§11.4.10)</a></li>
+<li><a href="#3-rootless--no-root-posture">Rootless / no-root
+posture</a></li>
+<li><a href="#4-sftp-daemon-hardening">SFTP daemon hardening</a></li>
+<li><a href="#5-api-security">API security</a></li>
+<li><a href="#6-rate-limiting">Rate limiting</a></li>
+<li><a href="#7-audit-log">Audit log</a></li>
+<li><a href="#8-tls--https-termination">TLS / HTTPS termination</a></li>
+<li><a href="#9-hardening-checklist">Hardening checklist</a></li>
+<li><a href="#10-related-docs">Related docs</a></li>
+</ol>
+<h2 id="threat-model-summary">1. Threat model (summary)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Threat</th>
+<th>Asset</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Credential brute-force against sshd</td>
+<td>SFTP accounts</td>
+<td>Rate limiting (fail2ban or API-side), key-only auth option, strong
+password policy, chroot confinement</td>
+</tr>
+<tr>
+<td>API token theft / replay</td>
+<td>Super-admin control plane</td>
+<td>Short-lived JWT (auth/middleware), HTTPS termination, no tokens in
+logs, rate-limited login</td>
+</tr>
+<tr>
+<td>Path traversal / chroot escape</td>
+<td>Host filesystem</td>
+<td><code>ChrootDirectory %h</code> +
+<code>ForceCommand internal-sftp</code>; homes root-owned,
+non-user-writable at the top; writable subdirectory per user</td>
+</tr>
+<tr>
+<td>Data exfiltration via misconfigured <code>public</code>
+accounts</td>
+<td>User data</td>
+<td><code>public</code> never defaults true; explicit acknowledgement
+required; public ⇒ <code>read_only</code> enforced at validation</td>
+</tr>
+<tr>
+<td>Supply-chain / image tampering</td>
+<td>Container images</td>
+<td>Pinned image tags (no floating <code>:latest</code> in prod),
+rootless runtime, no privileged containers</td>
+</tr>
+<tr>
+<td>Secret leakage into git</td>
+<td>All credentials</td>
+<td><code>.env</code> + <code>*.key</code> + <code>*.pem</code>
+git-ignored (§11.4.30); pre-commit audit; <code>chmod 600</code> on
+secret files</td>
+</tr>
+<tr>
+<td>Container breakout affecting host</td>
+<td>Host OS</td>
+<td>Rootless Podman (user-namespace isolation), no sudo anywhere in ops
+scripts (§11.4.161)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="secret-handling-11.4.10">2. Secret handling (§11.4.10)</h2>
+<ul>
+<li><strong>Never tracked in git:</strong> <code>.env</code>,
+<code>.env.*</code>, <code>*.env</code> (except
+<code>.env.example</code> placeholders), <code>*.pem</code>,
+<code>*.key</code>, <code>id_rsa*</code>, <code>id_ed25519*</code>,
+<code>secrets/</code>, DB passwords, API tokens. Enforced by
+<code>.gitignore</code> matrix (ATM-001) + pre-commit audit.</li>
+<li><strong>Permissions:</strong> <code>chmod 600</code> on credential
+files, <code>chmod 700</code> on their parent directory.</li>
+<li><strong>Never printed:</strong> setup and ops scripts never echo
+secrets; logs and audit entries carry redacted references only.</li>
+<li><strong>users.conf:</strong> atmoz/sftp accepts encrypted password
+entries via the <code>:e</code> marker
+(<code>user:$1$…:e:uid:gid</code>, verified 2026-07-11). The renderer
+(ATM-003) writes hashes only — plaintext passwords are never rendered.
+Even so, treat <code>users.conf</code> as sensitive:
+<code>chmod 600</code>, host-readable only by the service user.</li>
+<li><strong>Rotation:</strong> on any suspected leak, rotate affected
+credentials immediately, then record the incident. Pre-store leak audit
+per §11.4.10.A when the operator supplies new secret material.</li>
+<li><strong>Firebase:</strong> optional (ATM-007); its config files are
+fetched by <code>scripts/firebase_config.sh</code> into git-ignored
+paths — never committed.</li>
+</ul>
+<h2 id="rootless-no-root-posture">3. Rootless / no-root posture</h2>
+<ul>
+<li>Everything runs in <strong>rootless Podman</strong> (§11.4.161):
+containers execute under the unprivileged service user inside a user
+namespace; a container root maps to an unprivileged host UID. Podman
+supports non-privileged-user operation natively (verified 2026-07-11,
+docs.podman.io).</li>
+<li>No <code>sudo</code>, no rootful Docker, no escalation anywhere in
+<code>scripts/</code> or systemd units — units are
+<code>systemctl --user</code> scoped.</li>
+<li>Compose runs via <code>podman-compose</code>, a daemon-less script
+that executes podman directly and installs into <code>~/.local</code>
+without root (verified 2026-07-11).</li>
+<li>The only host-privilege touchpoint is optional
+<code>loginctl enable-linger</code> (survive logout); see <a
+href="troubleshooting_guide.md">troubleshooting_guide.md</a> §6.</li>
+</ul>
+<h2 id="sftp-daemon-hardening">4. SFTP daemon hardening</h2>
+<p>Baseline from <code>docs/research/mvp/MVP.md</code>, carried into the
+enterprise stack (ATM-003 config system):</p>
+<pre><code>Subsystem sftp internal-sftp
+Match Group sftp
+    ChrootDirectory %h
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    PermitTTY no
+    X11Forwarding no</code></pre>
+<ul>
+<li><strong>Chroot rule (load-bearing):</strong> for
+<code>internal-sftp</code>, the chroot directory (the user’s home,
+<code>%h</code>) must be <strong>owned by root and not writable by the
+user</strong>. Users write into a subdirectory
+(e.g. <code>upload/</code>), never into the home top-level. The atmoz
+README confirms the symptom: “users can’t create new files directly
+under their own home directory” — the provisioner (ATM-003) creates the
+writable subdirectory automatically. Violating this rule makes login
+fail outright.</li>
+<li><strong>No shell, no forwarding:</strong>
+<code>ForceCommand internal-sftp</code> + <code>PermitTTY no</code> +
+forwarding disabled — SFTP is the only capability.</li>
+<li><strong>Host keys persisted</strong>
+(<code>/etc/ssh/host_keys</code> volume) so recreating the container
+never triggers MITM warnings for clients.</li>
+<li><strong>Key-only option:</strong> accounts with an empty password
+field authenticate solely via <code>.ssh/keys/</code> mounts (atmoz
+appends them to <code>authorized_keys</code>). Global
+<code>PasswordAuthentication no</code> is the recommended production
+end-state.</li>
+</ul>
+<h2 id="api-security">5. API security</h2>
+<p><strong>PLANNED — STREAM-2 (ATM-002):</strong></p>
+<ul>
+<li>Super-admin bootstrap is single-shot (second call →
+<code>409</code>).</li>
+<li>Login issues short-lived JWTs; all <code>/api/v1/**</code> except
+<code>/auth/login</code> + <code>/healthz</code> requires
+<code>Authorization: Bearer</code>.</li>
+<li>Middleware stack: request ID, structured logging (no secret fields),
+recovery, authn/authz, rate limiting.</li>
+<li>Strict JSON schema validation on every write endpoint; unknown
+fields rejected (composes with the ATM-003 strict config loader).</li>
+<li><code>/healthz</code> unauthenticated liveness; <code>/readyz</code>
+checks DB + users.conf render state.</li>
+<li>Bind address defaults to <code>127.0.0.1</code> unless TLS
+termination (§8) is configured.</li>
+</ul>
+<h2 id="rate-limiting">6. Rate limiting</h2>
+<ul>
+<li><strong>API:</strong> per-IP + per-account limits on
+<code>/auth/login</code> (ATM-002, <code>ratelimiter</code> submodule);
+defaults: 5 attempts / minute / IP, exponential backoff, lockout
+telemetry into the audit log.</li>
+<li><strong>sshd:</strong> host-side <code>fail2ban</code> jail on the
+mapped SFTP port is the recommended production layer (see MVP.md
+hardening checklist); auth-failure bursts are also visible in container
+logs for SIEM ingestion.</li>
+<li><strong>Chaos-tested:</strong> rate-limit correctness under burst
+load is covered by the stress/chaos suites (ATM-009, §11.4.85).</li>
+</ul>
+<h2 id="audit-log">7. Audit log</h2>
+<p><strong>PLANNED — ATM-002.</strong> Append-only record of every
+security-relevant event: super-admin login (success/failure), account
+create/update/delete/disable, <code>public</code> enablement (with
+acknowledgement), permission changes, key add/remove, backup/restore,
+config reloads. Each row: timestamp (UTC), actor, action, target, source
+IP, outcome. Queryable via <code>GET /api/v1/audit</code>; never
+contains secret material.</p>
+<h2 id="tls-https-termination">8. TLS / HTTPS termination</h2>
+<p>The API speaks plain HTTP internally; terminate TLS in front.
+Options:</p>
+<ol type="1">
+<li><p><strong>Reverse proxy (recommended):</strong> Caddy / nginx /
+Traefik in the same rootless compose stack, terminating TLS and proxying
+<code>127.0.0.1:7722</code>. Caddy gives automatic Let’s Encrypt with
+minimal config.</p></li>
+<li><p><strong>API-native TLS (PLANNED post-MVP):</strong> load cert/key
+from git-ignored paths, <code>ListenAndServeTLS</code>.</p></li>
+<li><p><strong>Loopback-only:</strong> for single-host admin, keep
+<code>127.0.0.1</code> binding and use SSH port-forwarding from the
+admin workstation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-L</span> 7722:127.0.0.1:7722 <span class="op">&lt;</span>host-user<span class="op">&gt;</span>@<span class="op">&lt;</span>server<span class="op">&gt;</span></span></code></pre></div></li>
+</ol>
+<p>Never expose the API plaintext on a routable interface.</p>
+<h2 id="hardening-checklist">9. Hardening checklist</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>.env</code> chmod 600, not
+tracked (verify <code>git ls-files | grep -x .env</code> is
+empty)</label></li>
+<li><label><input type="checkbox" /><code>users.conf</code> hash-only
+entries (<code>:e</code> marker), chmod 600</label></li>
+<li><label><input type="checkbox" />SSH host keys persisted; clients see
+stable fingerprints</label></li>
+<li><label><input type="checkbox" /><code>ChrootDirectory %h</code> +
+writable subdirectory provisioned per user</label></li>
+<li><label><input type="checkbox" />Password auth disabled once keys are
+deployed (production end-state)</label></li>
+<li><label><input type="checkbox" />API bound to loopback or behind TLS
+proxy; JWT TTL short</label></li>
+<li><label><input type="checkbox" />Rate limiting active on
+<code>/auth/login</code>; fail2ban jail on SFTP port</label></li>
+<li><label><input type="checkbox" />Zero <code>public: true</code>
+accounts unless explicitly acknowledged + audit-logged</label></li>
+<li><label><input type="checkbox" />Images pinned by tag; rootless
+everywhere; no privileged containers</label></li>
+<li><label><input type="checkbox" />Audit log reviewed on a schedule;
+backups encrypted at rest</label></li>
+</ul>
+<h2 id="related-docs">10. Related docs</h2>
+<ul>
+<li><a href="user_management_guide.md">user_management_guide.md</a> —
+permission model, public-guard, keys</li>
+<li><a href="deployment_guide.md">deployment_guide.md</a> — rootless
+deployment</li>
+<li><a href="troubleshooting_guide.md">troubleshooting_guide.md</a> —
+auth/permission failure playbooks</li>
+<li><a
+href="../architecture/permissions_model.md">../architecture/permissions_model.md</a></li>
+<li><code>docs/research/mvp/MVP.md</code> — baseline hardening
+checklist</li>
+</ul>
+<hr />
+<h2 id="sources-verified-2026-07-11">Sources verified (2026-07-11)</h2>
+<ul>
+<li>Internal: <code>docs/research/mvp/MVP.md</code> (sshd hardening
+block, chroot guidance, fail2ban note) · <code>docs/Issues.md</code>
+ATM-002/003/007 (API security, config strictness, Firebase opt-in) ·
+<code>docs/CONTINUATION.md</code> (rootless-only constraint).</li>
+<li>External fetched this revision:
+<code>https://github.com/atmoz/sftp</code> (<code>:e</code> marker,
+chroot home-not-writable symptom, <code>.ssh/keys/</code> mechanism,
+host-key persistence recommendation) ·
+<code>https://docs.podman.io/en/latest/</code> (non-privileged-user
+operation) · <code>https://github.com/containers/podman-compose</code>
+(daemon-less rootless install).</li>
+<li>OpenSSH chroot rule (<code>ChrootDirectory</code> must be
+root-owned, non-user-writable) is documented in
+<code>sshd_config(5)</code>; the atmoz README evidences the resulting
+symptom. To re-verify before each release (§11.4.99):
+<code>sshd_config(5)</code> man page, atmoz/sftp README.</li>
+</ul>
+</body>
+</html>
