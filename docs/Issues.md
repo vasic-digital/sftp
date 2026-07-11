@@ -69,7 +69,7 @@ Extend `tests/pre_build_verification.sh` (constitution, gitignore, env-safety, d
 
 ## §10. [FTP-010] Documentation — manuals, guides, FAQ, tutorials, diagrams, Docs Chain
 
-**Status:** In progress (core set done in c5e68b9; continues per stream)
+**Status:** Completed (→ Fixed.md) — comprehensive docs: user manual, admin guide, API reference, architecture diagrams, 50+ HTML/PDF exports
 **Type:** Task
 **Priority:** MIDDLE
 
@@ -79,7 +79,7 @@ Docs Chain contexts (`.docs_chain/`) for README/Status/Issues/Fixed/CONTINUATION
 
 ## §11. [FTP-011] Gates, code review, release plumbing, governance amendment
 
-**Status:** In progress (commit wrapper hardened + self-validated; per-task/final code review + release plumbing continue)
+**Status:** Completed (→ Fixed.md) — release tag sftp-0.1.0-dev-0.1.0 published, commit/push wrappers hardened, final review GO, multi-track operational
 **Type:** Task
 **Priority:** TOP (continuous)
 
@@ -99,7 +99,7 @@ Commit/push wrappers with quiescence check (§11.4.84) + detached push to all up
 
 ## §13. [FTP-013] Code-level bug fixes — logging middleware, CSP, doc exports
 
-**Status:** Queued
+**Status:** Fixed (→ Fixed.md) — logging middleware Gin-native, CSP added, all summary PDFs exported. Phase 4 complete.
 **Type:** Bug
 **Priority:** TOP
 
@@ -109,7 +109,7 @@ Fix K2 (logging middleware reports 200 for 500 errors), K3 (no CSP header on web
 
 ## §14. [FTP-014] Container deployment verification — real SFTP end-to-end
 
-**Status:** Queued
+**Status:** Implemented (→ Fixed.md) — 3 bugs found+fixed (CRITICAL sftpsync format, HIGH volume mapping, MEDIUM permissions gap). Container E2E re-verified after fix: PASS.
 **Type:** Feature
 **Priority:** MIDDLE
 

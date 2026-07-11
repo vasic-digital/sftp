@@ -51,7 +51,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	cfg.SuperAdminUsername = testAdminUsername
 	cfg.LoginRateLimit = 0 // disabled per-test unless a test opts in
 
-	st, err := store.Open(t.Context(), cfg.DBPath)
+	st, err := store.Open(t.Context(), "sqlite", cfg.DBPath)
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -104,8 +104,9 @@ func (e *testEnv) do(t *testing.T, method, path string, body any, bearer string)
 	return rec, rec.Body.Bytes()
 }
 
-// login authenticates as the seeded admin and returns the token pair JSON.
-func (e *testEnv) login(t *testing.T) map[string]any {
+// login authenticates as the seeded admin and returns the token pair JSON
+// and the refresh token extracted from the HttpOnly Set-Cookie header.
+func (e *testEnv) login(t *testing.T) (map[string]any, string) {
 	t.Helper()
 	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/login", map[string]any{
 		"username": testAdminUsername,
@@ -118,7 +119,20 @@ func (e *testEnv) login(t *testing.T) map[string]any {
 	if err := json.Unmarshal(raw, &out); err != nil {
 		t.Fatalf("unmarshal login response: %v", err)
 	}
-	return out
+	refresh := refreshTokenFromCookie(t, rec)
+	return out, refresh
+}
+
+// refreshTokenFromCookie extracts the refresh token from the Set-Cookie
+// header of the response recorder.
+func refreshTokenFromCookie(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == refreshTokenCookie {
+			return c.Value
+		}
+	}
+	return ""
 }
 
 func TestHealthEndpoint(t *testing.T) {
@@ -197,9 +211,8 @@ func TestSecuredEndpointsRequireToken(t *testing.T) {
 func TestFullAccountJourney(t *testing.T) {
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, refresh := e.login(t)
 	access, _ := tokens["access_token"].(string)
-	refresh, _ := tokens["refresh_token"].(string)
 	if access == "" || refresh == "" {
 		t.Fatalf("login response missing tokens: %v", tokens)
 	}
@@ -381,7 +394,7 @@ func TestFullAccountJourney(t *testing.T) {
 func TestRefreshRejectsAccessToken(t *testing.T) {
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, _ := e.login(t)
 	access, _ := tokens["access_token"].(string)
 	rec, _ := e.do(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{"refresh_token": access}, "")
 	if rec.Code != http.StatusUnauthorized {
@@ -455,7 +468,7 @@ func TestMain_StoreReopenPersists(t *testing.T) {
 	// must preserve accounts (proves migrations + persistence are real).
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, _ := e.login(t)
 	access, _ := tokens["access_token"].(string)
 	rec, _ := e.do(t, http.MethodPost, "/api/v1/accounts", map[string]any{
 		"username": "persist", "password": "P3rsist!"}, access)
@@ -463,7 +476,7 @@ func TestMain_StoreReopenPersists(t *testing.T) {
 		t.Fatalf("create: %d", rec.Code)
 	}
 	_ = e.server.store.Close()
-	st, err := store.Open(t.Context(), e.cfg.DBPath)
+	st, err := store.Open(t.Context(), "sqlite", e.cfg.DBPath)
 	if err != nil {
 		t.Fatalf("reopen: %v", err)
 	}
@@ -501,7 +514,7 @@ func TestNoPasswordInAnyResponse(t *testing.T) {
 	// contain the plaintext password or a bcrypt hash marker.
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, _ := e.login(t)
 	access, _ := tokens["access_token"].(string)
 
 	sweep := []struct {
@@ -540,9 +553,8 @@ func TestLogoutRequiresAuth(t *testing.T) {
 func TestLogoutInvalidatesRefreshToken(t *testing.T) {
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, refresh := e.login(t)
 	access, _ := tokens["access_token"].(string)
-	refresh, _ := tokens["refresh_token"].(string)
 
 	// Step 1: refresh still works before logout.
 	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/refresh", map[string]any{
@@ -551,10 +563,8 @@ func TestLogoutInvalidatesRefreshToken(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("refresh before logout: status = %d, want 200; body = %s", rec.Code, raw)
 	}
-	// Extract the new refresh token after refresh (refresh rotation).
-	var before map[string]any
-	_ = json.Unmarshal(raw, &before)
-	newRefreshBefore, _ := before["refresh_token"].(string)
+	// Extract the new refresh token from the HttpOnly cookie (refresh rotation).
+	newRefreshBefore := refreshTokenFromCookie(t, rec)
 
 	// Step 2: logout with the original refresh token (authenticated).
 	rec, raw = e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
@@ -586,7 +596,7 @@ func TestLogoutInvalidatesRefreshToken(t *testing.T) {
 func TestLogoutEmptyRefreshTokenRejected(t *testing.T) {
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, _ := e.login(t)
 	access, _ := tokens["access_token"].(string)
 
 	rec, raw := e.do(t, http.MethodPost, "/api/v1/auth/logout", map[string]any{
@@ -600,7 +610,7 @@ func TestLogoutEmptyRefreshTokenRejected(t *testing.T) {
 func TestLogoutWithAccessTokenRejected(t *testing.T) {
 	e := newTestEnv(t)
 	e.seedAdmin(t)
-	tokens := e.login(t)
+	tokens, _ := e.login(t)
 	access, _ := tokens["access_token"].(string)
 
 	// An access token cannot be used as a refresh_token for revocation.

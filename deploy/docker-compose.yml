@@ -103,6 +103,20 @@ services:
     container_name: ${API_CONTAINER_NAME:-sftp_api}
     env_file:
       - ../.env
+    volumes:
+      # The API needs write access to the SFTP data directory so it can
+      # provision user home directories with filesystem permissions that
+      # enforce read_only vs read_write (FTP-021). The same host directory
+      # is mounted at /home in the sftp container above. The API container's
+      # WORKDIR is /app (see api/Dockerfile), so /app/data = host ./data.
+      - "${SFTP_DATA_DIR:-./data}:/app/data"
+      # The SFTP_USERS_CONF path is where the SFTP container reads users.conf.
+      # The API writes to USERS_CONF_PATH (default /app/data/users.conf).
+      # For the sync to take effect, these paths must point at the same file
+      # on the host. The default alignment is:
+      #   SFTP_USERS_CONF=./data/users.conf  (sftp container reads this)
+      #   USERS_CONF_PATH=/app/data/users.conf (api container writes this)
+      # Both resolve to ./data/users.conf on the host.
     ports:
       - "${API_BIND:-127.0.0.1}:${API_PORT:-7722}:7722"
     networks:

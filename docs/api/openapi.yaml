@@ -1,0 +1,619 @@
+openapi: "3.0.3"
+info:
+  title: SFTP Enterprise Management API
+  description: >-
+    REST API for managing SFTP accounts, authentication, and user
+    configuration synchronization. This API is the control plane for the
+    SFTP Enterprise system backed by `atmoz/sftp` running under rootless
+    Podman.
+  version: "0.1.0-dev"
+  contact:
+    name: vasic-digital
+    url: https://github.com/vasic-digital/sftp
+  license:
+    name: Proprietary
+servers:
+  - url: http://127.0.0.1:7722/api/v1
+    description: Local development (loopback, no TLS)
+
+# ---------------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------------
+security: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Access token obtained from POST /auth/login or POST /auth/refresh.
+        The token expires after 15 minutes (configurable via ACCESS_TOKEN_TTL).
+
+# ---------------------------------------------------------------------------
+# Schemas
+# ---------------------------------------------------------------------------
+  schemas:
+    # -- Error envelope (returned by every failing endpoint) -------------------
+    ErrorResponse:
+      type: object
+      required: [code, error]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code.
+          enum:
+            - bad_request
+            - validation_error
+            - unauthorized
+            - not_found
+            - conflict
+            - rate_limited
+            - internal_error
+            - public_access_not_acknowledged
+            - invalid_credentials
+        error:
+          type: string
+          description: Human-readable error message.
+
+    # -- Health -----------------------------------------------------------------
+    HealthResponse:
+      type: object
+      required: [status, version, time]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+          example: "0.1.0-dev"
+        time:
+          type: string
+          format: date-time
+          description: UTC timestamp (RFC 3339).
+        firebase:
+          type: string
+          enum: [connected, disabled, unavailable, unhealthy]
+          description: >-
+            Firebase subsystem status. Present when Firebase is configured;
+            absent when the client is nil (startup before Firebase init).
+
+    # -- Auth: login ------------------------------------------------------------
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          example: "********"
+
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in, refresh_expires_in]
+      properties:
+        access_token:
+          type: string
+          description: JWT access token (Bearer).
+        refresh_token:
+          type: string
+          description: >-
+            JWT refresh token. Also set as an HttpOnly, SameSite=Strict
+            cookie (`sftp_refresh_token`) scoped to /api/v1/auth.
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds.
+        refresh_expires_in:
+          type: integer
+          description: Refresh token lifetime in seconds.
+
+    # -- Auth: refresh ----------------------------------------------------------
+    RefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: >-
+            Optional when the HttpOnly cookie is present. The cookie is
+            read first; this body field is a backward-compatibility fallback.
+
+    # -- Auth: logout -----------------------------------------------------------
+    LogoutRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: >-
+            Same cookie-first-then-body fallback as refresh.
+    LogoutResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "logged out"
+
+    # -- Auth: me ---------------------------------------------------------------
+    MeResponse:
+      type: object
+      required: [username, expires_at]
+      properties:
+        username:
+          type: string
+          example: admin
+        expires_at:
+          type: string
+          format: date-time
+          description: Access token expiry (UTC, RFC 3339).
+
+    # -- Accounts ---------------------------------------------------------------
+    AccountRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          example: jdoe
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 1
+          description: >-
+            Required on create; optional on update (omitted = keep existing hash).
+        permission:
+          type: string
+          enum: [read_only, read_write, public]
+          default: read_only
+          description: >-
+            Access level. `public` requires explicit acknowledgement
+            (`public_acknowledged: true`) — it is NEVER a default.
+        public_acknowledged:
+          type: boolean
+          default: false
+          description: >-
+            MUST be true when permission is `public`. The API rejects
+            unacknowledged public access with 422.
+        uid:
+          type: integer
+          nullable: true
+          description: POSIX user id (optional).
+        gid:
+          type: integer
+          nullable: true
+          description: POSIX group id (optional).
+        home_dir:
+          type: string
+          default: /<username>
+          description: Chroot home directory.
+        enabled:
+          type: boolean
+          default: true
+          description: Whether the account can log in.
+
+    AccountResponse:
+      type: object
+      required: [username, permission, enabled, created_at, updated_at]
+      description: >-
+        NEVER contains any password material (bcrypt hash, crypt hash,
+        or plaintext).
+      properties:
+        username:
+          type: string
+        permission:
+          type: string
+          enum: [read_only, read_write, public]
+        uid:
+          type: integer
+          nullable: true
+        gid:
+          type: integer
+          nullable: true
+        home_dir:
+          type: string
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AccountListResponse:
+      type: object
+      required: [accounts, count]
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountResponse'
+        count:
+          type: integer
+
+    # -- Sync -------------------------------------------------------------------
+    SyncResponse:
+      type: object
+      required: [rendered_accounts, path]
+      properties:
+        rendered_accounts:
+          type: integer
+          description: Number of account lines rendered to users.conf.
+        path:
+          type: string
+          description: Absolute path to the rendered users.conf file.
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+paths:
+  # =========================================================================
+  # Unauthenticated
+  # =========================================================================
+  /health:
+    get:
+      operationId: health
+      summary: Liveness probe
+      description: Returns the API version, current time, and Firebase status.
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: API is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                version: "0.1.0-dev"
+                time: "2026-07-11T22:33:48Z"
+                firebase: "disabled"
+
+  # =========================================================================
+  # Auth (rate-limited — no JWT required)
+  # =========================================================================
+  /auth/login:
+    post:
+      operationId: login
+      summary: Authenticate super-admin
+      description: >-
+        Validates the super-admin credentials and returns a JWT
+        access token + refresh token pair. The refresh token is also
+        set as an HttpOnly, SameSite=Strict cookie. Rate-limited by
+        client IP (default 10 req/min, configurable).
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          headers:
+            Set-Cookie:
+              description: HttpOnly refresh token cookie.
+              schema:
+                type: string
+        '400':
+          description: Missing fields or invalid JSON.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid username or password (no user enumeration).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+              description: Seconds to wait (60).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      operationId: refresh
+      summary: Refresh JWT token pair
+      description: >-
+        Exchanges a valid refresh token (read from HttpOnly cookie first,
+        then JSON body as fallback) for a new access + refresh token pair.
+        Rate-limited by client IP.
+      tags: [Auth]
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New token pair issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Missing refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded.
+
+  # =========================================================================
+  # Authenticated (Bearer token required)
+  # =========================================================================
+  /auth/me:
+    get:
+      operationId: me
+      summary: Get current user identity
+      description: Returns the username and token expiry from the active access token.
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Caller identity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke refresh token
+      description: >-
+        Revokes the provided refresh token and clears the HttpOnly cookie.
+        The token is read from the cookie first, then the JSON body as
+        fallback.
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Token revoked, cookie cleared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '400':
+          description: Missing refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired refresh token / missing access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # Accounts
+  # =========================================================================
+  /accounts:
+    get:
+      operationId: listAccounts
+      summary: List all SFTP accounts
+      description: Returns all accounts without any password material.
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Account list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountListResponse'
+        '401':
+          description: Missing or invalid access token.
+
+    post:
+      operationId: createAccount
+      summary: Create a new SFTP account
+      description: >-
+        Creates an SFTP account with a bcrypt-hashed password and a
+        sha512-crypt hash stored in the encrypted vault for users.conf
+        rendering. `public` permission requires `public_acknowledged: true`.
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '201':
+          description: Account created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Missing fields or invalid values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid access token.
+        '409':
+          description: Username already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: >-
+            Public permission set without `public_acknowledged: true`.
+            The error message is explicit: "public access is never a
+            default: set public_acknowledged=true to confirm".
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /accounts/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+        description: SFTP account username.
+    get:
+      operationId: getAccount
+      summary: Get a single account
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Account found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '401':
+          description: Missing or invalid access token.
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      operationId: updateAccount
+      summary: Update an existing account
+      description: >-
+        Replaces mutable fields. Password is optional: when provided it
+        is re-hashed; when omitted the existing hash is kept. The
+        username in the path wins over any username in the body.
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '200':
+          description: Account updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Missing fields or invalid values.
+        '401':
+          description: Missing or invalid access token.
+        '404':
+          description: Account not found.
+        '422':
+          description: Public permission set without acknowledgement.
+
+    delete:
+      operationId: deleteAccount
+      summary: Delete an account
+      description: >-
+        Removes the account from the database and the encrypted vault.
+        The vault entry deletion is best-effort (errors are silently
+        ignored after the DB record is gone).
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Account deleted (no content).
+        '401':
+          description: Missing or invalid access token.
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # Sync
+  # =========================================================================
+  /sync:
+    post:
+      operationId: sync
+      summary: Render users.conf
+      description: >-
+        Reads all accounts from the database and renders `users.conf`
+        in the atmoz/sftp format. The rendered file path is returned
+        in the response.
+      tags: [Sync]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: users.conf rendered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+        '401':
+          description: Missing or invalid access token.
+
+tags:
+  - name: Health
+    description: Unauthenticated liveness probe.
+  - name: Auth
+    description: Authentication endpoints (login, refresh, logout, me).
+  - name: Accounts
+    description: SFTP account CRUD.
+  - name: Sync
+    description: users.conf rendering.

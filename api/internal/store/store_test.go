@@ -14,7 +14,7 @@ func openTestStore(t *testing.T) (*Store, context.Context) {
 	t.Helper()
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "test.db")
-	s, err := Open(ctx, path)
+	s, err := Open(ctx, "sqlite", path)
 	if err != nil {
 		t.Fatalf("open store: %v", err)
 	}
@@ -281,7 +281,7 @@ func TestHealthCheck(t *testing.T) {
 func TestMigrationsIdempotent(t *testing.T) {
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "mig.db")
-	s1, err := Open(ctx, path)
+	s1, err := Open(ctx, "sqlite", path)
 	if err != nil {
 		t.Fatalf("open 1: %v", err)
 	}
@@ -292,7 +292,7 @@ func TestMigrationsIdempotent(t *testing.T) {
 		t.Fatalf("close 1: %v", err)
 	}
 	// Re-open the same file: migrations must be skipped and data retained.
-	s2, err := Open(ctx, path)
+	s2, err := Open(ctx, "sqlite", path)
 	if err != nil {
 		t.Fatalf("open 2: %v", err)
 	}

@@ -27,9 +27,10 @@ type loginRequest struct {
 }
 
 // tokenResponse is returned by login and refresh.
+// The refresh token is set exclusively as an HttpOnly cookie and is NOT
+// included in the JSON body (XSS-resistant, §11.4 security audit Finding 6.1).
 type tokenResponse struct {
 	AccessToken      string `json:"access_token"`
-	RefreshToken     string `json:"refresh_token"`
 	TokenType        string `json:"token_type"`
 	ExpiresIn        int64  `json:"expires_in"`
 	RefreshExpiresIn int64  `json:"refresh_expires_in"`
@@ -72,7 +73,6 @@ func (s *Server) handleLogin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tokenResponse{
 		AccessToken:      pair.AccessToken,
-		RefreshToken:     pair.RefreshToken,
 		TokenType:        "Bearer",
 		ExpiresIn:        int64(s.authn.AccessTTL().Seconds()),
 		RefreshExpiresIn: int64(s.authn.RefreshTTL().Seconds()),
@@ -108,7 +108,6 @@ func (s *Server) handleRefresh(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tokenResponse{
 		AccessToken:      pair.AccessToken,
-		RefreshToken:     pair.RefreshToken,
 		TokenType:        "Bearer",
 		ExpiresIn:        int64(s.authn.AccessTTL().Seconds()),
 		RefreshExpiresIn: int64(s.authn.RefreshTTL().Seconds()),

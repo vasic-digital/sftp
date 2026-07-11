@@ -24,11 +24,22 @@ type Config struct {
 	Bind string `json:"bind" yaml:"bind"`
 	// Port is the TCP port the HTTP server listens on (default 7722).
 	Port int `json:"port" yaml:"port"`
+	// DBDriver selects the database backend: "sqlite" (default) or "postgres".
+	DBDriver string `json:"db_driver" yaml:"db_driver"`
 	// DBPath is the SQLite database file path (default data/sftp.db).
 	DBPath string `json:"db_path" yaml:"db_path"`
+	// DBDSN is the PostgreSQL connection URL (postgres://...). When set and
+	// DBDriver is "postgres", DBPath is ignored.
+	DBDSN string `json:"db_dsn" yaml:"db_dsn"`
 	// UsersConfPath is where sftpsync renders the atmoz users.conf
 	// (default data/users.conf).
 	UsersConfPath string `json:"users_conf_path" yaml:"users_conf_path"`
+	// SFTPDataDir is the host-side path mounted at /home inside the SFTP
+	// container (default data). sftpsync.ProvisionHomeDirs uses this to
+	// enforce read_only permissions at the filesystem level (FTP-021).
+	// When empty, home-directory provisioning is skipped (the API does
+	// not have filesystem access to the SFTP data directory).
+	SFTPDataDir string `json:"sftp_data_dir" yaml:"sftp_data_dir"`
 	// JWTSecret signs access + refresh tokens. REQUIRED outside test runs.
 	JWTSecret string `json:"jwt_secret" yaml:"jwt_secret"`
 	// AccessTokenTTL is the access token lifetime (default 15m).
@@ -64,6 +75,13 @@ type Config struct {
 	// (default) no CORS headers are emitted — use this when the API and
 	// SPA are served from the same origin or behind a reverse proxy.
 	CORSOrigin string `json:"cors_origin" yaml:"cors_origin"`
+	// ServeWeb enables the embedded web SPA serving. When true, static
+	// files from WebDistDir are served and non-API routes fall back to
+	// index.html (SPA client-side routing).
+	ServeWeb bool `json:"serve_web" yaml:"serve_web"`
+	// WebDistDir is the filesystem path to the built SPA distribution
+	// directory (default "web/dist").
+	WebDistDir string `json:"web_dist_dir" yaml:"web_dist_dir"`
 }
 
 // Default returns the baseline configuration before file/env overrides.
@@ -73,6 +91,7 @@ func Default() *Config {
 		Port:               7722,
 		DBPath:             "data/sftp.db",
 		UsersConfPath:      "data/users.conf",
+		SFTPDataDir:        "data",
 		AccessTokenTTL:     15 * time.Minute,
 		RefreshTokenTTL:    168 * time.Hour,
 		SuperAdminUsername: "admin",
@@ -80,6 +99,7 @@ func Default() *Config {
 		LoginRateLimit:     10,
 		LoginRateWindow:    time.Minute,
 		VaultDataDir:       "data/vault",
+		WebDistDir:          "web/dist",
 	}
 }
 
@@ -128,11 +148,20 @@ func applyEnv(c *Config) {
 			c.Port = n
 		}
 	}
+	if v := getenv("DB_DRIVER"); v != "" {
+		c.DBDriver = v
+	}
 	if v := getenv("DB_PATH"); v != "" {
 		c.DBPath = v
 	}
+	if v := getenv("DB_DSN"); v != "" {
+		c.DBDSN = v
+	}
 	if v := getenv("USERS_CONF_PATH"); v != "" {
 		c.UsersConfPath = v
+	}
+	if v := getenv("SFTP_DATA_DIR"); v != "" {
+		c.SFTPDataDir = v
 	}
 	if v := getenv("JWT_SECRET"); v != "" {
 		c.JWTSecret = v
@@ -185,6 +214,12 @@ func applyEnv(c *Config) {
 	if v := getenv("API_CORS_ORIGIN"); v != "" {
 		c.CORSOrigin = v
 	}
+	if v := getenv("SERVE_WEB"); v == "1" || v == "true" {
+		c.ServeWeb = true
+	}
+	if v := getenv("WEB_DIST_DIR"); v != "" {
+		c.WebDistDir = v
+	}
 }
 
 func getenv(key string) string {
@@ -201,8 +236,11 @@ func (c *Config) Validate() error {
 	if c.Bind == "" {
 		return fmt.Errorf("config: API bind address must not be empty")
 	}
-	if c.DBPath == "" {
-		return fmt.Errorf("config: DB path must not be empty")
+	if c.DBPath == "" && c.DBDSN == "" {
+		return fmt.Errorf("config: DB path (SQLite) or DB DSN (PostgreSQL) must be set")
+	}
+	if c.DBDriver != "" && c.DBDriver != "sqlite" && c.DBDriver != "postgres" {
+		return fmt.Errorf("config: DB driver must be sqlite or postgres, got %q", c.DBDriver)
 	}
 	if c.UsersConfPath == "" {
 		return fmt.Errorf("config: users.conf path must not be empty")

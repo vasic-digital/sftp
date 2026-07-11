@@ -58,7 +58,9 @@ func (cv *cryptVault) delete(username string) {
 	_ = cv.v.Delete(context.Background(), username)
 }
 
-// handleSync renders users.conf from the current account set.
+// handleSync renders users.conf from the current account set and
+// provisions home directories with filesystem permissions matching
+// each account's permission type (FTP-021).
 func (s *Server) handleSync(c *gin.Context) {
 	accounts, err := s.store.ListAccounts(c.Request.Context())
 	if err != nil {
@@ -70,8 +72,24 @@ func (s *Server) handleSync(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, codeInternal, "could not write users.conf")
 		return
 	}
+
+	var provisioned []string
+	if s.cfg.SFTPDataDir != "" {
+		var provErr error
+		provisioned, provErr = sftpsync.ProvisionHomeDirs(s.cfg.SFTPDataDir, accounts)
+		if provErr != nil {
+			// Provisioning failure does not roll back the users.conf write
+			// (the file is already durable), but the error is surfaced so
+			// the operator can run sync again after fixing the filesystem.
+			respondError(c, http.StatusInternalServerError, codeInternal,
+				"users.conf written but home-dir provisioning failed: "+provErr.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"rendered_accounts": lines,
-		"path":              s.cfg.UsersConfPath,
+		"rendered_accounts":       lines,
+		"path":                    s.cfg.UsersConfPath,
+		"provisioned_directories": len(provisioned),
 	})
 }

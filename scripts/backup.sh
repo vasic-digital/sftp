@@ -57,8 +57,35 @@ collect_members() {
             members+=("data/$(basename "$db")")
         done < <(find "$ROOT/data" -maxdepth 1 -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' \) | sort)
     fi
-    [[ -f "$ROOT/users.conf" ]] && members+=("users.conf")
+    # users.conf lives under data/ per the default config (DB_PATH, USERS_CONF_PATH);
+    # also check the repo root for backward compatibility.
+    if [[ -f "$ROOT/data/users.conf" ]]; then
+        members+=("data/users.conf")
+    elif [[ -f "$ROOT/users.conf" ]]; then
+        members+=("users.conf")
+    fi
     printf '%s\n' "${members[@]}"
+}
+
+# checkpoint_db runs WAL checkpoint on every SQLite DB under data/ BEFORE
+# the tar is created. Without this step the main DB file can be stale
+# (WAL holds recent transactions that have not yet been written to the
+# main file) — a backup of a live API would silently lose recent data.
+checkpoint_db() {
+    local sqlite3_bin
+    sqlite3_bin="$(command -v sqlite3 2>/dev/null || true)"
+    if [[ -z "$sqlite3_bin" ]]; then
+        note "sqlite3 not found on PATH — skipping WAL checkpoint (backup may be stale if API is running)"
+        return 0
+    fi
+    local db
+    while IFS= read -r db; do
+        if "$sqlite3_bin" "$db" "PRAGMA wal_checkpoint(TRUNCATE);" >/dev/null 2>&1; then
+            note "WAL checkpointed: $db"
+        else
+            note "WAL checkpoint failed (non-fatal): $db"
+        fi
+    done < <(find "$ROOT/data" -maxdepth 1 -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' \) | sort)
 }
 
 create_backup() {
@@ -73,6 +100,10 @@ create_backup() {
         note "run scripts/setup.sh first; skipping archive creation."
         return 0
     fi
+
+    # Checkpoint WAL BEFORE tar so the archive captures the latest committed
+    # state even when the API is running (artifact-integrity).
+    checkpoint_db
 
     note "members included in this backup (paths only, never contents):"
     while IFS= read -r m; do note "  - $m"; done <<< "$members"

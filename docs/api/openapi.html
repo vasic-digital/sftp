@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SFTP Enterprise Management API — API Reference</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1a1a2e; --border: #e0e0e0;
+  --code-bg: #f5f5f5; --accent: #2563eb; --accent-light: #dbeafe;
+  --method-get: #059669; --method-post: #2563eb;
+  --method-put: #d97706; --method-delete: #dc2626;
+  --status-2xx: #059669; --status-4xx: #d97706; --status-5xx: #dc2626;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a; --fg: #e2e8f0; --border: #334155;
+    --code-bg: #1e293b; --accent: #60a5fa; --accent-light: #1e3a5f;
+    --method-get: #34d399; --method-post: #60a5fa;
+    --method-put: #fbbf24; --method-delete: #f87171;
+    --status-2xx: #34d399; --status-4xx: #fbbf24; --status-5xx: #f87171;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-size: 2rem; margin-bottom: 0.25rem; }
+h2 { font-size: 1.4rem; margin: 2rem 0 0.75rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--border); }
+h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; }
+.version { color: #6b7280; font-size: 0.9rem; }
+.meta { margin: 1rem 0; color: #6b7280; font-size: 0.85rem; }
+.endpoint { border: 1px solid var(--border); border-radius: 8px; margin: 1rem 0; overflow: hidden; }
+.ep-header { display: flex; align-items: center; padding: 0.5rem 1rem; background: var(--code-bg); gap: 0.75rem; }
+.method { font-weight: 700; font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fff; min-width: 3.5rem; text-align: center; }
+.method-GET { background: var(--method-get); }
+.method-POST { background: var(--method-post); }
+.method-PUT { background: var(--method-put); }
+.method-DELETE { background: var(--method-delete); }
+.ep-path { font-family: monospace; font-size: 0.9rem; }
+.ep-body { padding: 0.75rem 1rem; }
+.ep-summary { font-weight: 600; margin-bottom: 0.25rem; }
+.ep-desc { color: #6b7280; font-size: 0.85rem; white-space: pre-line; }
+.responses { margin-top: 0.5rem; }
+.resp-code { display: inline-block; font-weight: 700; font-size: 0.8rem; margin-right: 0.5rem; }
+.resp-2xx { color: var(--status-2xx); }
+.resp-4xx { color: var(--status-4xx); }
+.secured { font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 3px; background: var(--accent-light); color: var(--accent); margin-left: auto; }
+pre { background: var(--code-bg); border-radius: 6px; padding: 0.75rem; overflow-x: auto; font-size: 0.8rem; line-height: 1.4; margin-top: 0.5rem; }
+code { font-family: "Fira Code", "Cascadia Code", monospace; font-size: 0.85em; }
+.schema { border: 1px solid var(--border); border-radius: 6px; margin: 0.75rem 0; overflow: hidden; }
+.schema-header { padding: 0.4rem 1rem; background: var(--code-bg); font-weight: 600; font-size: 0.85rem; font-family: monospace; }
+.schema-body { padding: 0.5rem 1rem; font-size: 0.85rem; }
+.schema-body table { width: 100%; border-collapse: collapse; }
+.schema-body td { padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.schema-body td:first-child { font-family: monospace; white-space: nowrap; width: 25%; }
+.schema-body td:nth-child(2) { width: 15%; color: #6b7280; }
+.required-badge { color: #dc2626; font-size: 0.7rem; font-weight: 700; }
+.toc { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1.5rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 0.3rem 0; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: #6b7280; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>SFTP Enterprise Management API</h1>
+<p class="version">Version 0.1.0-dev &mdash; OpenAPI 3.0.3</p>
+<p class="meta">REST API for managing SFTP accounts, authentication, and user configuration synchronization. This API is the control plane for the SFTP Enterprise system backed by `atmoz/sftp` running under rootless Podman.<br>
+Contact: <a href="https://github.com/vasic-digital/sftp">vasic-digital</a></p>
+
+<div class="toc">
+<strong>Table of Contents</strong>
+<ul>
+<li><a href="#accounts">Accounts</a> (5 endpoints)</li>
+<li><a href="#auth">Auth</a> (4 endpoints)</li>
+<li><a href="#health">Health</a> (1 endpoints)</li>
+<li><a href="#sync">Sync</a> (1 endpoints)</li>
+</ul>
+</div>
+
+<h2>Schemas</h2>
+<div class="schema"><div class="schema-header">ErrorResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>code <span class="required-badge">REQUIRED</span></td><td>enum: bad_request, validation_error, unauthorized, not_found, conflict, rate_limited, internal_error, public_access_not_acknowledged, invalid_credentials</td><td>Machine-readable error code.</td></tr><tr><td>error <span class="required-badge">REQUIRED</span></td><td>string</td><td>Human-readable error message.</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">HealthResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>status <span class="required-badge">REQUIRED</span></td><td>enum: ok</td><td></td></tr><tr><td>version <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>time <span class="required-badge">REQUIRED</span></td><td>string</td><td>UTC timestamp (RFC 3339).</td></tr><tr><td>firebase</td><td>enum: connected, disabled, unavailable, unhealthy</td><td>Firebase subsystem status. Present when Firebase is configured; absent when the client is nil (startup before Firebase init).</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">LoginRequest</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>username <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>password <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr></table></div></div>
+<div class="schema"><div class="schema-header">TokenResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>access_token <span class="required-badge">REQUIRED</span></td><td>string</td><td>JWT access token (Bearer).</td></tr><tr><td>refresh_token</td><td>string</td><td>JWT refresh token. Also set as an HttpOnly, SameSite=Strict cookie (`sftp_refresh_token`) scoped to /api/v1/auth.</td></tr><tr><td>token_type <span class="required-badge">REQUIRED</span></td><td>enum: Bearer</td><td></td></tr><tr><td>expires_in <span class="required-badge">REQUIRED</span></td><td>integer</td><td>Access token lifetime in seconds.</td></tr><tr><td>refresh_expires_in <span class="required-badge">REQUIRED</span></td><td>integer</td><td>Refresh token lifetime in seconds.</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">RefreshRequest</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>refresh_token</td><td>string</td><td>Optional when the HttpOnly cookie is present. The cookie is read first; this body field is a backward-compatibility fallback.</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">LogoutRequest</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>refresh_token</td><td>string</td><td>Same cookie-first-then-body fallback as refresh.</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">LogoutResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>message <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr></table></div></div>
+<div class="schema"><div class="schema-header">MeResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>username <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>expires_at <span class="required-badge">REQUIRED</span></td><td>string</td><td>Access token expiry (UTC, RFC 3339).</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">AccountRequest</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>username <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>password <span class="required-badge">REQUIRED</span></td><td>string</td><td>Required on create; optional on update (omitted = keep existing hash).</td></tr><tr><td>permission</td><td>enum: read_only, read_write, public</td><td>Access level. `public` requires explicit acknowledgement (`public_acknowledged: true`) — it is NEVER a default.</td></tr><tr><td>public_acknowledged</td><td>boolean</td><td>MUST be true when permission is `public`. The API rejects unacknowledged public access with 422.</td></tr><tr><td>uid</td><td>integer</td><td>POSIX user id (optional).</td></tr><tr><td>gid</td><td>integer</td><td>POSIX group id (optional).</td></tr><tr><td>home_dir</td><td>string</td><td>Chroot home directory.</td></tr><tr><td>enabled</td><td>boolean</td><td>Whether the account can log in.</td></tr></table></div></div>
+<div class="schema"><div class="schema-header">AccountResponse</div><div class="schema-body"><p>NEVER contains any password material (bcrypt hash, crypt hash, or plaintext).</p><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>username <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>permission <span class="required-badge">REQUIRED</span></td><td>enum: read_only, read_write, public</td><td></td></tr><tr><td>uid</td><td>integer</td><td></td></tr><tr><td>gid</td><td>integer</td><td></td></tr><tr><td>home_dir</td><td>string</td><td></td></tr><tr><td>enabled <span class="required-badge">REQUIRED</span></td><td>boolean</td><td></td></tr><tr><td>created_at <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr><tr><td>updated_at <span class="required-badge">REQUIRED</span></td><td>string</td><td></td></tr></table></div></div>
+<div class="schema"><div class="schema-header">AccountListResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>accounts <span class="required-badge">REQUIRED</span></td><td>array</td><td></td></tr><tr><td>count <span class="required-badge">REQUIRED</span></td><td>integer</td><td></td></tr></table></div></div>
+<div class="schema"><div class="schema-header">SyncResponse</div><div class="schema-body"><table><tr><th>Field</th><th>Type</th><th>Description</th></tr><tr><td>rendered_accounts <span class="required-badge">REQUIRED</span></td><td>integer</td><td>Number of account lines rendered to users.conf.</td></tr><tr><td>path <span class="required-badge">REQUIRED</span></td><td>string</td><td>Absolute path to the rendered users.conf file.</td></tr></table></div></div>
+<h2 id="accounts">Accounts</h2>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-GET">GET</span>
+<span class="ep-path">/accounts</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">List all SFTP accounts</div>
+<div class="ep-desc">Returns all accounts without any password material.</div>
+<div class="responses"><span class="resp-code resp-2xx">200</span> Account list. &rarr; <code>AccountListResponse</code><br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-POST">POST</span>
+<span class="ep-path">/accounts</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Create a new SFTP account</div>
+<div class="ep-desc">Creates an SFTP account with a bcrypt-hashed password and a sha512-crypt hash stored in the encrypted vault for users.conf rendering. `public` permission requires `public_acknowledged: true`.</div>
+<div style="margin-top:0.5rem;font-size:0.85rem">Body: <code>AccountRequest</code></div><div class="responses"><span class="resp-code resp-2xx">201</span> Account created. &rarr; <code>AccountResponse</code><br><span class="resp-code resp-4xx">400</span> Missing fields or invalid values. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br><span class="resp-code resp-4xx">409</span> Username already exists. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">422</span> Public permission set without `public_acknowledged: true`. The error message is explicit: "public access is never a default: set public_acknowledged=true to confirm". &rarr; <code>ErrorResponse</code><br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-GET">GET</span>
+<span class="ep-path">/accounts/{username}</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Get a single account</div>
+<div class="ep-desc"></div>
+<div class="responses"><span class="resp-code resp-2xx">200</span> Account found. &rarr; <code>AccountResponse</code><br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br><span class="resp-code resp-4xx">404</span> Account not found. &rarr; <code>ErrorResponse</code><br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-PUT">PUT</span>
+<span class="ep-path">/accounts/{username}</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Update an existing account</div>
+<div class="ep-desc">Replaces mutable fields. Password is optional: when provided it is re-hashed; when omitted the existing hash is kept. The username in the path wins over any username in the body.</div>
+<div style="margin-top:0.5rem;font-size:0.85rem">Body: <code>AccountRequest</code></div><div class="responses"><span class="resp-code resp-2xx">200</span> Account updated. &rarr; <code>AccountResponse</code><br><span class="resp-code resp-4xx">400</span> Missing fields or invalid values.<br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br><span class="resp-code resp-4xx">404</span> Account not found.<br><span class="resp-code resp-4xx">422</span> Public permission set without acknowledgement.<br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-DELETE">DELETE</span>
+<span class="ep-path">/accounts/{username}</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Delete an account</div>
+<div class="ep-desc">Removes the account from the database and the encrypted vault. The vault entry deletion is best-effort (errors are silently ignored after the DB record is gone).</div>
+<div class="responses"><span class="resp-code resp-2xx">204</span> Account deleted (no content).<br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br><span class="resp-code resp-4xx">404</span> Account not found. &rarr; <code>ErrorResponse</code><br></div></div></div>
+<h2 id="auth">Auth</h2>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-POST">POST</span>
+<span class="ep-path">/auth/login</span>
+
+</div>
+<div class="ep-body">
+<div class="ep-summary">Authenticate super-admin</div>
+<div class="ep-desc">Validates the super-admin credentials and returns a JWT access token + refresh token pair. The refresh token is also set as an HttpOnly, SameSite=Strict cookie. Rate-limited by client IP (default 10 req/min, configurable).</div>
+<div style="margin-top:0.5rem;font-size:0.85rem">Body: <code>LoginRequest</code></div><div class="responses"><span class="resp-code resp-2xx">200</span> Authentication successful. &rarr; <code>TokenResponse</code><br><span class="resp-code resp-4xx">400</span> Missing fields or invalid JSON. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">401</span> Invalid username or password (no user enumeration). &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">429</span> Rate limit exceeded. &rarr; <code>ErrorResponse</code><br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-POST">POST</span>
+<span class="ep-path">/auth/refresh</span>
+
+</div>
+<div class="ep-body">
+<div class="ep-summary">Refresh JWT token pair</div>
+<div class="ep-desc">Exchanges a valid refresh token (read from HttpOnly cookie first, then JSON body as fallback) for a new access + refresh token pair. Rate-limited by client IP.</div>
+<div style="margin-top:0.5rem;font-size:0.85rem">Body: <code>RefreshRequest</code></div><div class="responses"><span class="resp-code resp-2xx">200</span> New token pair issued. &rarr; <code>TokenResponse</code><br><span class="resp-code resp-4xx">400</span> Missing refresh token. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">401</span> Invalid or expired refresh token. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">429</span> Rate limit exceeded.<br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-GET">GET</span>
+<span class="ep-path">/auth/me</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Get current user identity</div>
+<div class="ep-desc">Returns the username and token expiry from the active access token.</div>
+<div class="responses"><span class="resp-code resp-2xx">200</span> Caller identity. &rarr; <code>MeResponse</code><br><span class="resp-code resp-4xx">401</span> Missing or invalid access token. &rarr; <code>ErrorResponse</code><br></div></div></div>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-POST">POST</span>
+<span class="ep-path">/auth/logout</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Revoke refresh token</div>
+<div class="ep-desc">Revokes the provided refresh token and clears the HttpOnly cookie. The token is read from the cookie first, then the JSON body as fallback.</div>
+<div style="margin-top:0.5rem;font-size:0.85rem">Body: <code>LogoutRequest</code></div><div class="responses"><span class="resp-code resp-2xx">200</span> Token revoked, cookie cleared. &rarr; <code>LogoutResponse</code><br><span class="resp-code resp-4xx">400</span> Missing refresh token. &rarr; <code>ErrorResponse</code><br><span class="resp-code resp-4xx">401</span> Invalid or expired refresh token / missing access token. &rarr; <code>ErrorResponse</code><br></div></div></div>
+<h2 id="health">Health</h2>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-GET">GET</span>
+<span class="ep-path">/health</span>
+
+</div>
+<div class="ep-body">
+<div class="ep-summary">Liveness probe</div>
+<div class="ep-desc">Returns the API version, current time, and Firebase status.</div>
+<div class="responses"><span class="resp-code resp-2xx">200</span> API is healthy. &rarr; <code>HealthResponse</code><br></div></div></div>
+<h2 id="sync">Sync</h2>
+<div class="endpoint">
+<div class="ep-header">
+<span class="method method-POST">POST</span>
+<span class="ep-path">/sync</span>
+<span class="secured">Bearer token</span>
+</div>
+<div class="ep-body">
+<div class="ep-summary">Render users.conf</div>
+<div class="ep-desc">Reads all accounts from the database and renders `users.conf` in the atmoz/sftp format. The rendered file path is returned in the response.</div>
+<div class="responses"><span class="resp-code resp-2xx">200</span> users.conf rendered. &rarr; <code>SyncResponse</code><br><span class="resp-code resp-4xx">401</span> Missing or invalid access token.<br></div></div></div>
+
+<footer>
+Generated from <code>docs/api/openapi.yaml</code> on 2026-07-11T21:31:02Z<br>
+SFTP Enterprise API · 0.1.0-dev
+</footer>
+</div>
+</body>
+</html>

@@ -5,6 +5,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -90,7 +91,57 @@ func (s *Server) Engine() *gin.Engine {
 	secured.DELETE("/accounts/:username", s.handleDeleteAccount)
 	secured.POST("/sync", s.handleSync)
 
+	if s.cfg.ServeWeb {
+		s.mountWebSPA(r)
+	}
+
 	return r
+}
+
+// mountWebSPA serves the built web SPA from the configured dist directory.
+// Static assets under /assets/ are served directly. The root path / and any
+// unmatched non-API route returns index.html so the SPA's client-side router
+// can handle deep links (standard SPA pattern). API routes that don't match
+// return a proper JSON 404.
+//
+// We use os.ReadFile + c.Data instead of c.File to avoid http.ServeFile's
+// redirect of /index.html -> ./ (the stdlib behaviour for paths ending in
+// "index.html").
+func (s *Server) mountWebSPA(r *gin.Engine) {
+	dist := s.cfg.WebDistDir
+	if dist == "" {
+		dist = "web/dist"
+	}
+	indexPath := dist + "/index.html"
+
+	// Preload the index.html content at startup so every request reuses it.
+	indexBytes, err := os.ReadFile(indexPath)
+	if err != nil {
+		log.Printf("sftp-api: WARNING: cannot read %s: %v — web SPA will not be served", indexPath, err)
+		return
+	}
+
+	// Serve static assets (JS, CSS, images, etc.) via Gin's efficient
+	// static file handler.
+	r.Static("/assets", dist+"/assets")
+
+	// Serve the SPA entrypoint at the root.
+	r.GET("/", func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexBytes)
+	})
+
+	// SPA fallback: any unmatched route that is not an API call gets the
+	// index.html so the client-side router can handle deep links (e.g.
+	// /accounts, /settings, /index.html).
+	r.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if len(path) >= 4 && path[:4] == "/api" {
+			respondError(c, http.StatusNotFound, "not_found", "endpoint not found")
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexBytes)
+	})
+	log.Printf("sftp-api: serving web SPA from %s/", dist)
 }
 
 // requestLogger logs every HTTP request AFTER the handler has written the
@@ -182,6 +233,7 @@ type ipLimiter struct {
 type limitEntry struct {
 	windowStart time.Time
 	count       int
+	lastAccess  time.Time
 }
 
 // rateLimitMiddleware allows `rate` requests per `window` per client IP.
@@ -191,6 +243,10 @@ func (s *Server) rateLimitMiddleware(rate int, window time.Duration) gin.Handler
 		window = time.Minute
 	}
 	l := &ipLimiter{entries: map[string]*limitEntry{}, rate: rate, window: window}
+	// Start background cleanup to prevent unbounded map growth (§11.4 security audit Finding A.1).
+	if rate > 0 {
+		go l.cleanupLoop(30*time.Minute, 1*time.Hour)
+	}
 	return func(c *gin.Context) {
 		if rate <= 0 {
 			c.Next()
@@ -206,6 +262,7 @@ func (s *Server) rateLimitMiddleware(rate int, window time.Duration) gin.Handler
 			l.entries[ip] = e
 		}
 		e.count++
+		e.lastAccess = now
 		over := e.count > l.rate
 		l.mu.Unlock()
 
@@ -216,6 +273,25 @@ func (s *Server) rateLimitMiddleware(rate int, window time.Duration) gin.Handler
 			return
 		}
 		c.Next()
+	}
+}
+
+// cleanupLoop periodically removes rate-limiter entries that have not been
+// accessed within maxAge. Called as a background goroutine to prevent
+// unbounded map growth under sustained attacks from many distinct IPs
+// (security audit Finding A.1).
+func (l *ipLimiter) cleanupLoop(interval, maxAge time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for range ticker.C {
+		l.mu.Lock()
+		cutoff := time.Now().Add(-maxAge)
+		for ip, e := range l.entries {
+			if e.lastAccess.Before(cutoff) {
+				delete(l.entries, ip)
+			}
+		}
+		l.mu.Unlock()
 	}
 }
 

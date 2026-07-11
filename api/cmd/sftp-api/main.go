@@ -62,6 +62,7 @@ func main() {
 	composeUp := flag.Bool("compose-up", false, "Start SFTP compose stack via the containers layer")
 	composeDown := flag.Bool("compose-down", false, "Stop SFTP compose stack")
 	composeStatus := flag.Bool("compose-status", false, "Show health of SFTP compose stack")
+	serveWeb := flag.Bool("serve-web", false, "Serve the built web SPA from web/dist/ (SPA fallback enabled)")
 	flag.Parse()
 
 	if *composeUp || *composeDown || *composeStatus {
@@ -74,7 +75,7 @@ func main() {
 	}
 
 	// Default: API server mode.
-	if err := run(); err != nil {
+	if err := run(*serveWeb); err != nil {
 		log.Printf("sftp-api: fatal: %v", err)
 		os.Exit(1)
 	}
@@ -160,18 +161,29 @@ func runComposeCmd(up, down, status bool, projectRoot string) error {
 	}
 }
 
-func run() error {
+func run(serveWeb bool) error {
 	ctx := context.Background()
 
 	cfg, err := config.Load()
 	if err != nil {
 		return err
 	}
+	if serveWeb {
+		cfg.ServeWeb = true
+	}
 	if err := cfg.Validate(); err != nil {
 		return err
 	}
 
-	st, err := store.Open(ctx, cfg.DBPath)
+	dsn := cfg.DBPath
+	driver := cfg.DBDriver
+	if driver == "" {
+		driver = "sqlite"
+	}
+	if driver == "postgres" && cfg.DBDSN != "" {
+		dsn = cfg.DBDSN
+	}
+	st, err := store.Open(ctx, driver, dsn)
 	if err != nil {
 		return fmt.Errorf("sftp-api: open store: %w", err)
 	}

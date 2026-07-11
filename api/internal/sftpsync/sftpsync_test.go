@@ -171,6 +171,218 @@ func TestWriteEmptyAccountSet(t *testing.T) {
 	}
 }
 
+func TestProvisionHomeDirsReadOnly(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("bob", store.PermissionReadOnly, nil, nil, "/uploads", true),
+	}
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("provision: %v", err)
+	}
+	if len(paths) != 1 {
+		t.Fatalf("paths = %d, want 1", len(paths))
+	}
+
+	// The directory should exist at <dataDir>/bob/uploads
+	created := filepath.Join(dir, "bob", "uploads")
+	info, err := os.Stat(created)
+	if err != nil {
+		t.Fatalf("stat created dir: %v", err)
+	}
+	if !info.IsDir() {
+		t.Fatal("created path is not a directory")
+	}
+	// read_only → 0o555 (r-xr-xr-x, owner cannot write)
+	if perm := info.Mode().Perm(); perm != 0o555 {
+		t.Fatalf("perm = %o, want 0555 (read_only)", perm)
+	}
+}
+
+func TestProvisionHomeDirsReadWrite(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("alice", store.PermissionReadWrite, nil, nil, "/data", true),
+	}
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("provision: %v", err)
+	}
+	if len(paths) != 1 {
+		t.Fatalf("paths = %d, want 1", len(paths))
+	}
+
+	created := filepath.Join(dir, "alice", "data")
+	info, err := os.Stat(created)
+	if err != nil {
+		t.Fatalf("stat created dir: %v", err)
+	}
+	// read_write → 0o755 (rwxr-xr-x)
+	if perm := info.Mode().Perm(); perm != 0o755 {
+		t.Fatalf("perm = %o, want 0755 (read_write)", perm)
+	}
+}
+
+func TestProvisionHomeDirsIdempotent(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("bob", store.PermissionReadOnly, nil, nil, "/files", true),
+	}
+	// First call creates.
+	if _, err := ProvisionHomeDirs(dir, accounts); err != nil {
+		t.Fatalf("first provision: %v", err)
+	}
+	// Second call is idempotent — no error, same paths.
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("second provision: %v", err)
+	}
+	if len(paths) != 1 {
+		t.Fatalf("paths = %d, want 1", len(paths))
+	}
+	created := filepath.Join(dir, "bob", "files")
+	info, err := os.Stat(created)
+	if err != nil {
+		t.Fatalf("stat: %v", err)
+	}
+	if perm := info.Mode().Perm(); perm != 0o555 {
+		t.Fatalf("perm = %o, want 0555 after idempotent call", perm)
+	}
+}
+
+func TestProvisionHomeDirsSkipsDisabled(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("dave", store.PermissionReadOnly, nil, nil, "/uploads", false), // disabled
+	}
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("provision: %v", err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("paths = %d, want 0 (disabled account)", len(paths))
+	}
+	// Directory must not exist.
+	if _, err := os.Stat(filepath.Join(dir, "dave", "uploads")); !os.IsNotExist(err) {
+		t.Fatal("directory should not exist for disabled account")
+	}
+}
+
+func TestProvisionHomeDirsEmptyDataDir(t *testing.T) {
+	accounts := []*store.Account{
+		mkAccount("bob", store.PermissionReadOnly, nil, nil, "/x", true),
+	}
+	paths, err := ProvisionHomeDirs("", accounts)
+	if err != nil {
+		t.Fatalf("provision with empty data dir: %v", err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("paths = %d, want 0 (empty data dir skips provisioning)", len(paths))
+	}
+}
+
+func TestProvisionHomeDirsPublicDefaultsToReadOnly(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("pub", store.PermissionPublic, nil, nil, "/open", true),
+	}
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("provision: %v", err)
+	}
+	if len(paths) != 1 {
+		t.Fatalf("paths = %d, want 1", len(paths))
+	}
+	created := filepath.Join(dir, "pub", "open")
+	info, err := os.Stat(created)
+	if err != nil {
+		t.Fatalf("stat: %v", err)
+	}
+	// public defaults to 0555 (most restrictive safe default)
+	if perm := info.Mode().Perm(); perm != 0o555 {
+		t.Fatalf("perm = %o, want 0555 (public defaults to read_only)", perm)
+	}
+}
+
+func TestProvisionHomeDirsMultipleAccounts(t *testing.T) {
+	dir := t.TempDir()
+	accounts := []*store.Account{
+		mkAccount("ro1", store.PermissionReadOnly, nil, nil, "/a", true),
+		mkAccount("rw1", store.PermissionReadWrite, nil, nil, "/b", true),
+		mkAccount("ro2", store.PermissionReadOnly, nil, nil, "/c", true),
+	}
+	paths, err := ProvisionHomeDirs(dir, accounts)
+	if err != nil {
+		t.Fatalf("provision: %v", err)
+	}
+	if len(paths) != 3 {
+		t.Fatalf("paths = %d, want 3", len(paths))
+	}
+	// Verify each has correct perms.
+	cases := []struct {
+		user string
+		sub  string
+		perm os.FileMode
+	}{
+		{"ro1", "a", 0o555},
+		{"rw1", "b", 0o755},
+		{"ro2", "c", 0o555},
+	}
+	for _, tc := range cases {
+		p := filepath.Join(dir, tc.user, tc.sub)
+		info, err := os.Stat(p)
+		if err != nil {
+			t.Fatalf("stat %s: %v", p, err)
+		}
+		if perm := info.Mode().Perm(); perm != tc.perm {
+			t.Fatalf("%s perm = %o, want %o", p, perm, tc.perm)
+		}
+	}
+}
+
+func TestDirPermMapping(t *testing.T) {
+	if dirPerm(store.PermissionReadWrite) != 0o755 {
+		t.Fatal("read_write should map to 0755")
+	}
+	if dirPerm(store.PermissionReadOnly) != 0o555 {
+		t.Fatal("read_only should map to 0555")
+	}
+	if dirPerm(store.PermissionPublic) != 0o555 {
+		t.Fatal("public should map to 0555 (safe default)")
+	}
+	if dirPerm("unknown") != 0o555 {
+		t.Fatal("unknown permission should default to 0555 (safe default)")
+	}
+}
+
+func TestSplitDirs(t *testing.T) {
+	tests := []struct {
+		input string
+		want  []string
+	}{
+		{"/sftp_data/bob", []string{"/sftp_data/bob"}},
+		{"a,b,c", []string{"a", "b", "c"}},
+		{"a, b ,c", []string{"a", "b", "c"}}, // trims spaces
+		{"", []string{""}}, // empty string returns chroot-root fallback
+		{",", []string{""}}, // only commas returns chroot-root fallback
+	}
+	for _, tt := range tests {
+		got := splitDirs(tt.input)
+		if len(got) != len(tt.want) {
+			t.Fatalf("splitDirs(%q) = %v, want %v", tt.input, got, tt.want)
+		}
+		for i := range got {
+			if got[i] != tt.want[i] {
+				t.Fatalf("splitDirs(%q)[%d] = %q, want %q", tt.input, i, got[i], tt.want[i])
+			}
+		}
+	}
+	// Empty result produces single empty string (fallback to chroot root).
+	if got := splitDirs(""); len(got) != 1 || got[0] != "" {
+		t.Fatalf("splitDirs(\"\") = %v, want [\"\"]", got)
+	}
+}
+
 func TestRenderedCryptHashVerifiesWithOpenSSL(t *testing.T) {
 	// End-to-end proof of the password-field decision: a hash produced by
 	// our crypt package, rendered into a users.conf line, parses and
