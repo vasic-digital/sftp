@@ -1,61 +1,61 @@
 package api
 
 import (
+	"context"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/vasic-digital/sftp/api/internal/crypt"
 	"github.com/vasic-digital/sftp/api/internal/sftpsync"
+	"github.com/vasic-digital/sftp/api/internal/vault"
 )
 
-// cryptVault holds the sha512-crypt ($6$) hashes rendered into users.conf
-// for password-authenticating accounts. It lives in process memory only —
-// hashes are computed at account create/update time from the write-only
-// request password (§11.4.10: plaintext exists only within the request
-// handler that received it).
+// cryptVault manages sha512-crypt ($6$) hashes rendered into users.conf.
+// It wraps a persistent encrypted vault.Vault so passwords survive API
+// restarts. Before this, hashes lived in an in-memory map and were lost on
+// every restart — accounts created in a previous process run rendered with
+// `*` (no password login) until their password was set again.
 //
-// Design boundary (documented in api/README.md): an in-memory vault means
-// users.conf entries for accounts created in a PREVIOUS process run are
-// rendered with `*` (no password login) after an API restart until the
-// account's password is set again. The DB holds only the API-side bcrypt
-// hash, which cannot be converted into a crypt hash. This is the safe
-// failure direction (fail closed), and the /sync response reports the
-// count so operators can detect it.
+// Security boundary (§11.4.10): the vault stores ONLY the crypt hash
+// (never the plaintext). The plaintext exists only within the request
+// handler that received it and is discarded immediately after the hash is
+// computed and stored.
 type cryptVault struct {
-	mu     sync.RWMutex
-	hashes map[string]string
+	v *vault.Vault
 }
 
-func newCryptVault() *cryptVault {
-	return &cryptVault{hashes: map[string]string{}}
+func newCryptVault(v *vault.Vault) *cryptVault {
+	return &cryptVault{v: v}
 }
 
-// set computes and stores the crypt hash for username's plaintext
-// password. Called from account create/update handlers while the
+// set computes the sha512-crypt hash of plaintext and persists it in the
+// encrypted vault. Called from account create/update handlers while the
 // plaintext is still in scope.
-func (v *cryptVault) set(username, plaintext string) error {
+func (cv *cryptVault) set(username, plaintext string) error {
 	h, err := crypt.Hash(plaintext)
 	if err != nil {
 		return err
 	}
-	v.mu.Lock()
-	v.hashes[username] = h
-	v.mu.Unlock()
-	return nil
+	return cv.v.Store(context.Background(), username, h)
 }
 
-func (v *cryptVault) get(username string) string {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
-	return v.hashes[username]
+// get loads the crypt hash from the vault. Returns "" on any error
+// (missing entry, I/O failure, corrupt blob) — the sftpsync layer treats
+// an empty hash as "no password login", so this fails safely.
+func (cv *cryptVault) get(username string) string {
+	h, err := cv.v.Load(context.Background(), username)
+	if err != nil {
+		return ""
+	}
+	return h
 }
 
-func (v *cryptVault) delete(username string) {
-	v.mu.Lock()
-	delete(v.hashes, username)
-	v.mu.Unlock()
+// delete removes an entry from the vault. Errors are silently ignored
+// because callers cannot recover (the account record is already deleted
+// from the store).
+func (cv *cryptVault) delete(username string) {
+	_ = cv.v.Delete(context.Background(), username)
 }
 
 // handleSync renders users.conf from the current account set.

@@ -1,0 +1,3 @@
+# Copy to local.properties (git-ignored) and point at your Android SDK.
+# On this host: sdk.dir=/home/milosvasic/Android/Sdk
+sdk.dir=/path/to/Android/Sdk

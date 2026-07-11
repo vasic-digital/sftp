@@ -1,0 +1,2 @@
+tmpfs               1024     0      1024   0% /tmp/.private/milosvasic/tmp.aspjNCmrRc/diskfull/mnt
+tmpfs               1024  1024         0 100% /tmp/.private/milosvasic/tmp.aspjNCmrRc/diskfull/mnt

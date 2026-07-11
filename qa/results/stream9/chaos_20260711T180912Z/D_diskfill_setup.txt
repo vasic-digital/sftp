@@ -1,0 +1,3 @@
+tmpfs               1024     0      1024   0% /tmp/.private/milosvasic/tmp.Hp8fIcaszO/diskfull/mnt
+DISKFILL-PROVEN-FULL
+tmpfs               1024  1024         0 100% /tmp/.private/milosvasic/tmp.Hp8fIcaszO/diskfull/mnt

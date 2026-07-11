@@ -163,6 +163,7 @@ func Write(path string, accounts []*store.Account, hashes HashFunc) (int, error)
 	}
 	tmp := path + ".tmp"
 	if err := os.WriteFile(tmp, []byte(content), 0o600); err != nil {
+		_ = os.Remove(tmp) // Clean up 0-byte file left by O_CREAT on ENOSPC
 		return 0, fmt.Errorf("sftpsync: write %s: %w", tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {

@@ -1,0 +1,99 @@
+# SFTP Enterprise Management System — HelixQA Suite Registration
+#
+# Machine-readable test-suite registry consumed by the HelixQA autonomous
+# QA engine (§11.4.27). Each suite maps to one or more test scripts that
+# exercise specific API/web endpoints and produce captured evidence per
+# §11.4.5/§11.4.69.
+#
+# Schema: name, display_name, category, command, working_dir,
+#          expected_exit, timeout_seconds, challenges, evidence_dir,
+#          severity, requires_api.
+#
+# §11.4.28 decoupling: suites are DATA, HelixQA is the ENGINE.
+# §11.4.116: every suite's output feeds the real-time sync channel.
+
+suites:
+  - name: api-lifecycle
+    display_name: API lifecycle tests (health, auth, CRUD, public guard)
+    category: api
+    command:
+      - bash tests/api/test_api_lifecycle.sh
+    working_dir: .
+    expected_exit: 0
+    timeout_seconds: 120
+    challenges:
+      - CH-SFTP-001
+      - CH-SFTP-002
+      - CH-SFTP-003
+      - CH-SFTP-004
+    evidence_dir: qa-results/api-lifecycle/
+    severity: critical
+    requires_api: true
+
+  - name: api-stress
+    display_name: API stress tests (sustained load, concurrent contention, boundary)
+    category: api
+    command:
+      - bash tests/api/test_api_stress.sh
+    working_dir: .
+    expected_exit: 0
+    timeout_seconds: 300
+    challenges:
+      - CH-SFTP-003
+    evidence_dir: qa-results/api-stress/
+    severity: high
+    requires_api: true
+
+  - name: api-chaos
+    display_name: API chaos tests (process-death, network-fault, resource-exhaustion injection)
+    category: api
+    command:
+      - bash tests/api/test_api_chaos.sh
+    working_dir: .
+    expected_exit: 0
+    timeout_seconds: 300
+    challenges:
+      - CH-SFTP-003
+    evidence_dir: qa-results/api-chaos/
+    severity: high
+    requires_api: true
+
+  - name: web-screenshots
+    display_name: Web SPA host-rendered visual proof (4 screens x 2 themes)
+    category: web
+    command:
+      - node web/scripts/screenshots.mjs
+    working_dir: .
+    expected_exit: 0
+    timeout_seconds: 120
+    challenges:
+      - CH-SFTP-006
+    evidence_dir: qa/results/stream4/screenshots/
+    severity: critical
+    requires_api: true
+
+  - name: go-tests
+    display_name: Go unit and integration tests (api/...)
+    category: api
+    command:
+      - go test ./...
+    working_dir: api
+    expected_exit: 0
+    timeout_seconds: 120
+    challenges: []
+    evidence_dir: qa-results/go-tests/
+    severity: critical
+    requires_api: false
+
+  - name: web-tests
+    display_name: Web unit tests (vitest)
+    category: web
+    command:
+      - npx vitest run
+    working_dir: web
+    expected_exit: 0
+    timeout_seconds: 120
+    challenges: []
+    evidence_dir: qa-results/web-tests/
+    severity: critical
+    requires_api: false

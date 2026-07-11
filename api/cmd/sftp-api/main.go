@@ -13,6 +13,10 @@
 //     SUPERADMIN_PASSWORD. SeedAdmin only inserts when the admin row is
 //     absent; the plaintext is hashed in memory and never logged.
 //  5. authn.NewService — JWT access/refresh issuer.
+//  5b. firebase.New — OPTIONAL subsystem (ATM-007): disabled by default
+//     (logs "firebase: disabled" and continues); when FIREBASE_ENABLED=true
+//     a misconfiguration (missing project id / unreadable or invalid
+//     service-account JSON) fails fast with a clear error.
 //  6. api.NewServer + http.Server with graceful shutdown on
 //     SIGINT/SIGTERM: http.Server.Shutdown first, then store.Close.
 //
@@ -35,7 +39,9 @@ import (
 	"github.com/vasic-digital/sftp/api/internal/api"
 	"github.com/vasic-digital/sftp/api/internal/authn"
 	"github.com/vasic-digital/sftp/api/internal/config"
+	"github.com/vasic-digital/sftp/api/internal/firebase"
 	"github.com/vasic-digital/sftp/api/internal/store"
+	"github.com/vasic-digital/sftp/api/internal/vault"
 )
 
 // shutdownTimeout bounds the graceful drain on signal.
@@ -93,7 +99,24 @@ func run() error {
 		return fmt.Errorf("sftp-api: auth service: %w", err)
 	}
 
-	srv := api.NewServer(cfg, st, authSvc)
+	// Firebase is OPTIONAL (ATM-007): disabled → logs "firebase: disabled"
+	// and the API continues; enabled-but-misconfigured → fail fast with a
+	// clear error (§11.4.6). Telemetry hooks are no-op-safe.
+	fbClient, err := firebase.New(ctx, firebase.Options{
+		Enabled:            cfg.FirebaseEnabled,
+		ProjectID:          cfg.FirebaseProjectID,
+		ServiceAccountPath: cfg.FirebaseServiceAccountPath,
+	})
+	if err != nil {
+		return err
+	}
+
+	vl, err := vault.New(vault.VaultConfig{DataDir: cfg.VaultDataDir})
+	if err != nil {
+		return fmt.Errorf("sftp-api: open vault: %w", err)
+	}
+
+	srv := api.NewServer(cfg, st, authSvc, fbClient, vl)
 	httpSrv := &http.Server{
 		Addr:              cfg.Addr(),
 		Handler:           srv.Engine(),

@@ -17,6 +17,7 @@ import (
 	"github.com/vasic-digital/sftp/api/internal/authn"
 	"github.com/vasic-digital/sftp/api/internal/config"
 	"github.com/vasic-digital/sftp/api/internal/store"
+	"github.com/vasic-digital/sftp/api/internal/vault"
 )
 
 // testEnv is a fully wired API stack: REAL Gin engine + REAL SQLite DB
@@ -60,7 +61,11 @@ func newTestEnv(t *testing.T) *testEnv {
 	if err != nil {
 		t.Fatalf("authn service: %v", err)
 	}
-	srv := NewServer(cfg, st, authSvc)
+	vl, err := vault.New(vault.VaultConfig{DataDir: filepath.Join(dir, "vault")})
+	if err != nil {
+		t.Fatalf("vault: %v", err)
+	}
+	srv := NewServer(cfg, st, authSvc, nil, vl) // nil firebase client in tests
 	return &testEnv{engine: srv.Engine(), server: srv, cfg: cfg, dir: dir, usrConf: usrConf}
 }
 
@@ -472,7 +477,11 @@ func TestMain_StoreReopenPersists(t *testing.T) {
 }
 
 func TestCryptVaultLifecycle(t *testing.T) {
-	v := newCryptVault()
+	vl, err := vault.New(vault.VaultConfig{DataDir: filepath.Join(t.TempDir(), "vault")})
+	if err != nil {
+		t.Fatalf("new vault: %v", err)
+	}
+	v := newCryptVault(vl)
 	if err := v.set("alice", "password1"); err != nil {
 		t.Fatalf("set: %v", err)
 	}

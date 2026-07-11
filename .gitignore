@@ -15,6 +15,8 @@ api_keys.sh
 google-services.json
 GoogleService-Info.plist
 firebase-config*.json
+service-account*.json
+firebase-service-account*.json
 
 # --- Runtime data / databases ------------------------------------------------
 data/
@@ -36,6 +38,7 @@ qa-results/
 # --- Build outputs / caches --------------------------------------------------
 api/bin/
 api/dist/
+bin/
 # Compiled Go binaries (build products — never versioned, §11.4.30)
 api/sftp-api
 /sftp-api
@@ -75,3 +78,12 @@ docs_chain.state.json
 # --- CodeGraph local index (its own tracked .gitignore also covers this) -----
 .codegraph/*
 !.codegraph/.gitignore
+
+# Subagent-driven-development scratch ledger (session-local, regenerated from git log)
+.superpowers/
+
+# TypeScript incremental build info (regenerable)
+*.tsbuildinfo
+
+# KMP/Android local SDK path (machine-specific, §11.4.10-style)
+mobile/local.properties

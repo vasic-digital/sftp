@@ -95,6 +95,8 @@ export interface SpacingTokens {
   baseUnit: 4;
   scale: Record<string, number>;
   semantic: Record<string, string>;
+  /** Layout constraints expressed as pixel values (not scale-relative). */
+  layout: Record<string, number>;
 }
 
 export interface RadiusTokens {
@@ -159,6 +161,9 @@ export const spacing: SpacingTokens = {
     gutterPage: '6', gutterSection: '8', stackTight: '2', stackDefault: '4',
     stackLoose: '6', insetControl: '3', insetCard: '5', insetModal: '6',
     touchTargetMin: '12',
+  },
+  layout: {
+    formMaxWidth: 560,
   },
 };
 

@@ -1,7 +1,7 @@
 # SFTP Project — Issues (workable items)
 
-**Revision:** 2
-**Last modified:** 2026-07-11T16:12:00Z
+**Revision:** 4
+**Last modified:** 2026-07-11T23:00:00Z
 
 Tracked per §11.4.15/§11.4.16/§11.4.54. Status vocabulary: Queued | In progress | Ready for testing | In testing | Reopened | Operator-blocked | Fixed (→ Fixed.md) / Implemented (→ Fixed.md) / Completed (→ Fixed.md). Type: Bug | Feature | Task.
 
@@ -19,7 +19,7 @@ Add all verified owned submodules at flat paths (§11.4.28) with install_upstrea
 
 ## §2. [ATM-002] Go REST API (Gin) — accounts, super-admin auth, DB, SFTP sync, audit
 
-**Status:** In progress
+**Status:** In testing (core landed in 6460e5e, 5/5 pkgs GREEN; awaiting STREAM-9 integration evidence)
 **Type:** Feature
 **Priority:** TOP
 
@@ -29,7 +29,7 @@ Gin server: config load (config module), logging (observability), recovery; supe
 
 ## §3. [ATM-003] SFTP config + permission system — YAML/JSON, renderer, migration
 
-**Status:** In progress
+**Status:** Completed (→ Fixed.md) — config_schemas/ + validate_config.sh selftest 4-bad/1-good, in 6460e5e
 **Type:** Feature
 **Priority:** TOP
 
@@ -37,45 +37,15 @@ Gin server: config load (config module), logging (observability), recovery; supe
 **Acceptance:** golden tests GREEN; captured container transcript in `docs/qa/ATM-003/`.
 **Scope:** `config/`, `api/internal/config*` (shared with ATM-002 — coordinated via conductor), `docs/qa/ATM-003/`.
 
-## §4. [ATM-004] Web admin — React/TS SPA, OpenDesign, i18n, UI tests
-
-**Status:** Queued (blocked-by ATM-002 API contract)
-**Type:** Feature
-**Priority:** MIDDLE
-
-Vite + React + TS; OpenDesign tokens (light/dark); API-Client-TS, Auth-Context-React, State-Management-TS, I18n-Client-TS (en); screens: login, dashboard, account editor (permission/public toggles), audit log, settings; Testing-Utils-TS UI tests; §11.4.170 host-rendered screenshot proof per screen × {light,dark}.
-**Acceptance:** production build artifact; screenshot matrix; UI test run log in `docs/qa/ATM-004/`.
-**Scope:** `web/`.
-
-## §5. [ATM-005] Mobile clients — KMP + Compose Multiplatform (Android/iOS/HarmonyOS/AuroraOS)
-
-**Status:** Queued (blocked-by ATM-002 API contract)
-**Type:** Feature
-**Priority:** MIDDLE
-
-Gradle KMP scaffold (shared + 4 targets); Auth-KMP, Security-KMP, Config-KMP, Storage-KMP; in-project KMP i18n + HTTP client (I18n-KMP/Network-KMP do not exist — honest in-project scope per §11.4.6); debug/release variants; Firebase config placeholders fed by `scripts/firebase_config.sh`; §11.4.170 rendered UI proof.
-**Acceptance:** `./gradlew :shared:test` GREEN; Android debug APK artifact; UI render evidence in `docs/qa/ATM-005/`.
-**Scope:** `mobile/`.
-
 ## §6. [ATM-006] Bash management scripts — service ctl, setup, backup, firebase config
 
-**Status:** In progress
+**Status:** Completed (→ Fixed.md) — 4 scripts + systemd + 44/44 smoke PASS + shellcheck clean, in 6460e5e
 **Type:** Task
 **Priority:** TOP
 
 `scripts/service_ctl.sh` (start/stop/restart/status, rootless podman-compose, no sudo); systemd `--user` units + installer; `scripts/setup.sh` (first-time env init — secrets never echoed per §11.4.10, super-admin creation, smoke); `scripts/backup.sh` (DB + data snapshots + restore); `scripts/firebase_config.sh` (dynamic Firebase config acquisition, git-ignored outputs). Every script: §11.4.18 doc block + `docs/scripts/<name>.md` + shellcheck clean.
 **Acceptance:** real start/stop cycle transcript in `docs/qa/ATM-006/`; docs present for every script.
 **Scope:** `scripts/` (non-testing), `deploy/systemd/`, `docs/scripts/`.
-
-## §7. [ATM-007] Firebase integration — Distribution, Analytics, Performance, Crashlytics
-
-**Status:** Queued (blocked-by ATM-004/005 scaffolds)
-**Type:** Feature
-**Priority:** MIDDLE
-
-Web modular init (Analytics/Performance/Crashlytics) behind env flags; mobile per-variant config from acquisition script; debug/prod separation; App Distribution groups; no tracked secrets.
-**Acceptance:** init logs + generated (git-ignored) config presence proof in `docs/qa/ATM-007/`.
-**Scope:** `web/src/firebase/`, `mobile/**/firebase/`, `scripts/firebase_config.sh` (co-owned with ATM-006).
 
 ## §8. [ATM-008] Design system & assets — OpenDesign, themes, asset formats
 
@@ -89,7 +59,7 @@ OpenDesign tokens integrated into web + mobile builds; light/dark theme packs; `
 
 ## §9. [ATM-009] Test matrix, Challenges banks, HelixQA suites
 
-**Status:** Queued (grows per stream; owns ATM-001 extension now)
+**Status:** In progress (STREAM-9 dispatched 2026-07-11; API lifecycle evidence being captured under qa/results/stream9/)
 **Type:** Task
 **Priority:** TOP (gates every closure)
 
@@ -109,7 +79,7 @@ Docs Chain contexts (`.docs_chain/`) for README/Status/Issues/Fixed/CONTINUATION
 
 ## §11. [ATM-011] Gates, code review, release plumbing, governance amendment
 
-**Status:** Queued (continuous; first action now: commit wrapper)
+**Status:** In progress (commit wrapper hardened + self-validated; per-task/final code review + release plumbing continue)
 **Type:** Task
 **Priority:** TOP (continuous)
 

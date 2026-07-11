@@ -1,0 +1,68 @@
+# ============================================================================
+# firebase.yaml — Firebase subsystem configuration schema (EXAMPLE / template)
+# ----------------------------------------------------------------------------
+# Documents the optional Firebase integration of the SFTP Enterprise API
+# (ATM-007, api/internal/firebase). Real values live in the git-ignored .env
+# (§11.4.10); env vars always override file values (api/internal/config).
+#
+# The subsystem is OPTIONAL and OFF by default:
+#   enabled=false → the API logs "firebase: disabled" and runs normally.
+#   enabled=true  → the API FAILS FAST unless project_id is set AND the
+#                   service_account_path points at a readable, valid
+#                   Admin SDK service-account JSON (§11.4.6 — no guessing).
+# ============================================================================
+version: 1
+
+# These are top-level API_CONFIG keys, not a nested firebase block.
+# They MUST match the Go struct tags in api/internal/config/config.go
+# (firebase_enabled, firebase_project_id, firebase_service_account_path).
+# Env vars always override file values.
+
+# Master switch. Env: FIREBASE_ENABLED (default false).
+firebase_enabled: false
+
+# Firebase project id. Env: FIREBASE_PROJECT_ID.
+# REQUIRED when enabled=true. Find it in the Firebase console:
+# Project settings → General → "Project ID".
+firebase_project_id: sftp-enterprise-dev
+
+# Path to the operator-provided Admin SDK service-account JSON.
+# Env: FIREBASE_SERVICE_ACCOUNT_PATH.
+# Generated in the Firebase console: Project settings → Service accounts
+# → "Generate new private key". The file is git-ignored
+# (service-account*.json, §11.4.10/.30) — NEVER commit it. chmod 600.
+firebase_service_account_path: ./secrets/firebase-service-account.json
+
+# Web app id used ONLY by scripts/firebase_config.sh to fetch the web
+# SDK config (env: FIREBASE_WEB_APP_ID). List apps: firebase apps:list.
+firebase_web_app_id: ""
+
+# --- JSON Schema (draft 2020-12) describing the same fields ----------------
+json_schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  title: SFTP Enterprise Firebase configuration
+  type: object
+  properties:
+    firebase_enabled:
+      type: boolean
+      default: false
+    firebase_project_id:
+      type: string
+      minLength: 1
+      description: Firebase project id (console → Project settings).
+    firebase_service_account_path:
+      type: string
+      minLength: 1
+      description: Path to git-ignored Admin SDK service-account JSON.
+    firebase_web_app_id:
+      type: string
+      description: Firebase web app id (1:PROJECT_NUMBER:web:HASH).
+  additionalProperties: true
+  # Conditional requirement: when firebase_enabled=true, project_id and
+  # service_account_path are mandatory.
+  if:
+    properties:
+      firebase_enabled:
+        const: true
+  then:
+    required: [firebase_project_id, firebase_service_account_path]

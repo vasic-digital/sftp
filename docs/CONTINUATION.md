@@ -1,11 +1,11 @@
 # SFTP Project — CONTINUATION
 
-**Revision:** 2
-**Last modified:** 2026-07-11T16:10:00Z
+**Revision:** 4
+**Last modified:** 2026-07-11T23:00:00Z
 
 ## §1. Where we are
 
-**PHASE:** Enterprise build-out — Phase 1 foundation COMMITTED + PUSHED (checkpoint c5e68b9 on all 4 upstreams); Phase 2 parallel streams (API / config / bash-ops) in flight.
+**PHASE:** Enterprise build-out — Phase 1 foundation + Phase 2 core COMMITTED + PUSHED (checkpoints c5e68b9, 6460e5e on all 4 upstreams); Phase 3 parallel client/QA streams: STREAM-4 (web) + STREAM-5 (mobile) + STREAM-7 (firebase) all DONE + independently verified; STREAM-9 (test-matrix) in progress (chaos fix running).
 
 The project transforms from a basic `atmoz/sftp` compose stub (see `docs/research/mvp/MVP.md`)
 into a full enterprise SFTP management system: Go/Gin REST API, account + permission management,
@@ -15,7 +15,8 @@ Docs Chain synced documentation, OpenDesign UI (light/dark), Firebase integratio
 
 ## §2. Live-state anchors
 
-- **HEAD:** c5e68b9 (ATM-001/008/010 batch-1: enterprise foundation) — pushed to github+gitlab+gitflic+gitverse (evidence: qa-results/push/push_20260711T155549Z.log)
+- **HEAD:** 6460e5e (ATM-002 Go API + ATM-003 config_schemas + ATM-006 bash ops + wrapper hardening) — pushed to github+gitlab+gitflic+gitverse; prior c5e68b9 (ATM-001/008/010 foundation) also pushed 4/4
+- **Uncommitted (conductor owns the commit):** STREAM-4 web/ (DONE+verified, migrated to Fixed.md), STREAM-5 mobile/ (DONE+verified, migrated to Fixed.md), STREAM-7 api/internal/firebase/+api/router (DONE+verified+reviewed, migrated to Fixed.md), STREAM-9 tests/+qa/ (in progress)
 - **Branch:** main (all work merges to main per §11.4.42 iteration discipline; no force-push §11.4.113)
 - **Remotes:** origin fan-out → github + gitlab + gitflic + gitverse (§2.1 multi-upstream push)
 - **Host:** Go 1.26.2 · Node v22.19.0 · Podman 5.7.1 rootless (no docker — §11.4.161) · 64 GB RAM · ulimit -u 65536
@@ -26,14 +27,12 @@ Docs Chain synced documentation, OpenDesign UI (light/dark), Firebase integratio
 
 | Stream | Item | Status | Scope (disjoint file ownership) |
 |---|---|---|---|
-| STREAM-2 | ATM-002 Go REST API (Gin) | In progress | `api/**` only (incl. `api/Dockerfile` addendum) |
-| STREAM-3 | ATM-003 SFTP config & permissions | In progress | `config/**`, `users.conf.example`, `scripts/validate_config.sh`, `docs/scripts/validate_config.md` |
-| STREAM-6 | ATM-006 Bash management scripts | In progress | `scripts/{sftp_ctl,setup,backup,firebase_config}.sh`, `deploy/systemd/*`, `tests/test_scripts_smoke.sh`, 4 guides |
+| STREAM-9 | ATM-009 Test matrix + QA banks | In progress (background) — chaos fix running; lifecycle evidence in qa/results/stream9/ | `tests/`, `qa/`, `docs/qa/` |
 
-Done + verified (checkpoint c5e68b9): STREAM-1 ATM-001, STREAM-8 ATM-008, STREAM-10 ATM-010-partial (core docs + docs_chain contexts).
-Queued (after API contract): ATM-004 (web), ATM-005 (mobile), ATM-007 (firebase).
-Continuous: ATM-009 (tests/QA), ATM-011 (gates/review/release plumbing).
-Conductor notes: compose `api.build` needs `{context: .., dockerfile: api/Dockerfile}` once STREAM-2's Dockerfile lands; `backups/` added to .gitignore for STREAM-6.
+Done + verified (checkpoints c5e68b9 + 6460e5e): STREAM-1 ATM-001, STREAM-2 ATM-002 (core, 5/5 pkgs), STREAM-3 ATM-003, STREAM-6 ATM-006, STREAM-8 ATM-008, STREAM-10 ATM-010-partial.
+Done + verified (2026-07-11, migrated to Fixed.md): STREAM-4 ATM-004 (19/19 vitest, 11 screenshots), STREAM-5 ATM-005 (7/7 tests ×2 deterministic), STREAM-7 ATM-007 (Admin SDK + review + fix, 7 tests + full suite GREEN).
+Continuous: ATM-011 (gates/review/release plumbing — commit wrapper hardened + self-validated).
+Conductor notes: compose `api.build` = `{context: .., dockerfile: api/Dockerfile}` (done); `backups/` + `service-account*.json` in .gitignore; commit_all.sh hardened (env.example exemption, code-scoped mutation scan, split secret audit) and self-validated. Coordination: cryptVault in-memory → after API restart accounts render `*` until password re-set (fail-closed, acceptable for MVP).
 
 ## §4. Terminal goal (this scope)
 

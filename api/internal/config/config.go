@@ -50,6 +50,16 @@ type Config struct {
 	LoginRateLimit int `json:"login_rate_limit" yaml:"login_rate_limit"`
 	// LoginRateWindow is the auth-endpoint rate-limit window.
 	LoginRateWindow time.Duration `json:"login_rate_window" yaml:"login_rate_window"`
+	// FirebaseEnabled gates the optional Firebase subsystem (default false).
+	FirebaseEnabled bool `json:"firebase_enabled" yaml:"firebase_enabled"`
+	// FirebaseProjectID is the Firebase project id (FIREBASE_PROJECT_ID).
+	FirebaseProjectID string `json:"firebase_project_id" yaml:"firebase_project_id"`
+	// FirebaseServiceAccountPath points at the operator-provided service
+	// account JSON (git-ignored, §11.4.10).
+	FirebaseServiceAccountPath string `json:"firebase_service_account_path" yaml:"firebase_service_account_path"`
+	// VaultDataDir is the filesystem directory where the persistent
+	// encrypted vault stores its data blobs (default data/vault).
+	VaultDataDir string `json:"vault_data_dir" yaml:"vault_data_dir"`
 }
 
 // Default returns the baseline configuration before file/env overrides.
@@ -65,6 +75,7 @@ func Default() *Config {
 		Version:            "0.1.0-dev",
 		LoginRateLimit:     10,
 		LoginRateWindow:    time.Minute,
+		VaultDataDir:       "data/vault",
 	}
 }
 
@@ -154,6 +165,18 @@ func applyEnv(c *Config) {
 		if d, err := time.ParseDuration(v); err == nil && d > 0 {
 			c.LoginRateWindow = d
 		}
+	}
+	if v := getenv("FIREBASE_ENABLED"); v == "1" || v == "true" {
+		c.FirebaseEnabled = true
+	}
+	if v := getenv("FIREBASE_PROJECT_ID"); v != "" {
+		c.FirebaseProjectID = v
+	}
+	if v := getenv("FIREBASE_SERVICE_ACCOUNT_PATH"); v != "" {
+		c.FirebaseServiceAccountPath = v
+	}
+	if v := getenv("VAULT_DATA_DIR"); v != "" {
+		c.VaultDataDir = v
 	}
 }
 

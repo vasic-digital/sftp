@@ -1,0 +1,131 @@
+# SFTP Enterprise Management System — Challenges Bank
+#
+# Machine-readable validation-probe registry. Each entry declares a
+# deterministic PASS/FAIL/SKIP Challenge that exercises a specific
+# endpoint / flow / subsystem with captured evidence (§11.4.5/§11.4.69).
+#
+# Schema: id, name, category, description, execute, expected,
+#          depends_on (optional), evidence (optional), severity.
+#
+# §11.4.27: HelixQA fully incorporated — every Challenge is a HelixQA
+# bank entry dispatched during autonomous QA sessions.
+# §11.4.52: Every user-visible Challenge is autonomous (no human
+# required to drive UI / observe screen / make decisions).
+
+challenges:
+  - id: CH-SFTP-001
+    name: API health check returns ok
+    category: api
+    description: >
+      The unauthenticated /api/v1/health endpoint MUST return HTTP 200
+      with a JSON body containing status ok, a version string, and a
+      firebase field indicating the subsystem state. This is the simplest
+      liveness probe and MUST pass before any other Challenge runs.
+    execute:
+      - curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7722/api/v1/health
+      - python3 -c "import sys,json; d=json.loads(sys.stdin.read()); assert d['status']=='ok','status not ok'; assert 'version' in d,'missing version'; assert 'firebase' in d,'missing firebase'" < <(curl -s http://127.0.0.1:7722/api/v1/health)
+    expected:
+      http_status: 200
+      json_keys: [status, version, firebase, time]
+      json_values:
+        status: ok
+    evidence: qa-results/CH-SFTP-001/
+    severity: critical
+
+  - id: CH-SFTP-002
+    name: Auth login flow returns JWT token pair
+    category: api
+    description: >
+      POST /api/v1/auth/login with valid super-admin credentials MUST
+      return HTTP 200 with a JSON body containing access_token,
+      refresh_token, token_type Bearer, and integer expiry fields.
+      Invalid credentials MUST return 401 with no user enumeration.
+      This Challenge validates the entire authn pipeline: bcrypt verify
+      against the seeded admin, JWT issuance, and token shape.
+    execute:
+      - bash tests/api/test_api_lifecycle.sh auth_only
+    expected:
+      exit_code: 0
+    depends_on:
+      - CH-SFTP-001
+    evidence: qa-results/CH-SFTP-002/
+    severity: critical
+
+  - id: CH-SFTP-003
+    name: Account CRUD lifecycle (create list read update delete)
+    category: api
+    description: >
+      Full CRUD cycle against /api/v1/accounts with a valid JWT. Creates
+      a test account (read_write permission), lists accounts and asserts
+      the new entry is present, reads it by username, updates the
+      permission to read_only, verifies the update, then deletes the
+      account and confirms it is gone. Every step carries its own
+      assertion; a failure at any step is a Challenge FAIL.
+    execute:
+      - bash tests/api/test_api_lifecycle.sh accounts_only
+    expected:
+      exit_code: 0
+    depends_on:
+      - CH-SFTP-002
+    evidence: qa-results/CH-SFTP-003/
+    severity: critical
+
+  - id: CH-SFTP-004
+    name: Public access guard rejects unacknowledged public account
+    category: api
+    description: >
+      Public access is NEVER a default. Creating an account with
+      permission public but public_acknowledged=false (or missing)
+      MUST return HTTP 422 Unprocessable Entity with a clear error
+      message. This Challenge proves the explicit-acknowledgement
+      guard is wired and cannot be bypassed.
+    execute:
+      - bash tests/api/test_api_lifecycle.sh public_guard
+    expected:
+      exit_code: 0
+    depends_on:
+      - CH-SFTP-002
+    evidence: qa-results/CH-SFTP-004/
+    severity: high
+
+  - id: CH-SFTP-005
+    name: Firebase graceful degrade when disabled
+    category: firebase
+    description: >
+      When FIREBASE_ENABLED=false (the default), the API MUST start,
+      /api/v1/health MUST report firebase=unavailable or firebase=disabled,
+      and the API MUST NOT crash, panic, or refuse to serve traffic due
+      to the missing Firebase subsystem. This Challenge proves the
+      optional-subsystem architecture (no guessing about startup
+      behaviour).
+    execute:
+      - >-
+        curl -s http://127.0.0.1:7722/api/v1/health |
+        python3 -c 'import sys,json; fb=json.loads(sys.stdin.read()).get("firebase","MISSING"); assert fb in ("unavailable","disabled"), f"unexpected firebase state: {fb}"'
+    expected:
+      http_status: 200
+      json_values:
+        firebase: [unavailable, disabled]
+    depends_on:
+      - CH-SFTP-001
+    evidence: qa-results/CH-SFTP-005/
+    severity: medium
+
+  - id: CH-SFTP-006
+    name: Web SPA loads all 4 screens without runtime errors
+    category: web
+    description: >
+      The React/TypeScript admin SPA MUST render all four screens (Login,
+      Dashboard, Account Editor, Settings) in both light and dark themes
+      WITHOUT console errors, broken layout, or uncaught exceptions.
+      Validated via Playwright headless Chromium host-rendered pixel
+      proof per §11.4.170 with OCR/vision layout oracle. This is the
+      §11.4.190 website-engineering-quality Challenge for the admin UI.
+    execute:
+      - node web/scripts/screenshots.mjs
+    expected:
+      exit_code: 0
+    depends_on:
+      - CH-SFTP-001
+    evidence: qa/results/stream4/screenshots/
+    severity: critical

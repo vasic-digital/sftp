@@ -48,6 +48,9 @@ export function toCssVariables(theme: ThemeTokens): CssVarMap {
   for (const [key, value] of Object.entries(theme.spacing.scale)) {
     vars[`--sftp-space-${key.replace('.', '-')}`] = `${value}px`;
   }
+  for (const [key, value] of Object.entries(theme.spacing.layout)) {
+    vars[`--sftp-layout-${kebab(key)}`] = `${value}px`;
+  }
   for (const [key, value] of Object.entries(theme.radius.scale)) {
     vars[`--sftp-radius-${key}`] = `${value}px`;
   }

@@ -3,6 +3,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -12,7 +13,9 @@ import (
 
 	"github.com/vasic-digital/sftp/api/internal/authn"
 	"github.com/vasic-digital/sftp/api/internal/config"
+	"github.com/vasic-digital/sftp/api/internal/firebase"
 	"github.com/vasic-digital/sftp/api/internal/store"
+	"github.com/vasic-digital/sftp/api/internal/vault"
 
 	mwgin "digital.vasic.middleware/pkg/gin"
 	"digital.vasic.middleware/pkg/logging"
@@ -26,15 +29,19 @@ const contextKeyClaims = "authn.claims"
 
 // Server bundles the router's collaborators.
 type Server struct {
-	cfg   *config.Config
-	store *store.Store
-	authn *authn.Service
-	vault *cryptVault
+	cfg      *config.Config
+	store    *store.Store
+	authn    *authn.Service
+	firebase *firebase.Client
+	vault    *cryptVault
 }
 
 // NewServer constructs a Server from already-opened collaborators.
-func NewServer(cfg *config.Config, st *store.Store, auth *authn.Service) *Server {
-	return &Server{cfg: cfg, store: st, authn: auth, vault: newCryptVault()}
+// v is the persistent encrypted vault for users.conf password hashes;
+// it MUST be non-nil (the API refuses to start without it).
+// fb may be nil when Firebase is disabled.
+func NewServer(cfg *config.Config, st *store.Store, auth *authn.Service, fb *firebase.Client, v *vault.Vault) *Server {
+	return &Server{cfg: cfg, store: st, authn: auth, firebase: fb, vault: newCryptVault(v)}
 }
 
 // Engine builds the Gin engine with the full middleware stack and routes.
@@ -80,11 +87,24 @@ func (s *Server) Engine() *gin.Engine {
 
 // handleHealth is the unauthenticated liveness probe.
 func (s *Server) handleHealth(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
+	resp := gin.H{
 		"status":  "ok",
 		"version": s.cfg.Version,
 		"time":    time.Now().UTC().Format(time.RFC3339),
-	})
+	}
+	if s.firebase == nil {
+		resp["firebase"] = "unavailable"
+	} else if !s.firebase.Active() {
+		resp["firebase"] = "disabled"
+	} else {
+		if err := s.firebase.Verify(c.Request.Context()); err != nil {
+			log.Printf("sftp-api: firebase verify failed: %v", err)
+			resp["firebase"] = "unhealthy"
+		} else {
+			resp["firebase"] = "connected"
+		}
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // authMiddleware rejects requests without a valid access-token bearer
