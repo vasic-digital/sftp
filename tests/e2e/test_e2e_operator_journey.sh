@@ -196,16 +196,16 @@ fi
 # ---------------------------------------------------------------------------
 CONF="$API_USERS_CONF"
 
-# alice: read_write — hash present, no :e suffix
-if grep -qE '^alice:\$6\$[^:]+:[0-9]+:[0-9]+:/alice$' "$CONF"; then
-    pass "read_write alice renders with \$6\$ hash and NO option suffix" "$RUN/07_users.conf"
+# alice: read_write — hash present with :e at position 3 (prevents double-hash)
+if grep -qE '^alice:\$6\$[^:]+:e:[0-9]+:[0-9]+:/alice$' "$CONF"; then
+    pass "read_write alice renders with \$6\$ hash and :e option" "$RUN/07_users.conf"
 else
     fail "read_write alice render grammar" "line: $(grep '^alice:' "$CONF" || echo missing)"
 fi
 
-# bob: read_write (just updated) — hash present, no :e suffix
-if grep -qE '^bob:\$6\$[^:]+:[0-9]+:[0-9]+:/bob$' "$CONF"; then
-    pass "read_write bob (after update) renders with \$6\$ hash and NO option suffix" "$RUN/07_users.conf"
+# bob: read_write (just updated) — hash present with :e at position 3
+if grep -qE '^bob:\$6\$[^:]+:e:[0-9]+:[0-9]+:/bob$' "$CONF"; then
+    pass "read_write bob (after update) renders with \$6\$ hash and :e option" "$RUN/07_users.conf"
 else
     fail "read_write bob render grammar" "line: $(grep '^bob:' "$CONF" || echo missing)"
 fi

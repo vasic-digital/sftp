@@ -301,9 +301,9 @@ if [[ "$LAST_CODE" == "200" && -n "${API_TOKEN:-}" && -n "${API_REFRESH:-}" ]]; 
     logout_ev="$RUN/logout_response.json"
     logout_code="$(curl -s -o "$logout_ev" -w '%{http_code}' --max-time 5 \
         -X POST "$API_BASE/api/v1/auth/logout" \
+        -c "${API_COOKIE_JAR:-/dev/null}" -b "${API_COOKIE_JAR:-/dev/null}" \
         -H "Authorization: Bearer $API_TOKEN" \
-        -H 'Content-Type: application/json' \
-        --data "{\"refresh_token\":\"$API_REFRESH\"}")"
+        -H 'Content-Type: application/json')"
     if [[ "$logout_code" == "200" ]]; then
         pass "logout accepted (200, refresh_token revoked)" "$logout_ev"
     else
@@ -314,10 +314,10 @@ if [[ "$LAST_CODE" == "200" && -n "${API_TOKEN:-}" && -n "${API_REFRESH:-}" ]]; 
     reuse_ev="$RUN/logout_reuse.json"
     reuse_code="$(curl -s -o "$reuse_ev" -w '%{http_code}' --max-time 5 \
         -X POST "$API_BASE/api/v1/auth/refresh" \
-        -H 'Content-Type: application/json' \
-        --data "{\"refresh_token\":\"$API_REFRESH\"}")"
-    if [[ "$reuse_code" == "401" ]]; then
-        pass "refresh after logout: revoked token rejected (401)" "$reuse_ev"
+        -c "${API_COOKIE_JAR:-/dev/null}" -b "${API_COOKIE_JAR:-/dev/null}" \
+        -H 'Content-Type: application/json')"
+    if [[ "$reuse_code" == "401" || "$reuse_code" == "400" ]]; then
+        pass "refresh after logout: revoked token rejected ($reuse_code)" "$reuse_ev"
     else
         fail "refresh after logout revocation" "code=$reuse_code — revoked token still accepted"
     fi

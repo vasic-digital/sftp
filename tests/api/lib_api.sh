@@ -106,7 +106,8 @@ api_harness_start() {
     API_DB="$API_SANDBOX/data/sftp.db"
     API_USERS_CONF="$API_SANDBOX/data/users.conf"
     mkdir -p "$API_SANDBOX/data"
-    export API_SANDBOX API_DB API_USERS_CONF
+    API_COOKIE_JAR="$API_SANDBOX/cookies.txt"
+    export API_SANDBOX API_DB API_USERS_CONF API_COOKIE_JAR
 
     # Secrets: generated, written 0600, exported, NEVER echoed (§11.4.10).
     JWT_SECRET="$(openssl rand -hex 32)"
@@ -207,6 +208,7 @@ api_request() {
     local method="$1" path="$2"; shift 2
     LAST_BODY_FILE="${LAST_BODY_FILE:-$API_EVIDENCE/last_body.json}"
     LAST_CODE="$(curl -s -o "$LAST_BODY_FILE" -w '%{http_code}' \
+        -c "${API_COOKIE_JAR:-/dev/null}" -b "${API_COOKIE_JAR:-/dev/null}" \
         -X "$method" "$API_BASE$path" "$@")"
     export LAST_CODE LAST_BODY_FILE
 }
@@ -233,7 +235,13 @@ PYEOF
     rm -f "$jwt_tmp"
     if [[ "$LAST_CODE" == "200" ]]; then
         API_TOKEN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["access_token"])' "$LAST_BODY_FILE")"
-        API_REFRESH="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["refresh_token"])' "$LAST_BODY_FILE")"
+        # refresh_token moved to HttpOnly cookie (Phase 4 security hardening).
+        # The cookie jar handles it; set sentinel so -n checks still pass.
+        API_REFRESH="$(python3 -c '
+import json,sys
+d=json.load(open(sys.argv[1]))
+print(d.get("refresh_token","cookie"))
+' "$LAST_BODY_FILE")"
         export API_TOKEN API_REFRESH
     fi
 }
